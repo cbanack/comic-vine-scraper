@@ -153,6 +153,9 @@ class ScrapeEngine(object):
       were skipped over. 
       '''
       
+      # how many books were scraped [0], and how many skipped over by user [1].
+      scrape_vs_skip = [0,0];
+      
       # 1. sort ComicBook so that all comics that are from the same series are
       #    grouped together.  we'll loop through them in this order
       Array.Sort(books, self._BookComparer())
@@ -169,10 +172,7 @@ class ScrapeEngine(object):
          else:
             # 2b. a null config means the user cancelled the scrape
             self.__cancelled_b = True
-            return 
-
-      # how many books were scraped [0], and how many skipped over by user [1].
-      scrape_vs_skip = [0,0];
+            return scrape_vs_skip
 
       # 3. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
