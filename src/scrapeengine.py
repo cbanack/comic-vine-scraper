@@ -153,7 +153,8 @@ class ScrapeEngine(object):
       were skipped over. 
       '''
       
-      # how many books were scraped [0], and how many skipped over by user [1].
+      # return value of this method. how many books were scraped [0], 
+      # and how many skipped over by user [1].
       scrape_vs_skip = [0,0];
       
       # 1. sort ComicBook so that all comics that are from the same series are
@@ -180,9 +181,9 @@ class ScrapeEngine(object):
       try:
          
          # caches the scraped data we've accumulated as the loop progresses
-         scrape_map = {}
+         scrape_cache = {}
          
-         # 4. start the main ComicBook processing loop
+         # 4. start the "Main Processing Loop"
          for i in range( len(books) ):
             if self.__cancelled_b: break
             book = books[i]
@@ -199,8 +200,7 @@ class ScrapeEngine(object):
             while bookstatus == self._BookStatus.UNSCRAPED \
                   and not self.__cancelled_b:
                
-               bookstatus = self.__scrape_book( comic_form, book, 
-                  manual_search, scrape_map)
+               bookstatus =self.__scrape_book(book, scrape_cache, manual_search)
                if self.__cancelled_b: 
                   scrape_vs_skip[1] += len(books)-i; # loop will end
                else:
@@ -223,7 +223,47 @@ class ScrapeEngine(object):
 
 
    # ==========================================================================
-   def __scrape_book(self, comic_form, book, manual_search, scrape_map):
+   def __scrape_book(self, book, scrape_cache, manual_search_b):
+      '''
+      This method is the heart of the Main Processing Loop. It scrapes a single
+      ComicBook object by first figuring out which issue entry in the database 
+      matches that book, and then copying those details into the ComicBook's 
+      metadata fields.  
+      
+      The steps involved are:
+      
+       1.  Come up with search terms for the given 'book'
+            - if 'manual_search_b' then guess the terms based on the book's name
+            - else ask the user to provide search terms
+       2.  Search database for all comic series that match those search terms.
+       3.  Ask the user which of the resulting series is the correct one
+       4a. If the user picks a series:
+            - we guess which issue in that series matches our ComicBook, OR
+            - we ask the user to specify the correct issue (if we can't guess)
+       4b. Else the use might decide to skip scraping this book.
+       4c. Else the user might decide to start over with new search terms
+       4d. Else the user might choose to specify the correct issue manually
+       4e. Else the user might cancel the entire operation
+       
+       Throughout this process, the 'scrape_cache' (a map, empty at first) is
+       used to speed things up.  It caches details from previous calls to this 
+       method, so if this method is called repeatedly, the same scrape_cache 
+       should be passed in each time.
+       
+       RETURN VALUES
+       
+       _BookStatus.UNSCRAPED: if the book wasn't be scraped, either because
+          the search terms yielded no results, or the user opted to specify
+          new search terms
+          
+       _BookStatus.SKIPPED: if this one book was skipped over by the user, or  
+          of the user cancelled the entire current scrape operation (check the
+          status if the ScrapeEngine).
+          
+       _BoolStatus.SCRAPED: if the book was scraped successfully, and now 
+          contains updated metadata.
+       
+      '''
 
       # WARNING:  THE CODE IN THIS METHOD IS EXTREMELY SUBTLE.
       # Be sure you understand EVERYTHING that's going on and why before you
@@ -232,54 +272,58 @@ class ScrapeEngine(object):
       Application.DoEvents()
       if self.__cancelled_b: return self._BookStatus.SKIPPED
 
+      # 1. if this book is being 'rescraped', sometimes it already knows the 
+      #    correct issue_ref from a previous scrape. METHOD EXIT: if that 
+      #    rescrape issue_ref is available, we use it immediately. also, if the
+      #    rescrape issue_ref is the string "skip", it means 'skip this book'.
       issue_ref = bookutils.extract_issue_ref(book)
-
-      # exit point 1: if the cv issue ID is the string "skip", that means this
-      # issue should never be scraped, so skip it automatically
       if issue_ref == 'skip': 
          log.debug("found SKIP tag, so skipping the scrape for this book.")
          return self._BookStatus.SKIPPED
 
-      # exit point 2: if the cv issue ID can be parsed directly out of the book
       if issue_ref and self.config.fast_rescrape_b:
-         log.debug("found CVDB tag in book, " + 
+         log.debug("found rescrape tag in book, " + 
             "scraping details directly: " + sstr(issue_ref));
          try:
             issue = db.query_issue(issue_ref)
             bookutils.save_issue_to_book(issue, book, self)
             return self._BookStatus.SCRAPED
          except:
-            log.debug_exc("Error scraping details directly:")
-            log.debug("Ignoring CVDB tag and falling back to normal search...")
+            log.debug_exc("Error rescraping details:")
+            log.debug("Ignoring rescrape tag; falling back to normal search...")
             issue_ref = None # fall through to the next section
 
-      # exit point 3: figure out if we're in a series that has already been
-      # chosen by the user.  if not, get the search term for finding that series
+      # 2. search for all the series in the database that match the current
+      #    book.  if info for this book's series has already been cached, we 
+      #    can skip this step.  METHOD EXIT: if we show the user the 'search' 
+      #    dialog, she may use it to skip this book or cancel the whole scrape.
       log.debug("no CVDB tag found in book, beginning search...")
-      key = self._ScrapedSeries.build_mapkey(book)
-      search_string = None
+      search_terms_s = None
       series_refs = None
-      if key in scrape_map and not self.config.scrape_in_groups_b:
-         # removing this key forces the scraper to treat this comic series
+      key = self._ScrapedSeries.build_mapkey(book)
+      if key in scrape_cache and not self.config.scrape_in_groups_b:
+         # uncaching this key forces the scraper to treat this comic series
          # as though this was the first time we'd seen it
-         del scrape_map[key] 
-      if key not in scrape_map: 
-         # build a new series info for this key, and add it to the map
-         search_string = book.ShadowSeries.strip()
-         if manual_search or not search_string:
-            search_string = self.__get_search_string(
-               comic_form, book, search_string)
-            if search_string == SearchFormResult.CANCEL:
+         del scrape_cache[key] 
+      if key not in scrape_cache: 
+         # build a new cache entry for this key, and add it to the cache
+         search_terms_s = book.ShadowSeries.strip()
+         if manual_search_b or not search_terms_s:
+            # show dialog asking the user for the right search terms
+            search_terms_s = self.__get_search_string(book, search_terms_s)
+            if search_terms_s == SearchFormResult.CANCEL:
                self.__cancelled_b = True
                return self._BookStatus.SKIPPED
-            elif search_string == SearchFormResult.SKIP:
+            elif search_terms_s == SearchFormResult.SKIP:
                return self._BookStatus.SKIPPED
-         series_refs = self.__get_series_refs(search_string)
-         if self.__cancelled_b: return self._BookStatus.SKIPPED
+         # query the database for series_refs that match the search terms
+         series_refs = self.__get_series_refs(search_terms_s)
+         if self.__cancelled_b: 
+            return self._BookStatus.SKIPPED
          if not series_refs:
             MessageBox.Show(self.comicrack.MainWindow,
                "Couldn't find any comic books that match the search terms:\n\n"\
-               "     '" + search_string + "'\n\n"\
+               "     '" + search_terms_s + "'\n\n"\
                "Be sure that these search terms are spelled correctly!\n\n"\
                "Searches should include part (or all) of a comic book's "\
                "title,\nbut NOT its issue number, publisher, publication "\
@@ -287,21 +331,20 @@ class ScrapeEngine(object):
                "Search Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             return self._BookStatus.UNSCRAPED
 
-
-
-      # exit point 4: search comic vine for the series that match the search
-      # term, and then force the user to pick one of them.  put that series
-      # into the map so the user doesn't have to pick it again for any other
-      # books that appear to be in the same series.
+      # 3. now that we have a set of series_refs that match this book, show the 
+      #    user the 'series dialog' so they can pick the right one.  put the 
+      #    chosen series into the cache so the user doesn't have to pick it 
+      #    again for any future books that are in the same series.
+      #    METHOD EXIT: while viewing the series dialog, the user might skip,
+      #    request to re-search, or cancel the entire scrape operation.
       while True:
          force_issue_dialog_b = False 
-         if key not in scrape_map: 
-            if not series_refs or not search_string:
+         if key not in scrape_cache: 
+            if not series_refs or not search_terms_s:
                return self._BookStatus.UNSCRAPED # rare but possible, bug 77
-            result = self.__choose_series_ref(
-               comic_form, book, search_string, series_refs)
+            result = self.__choose_series_ref(book, search_terms_s, series_refs)
             
-            if SeriesFormResult.CANCEL == result.get_name() or self.__cancelled_b:
+            if SeriesFormResult.CANCEL==result.get_name() or self.__cancelled_b:
                self.__cancelled_b = True
                return self._BookStatus.SKIPPED # user says 'cancel'
             elif SeriesFormResult.SKIP == result.get_name():
@@ -313,23 +356,30 @@ class ScrapeEngine(object):
                scraped_series = self._ScrapedSeries()
                scraped_series.series_ref = result.get_ref()
                force_issue_dialog_b = SeriesFormResult.SHOW == result.get_name()
-               scrape_map[key] = scraped_series
-         scraped_series = scrape_map[key]
+               scrape_cache[key] = scraped_series
+         scraped_series = scrape_cache[key]
 
 
-         # exit point 5: get a list of issues for the chosen series, and then
-         # chose one (automatically if possible, manually if needed or forced).
-         # scrape its details and placed int the current book.
+         # 4. now that we know the right series, query the database for all the
+         #    issues that are are in that series. then try to pick one, either
+         #    automatically, or by showing the use the "issues dialog".  cache 
+         #    the discovered issues, so we don't have to query again if we 
+         #    scrape another book from this series.  METHOD EXIT: if the user 
+         #    sees the query dialog, she may skip, cancel the whole scrape, 
+         #    go back to the series dialog, or choose an issue.
          log.debug("searching for the right issue in '", 
             scraped_series.series_ref, "'")
          
+         # get and/or cache the issue refs for our chosen series
          if not scraped_series.issue_refs:
-            scraped_series.issue_refs = self.__get_issue_refs(
-               scraped_series.series_ref)
-            if self.__cancelled_b: return self._BookStatus.SKIPPED
+            scraped_series.issue_refs = \
+               self.__get_issue_refs(scraped_series.series_ref)
+            if self.__cancelled_b: 
+               return self._BookStatus.SKIPPED
 
-         result = self.__choose_issue_ref(comic_form, book.ShadowNumber,
-            scraped_series.issue_refs, book, 
+         # choose the issue that matches the book we are scraping
+         result = self.__choose_issue_ref(
+            book.ShadowNumber, scraped_series.issue_refs, book, 
             scraped_series.series_ref.series_name_s, force_issue_dialog_b)
          if result.get_name() == IssueFormResult.CANCEL or self.__cancelled_b:
             self.__cancelled_b = True
@@ -338,12 +388,13 @@ class ScrapeEngine(object):
             if force_issue_dialog_b:
                # the user clicked 'show issues', then 'skip', so we have to
                # ignore his previous series selection.
-               del scrape_map[key]
+               del scrape_cache[key]
             return self._BookStatus.SKIPPED
          elif result.get_name() == IssueFormResult.BACK:
             # ignore users previous series selection
-            del scrape_map[key]
+            del scrape_cache[key]
          else:
+            # we know the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
             issue = db.query_issue( result.get_ref() )
             bookutils.save_issue_to_book(issue, book, self)
@@ -352,7 +403,8 @@ class ScrapeEngine(object):
       raise Exception("should never get here")
 
 
-   def __get_search_string(self, comic_form, book, initial_search_string):
+   # coryhigh: START HERE!
+   def __get_search_string(self, book, initial_search_string):
       log.debug('asking user for series search term...');
 
       with SearchForm(self, initial_search_string) as search_form:
@@ -401,7 +453,7 @@ class ScrapeEngine(object):
       return series_refs
    
 
-   def __choose_series_ref(self, comic_form, book, search_string, series_refs):
+   def __choose_series_ref(self, book, search_string, series_refs):
       result = SeriesFormResult(SeriesFormResult.SEARCH) # default
       if series_refs:
          log.debug('displaying the series selection dialog...')
@@ -435,7 +487,7 @@ class ScrapeEngine(object):
          return db.query_issue_refs(series_ref, callback)
 
 
-   def __choose_issue_ref(self, comic_form, issue_num_s, issue_refs, \
+   def __choose_issue_ref(self, issue_num_s, issue_refs, \
          book, series_name_s, force_b):
 
       issue_num_s = '' if not issue_num_s else issue_num_s.strip()
