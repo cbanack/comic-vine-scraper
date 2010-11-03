@@ -1,11 +1,13 @@
 '''
-This module contains is the gateway to the "database" that the script uses to 
+This module contains is the gateway to whatever "database" this script uses to 
 obtain information about comic books.   The exact nature of this database is 
-intentionally vague; the rest of this script/app can be understood using only 
-the contract described by each of the functions in this module.  
+intentionally vague in order to remain modular and interchangable.  In other
+words, the behaviour of this "comic book database" can be understood entirely  
+by knowing the contract described by the public functions in this module.  
 
-The underlying implementation of this class is probably an internet query on 
-some remote data source, so it may be quite slow.
+While no promises about the underlying implementation are made, you should 
+expect that this implementation accesses data from a remote source, and 
+therefore may be quite slow!
 
 Created on May 6, 2010
 @author: cbanack
@@ -21,29 +23,25 @@ __series_ref_cache = {}
 def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
    '''
    This method takes a some search terms (space separated words) and uses them
-   to query the database for comic book series that match those words.   
+   to query the database for a comic book series objects that match those words.   
    
    Each matching series is encoded as a SeriesRef object; this method returns 
-   a set of them.  The set may be empty if no series match the search, or
+   a set of them.  The set may be empty if no series matches the search, or
    if the search is cancelled (see below).
    
-   You can pass in an optional callback function, which may be called 
+   You can pass in an optional callback function, which MAY be called 
    periodically while the search is accumulating results.  This function takes 
    two arguments:
         an integer: how many matches have been found so far
         an integer: how many times the callback is expected to be called
         
-   The function must also return a boolean indicating whether or not to cancel
-   the search.   If this returned value is true, of course, the query will stop
-   immediately and return an empty list of results.
-   
-   Note that if the backing database implementation (or the search itself) is 
-   fast enough, it may choose NOT to call the callback function at all.
+   The function must also return a boolean indicating whether or not to CANCEL
+   the search.   If this returned value is ever true, this query should
+   stop immediately and return an empty set of results.
    '''
    
-   # this method would normally be a simple call to the CVDB method..but we've
-   # got a cache here, just to handle the common cases where the same search 
-   # gets called repeatedly. 
+   # An internal implementation of query_series_refs that caches results
+   # for faster repeat lookups.
    global __series_ref_cache
    if search_terms_s in __series_ref_cache:
       return list(__series_ref_cache[search_terms_s])
@@ -53,7 +51,6 @@ def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
          __series_ref_cache = {} # keep the cache from ever getting too big
       __series_ref_cache[search_terms_s] = list(series_refs)
       return series_refs
-
 
 
 # =============================================================================
@@ -66,18 +63,14 @@ def query_issue_refs(series_ref, callback_function=lambda x,y : False):
    an set of them.  The set may be empty if the series has no 
    issues, or if the query is cancelled (see below).
    
-   You can pass in an optional callback function, which may be called 
+   You can pass in an optional callback function, which MAY be called 
    periodically while the IssueRefs are accumulating.  This function takes 
    one float argument: the percentage (between 0.0 and 1.0) of the available
    IssueRefs that have been read in so far.
         
    The function must also return a boolean indicating whether or not to cancel
-   the query.   If this returned value is true, of course, the query will stop
+   the query.   If this returned value is true, the query should stop
    immediately and return an empty set of results.
-   
-   Note that if the backing database implementation is fast enough, (or the 
-   series doesn't have very many issues), the callback function may
-   NEVER be called.
    '''
    return cvdb._query_issue_refs(series_ref, callback_function)  
 

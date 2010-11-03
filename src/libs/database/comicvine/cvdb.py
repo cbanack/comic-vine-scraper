@@ -13,7 +13,8 @@ import resources
 import cvconnection
 import log
 import re
-from utils import is_string, is_number, sstr
+import utils
+from utils import is_string, is_number, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
 
 clr.AddReference('System')
@@ -29,12 +30,30 @@ from System.Drawing import Image
 # memory leak (until the main app shuts down), but it is small and worth it.
 __series_details_cache = {}
 
+
 # =============================================================================
 def _query_series_refs(search_terms_s, callback_function):
    '''
    This method is the Comic Vine implementation of the identically named 
    method in the db.py module.
    '''
+   
+   # clean up the search terms (to make them more palatable to comicvine
+   # databases) before searching.  if no results are found, clean them up more 
+   # aggressively and try one more time.
+   search_terms_s = __cleanup_search_terms(search_terms_s, False)
+   series_refs = __query_series_refs(search_terms_s, callback_function)
+   if not series_refs:
+      altsearch_s = __cleanup_search_terms(search_terms_s, True);
+      if altsearch_s != search_terms_s:
+         series_refs = __query_series_refs(altsearch_s, callback_function)
+   return series_refs
+
+
+# =============================================================================
+def __query_series_refs(search_terms_s, callback_function):
+   ''' A private implementation of the public method with the same name. '''
+   
    cancelled_b = [False]
    series_refs = set()
    
@@ -99,8 +118,51 @@ def _query_series_refs(search_terms_s, callback_function):
                         series_refs.add( _makeref(volume) )
    
    # 6. Done!  We've gone through and gathered all results.
-   return set() if cancelled_b[0] else series_refs
+   return set() if cancelled_b[0] else series_refs   
+
+
+# ==========================================================================   
+def __cleanup_search_terms(search_terms_s, alt_b):
+   '''
+   Returns a cleaned up version of the given search terms.  The terms are 
+   cleaned by removing, replacing, and massaging certain keywords to make the
+   Comic Vine search more likely to return the results that the user really
+   wants.
+   
+   'search_terms_s' -> the search terms to clean up
+   'alt_b' -> true to attempt to produce an alternate search string by also
+              replacing numerical digits with their corresponding english words
+              and vice versa (i.e. "8" <-> "eight")
+   '''
+   # All of the symbols below cause inconsistency in title searches
+   search_terms_s = search_terms_s.lower()
+   search_terms_s = search_terms_s.replace('.', '')
+   search_terms_s = search_terms_s.replace('_', ' ')
+   search_terms_s = search_terms_s.replace('-', ' ')
+   search_terms_s = re.sub(r'\b(vs\.?|versus|and|or|the|an|of|a|is)\b',
+      '', search_terms_s)
+   search_terms_s = re.sub(r'giantsize', r'giant size', search_terms_s)
+   search_terms_s = re.sub(r'giant[- ]*sized', r'giant size', search_terms_s)
+   search_terms_s = re.sub(r'kingsize', r'king size', search_terms_s)
+   search_terms_s = re.sub(r'king[- ]*sized', r'king size', search_terms_s)
+   search_terms_s = re.sub(r"directors", r"director's", search_terms_s)
+   search_terms_s = re.sub(r"\bvolume\b", r"\bvol\b", search_terms_s)
+   search_terms_s = re.sub(r"\bvol\.\b", r"\bvol\b", search_terms_s)
+
+   # of the alternate search terms is requested, try to expand single number
+   # words, and if that fails, try to contract them.
+   orig_search_terms_s = search_terms_s
+   if alt_b:
+      search_terms_s = utils.convert_number_words(search_terms_s, True)
+   if alt_b and search_terms_s == orig_search_terms_s:
+      search_terms_s = utils.convert_number_words(search_terms_s, False)
       
+   # strip out punctuation
+   word = re.compile(r'[\w]{1,}')
+   search_terms_s = ' '.join(word.findall(search_terms_s))
+   
+   return search_terms_s
+     
       
 # =============================================================================
 def _query_issue_refs(series_ref, callback_function=lambda x : False):
@@ -128,6 +190,7 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
    log.debug("   ...found ", len(safe-fast), " more using SAFE issue query") 
       
    return fast | safe
+      
       
 # =============================================================================
 def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):

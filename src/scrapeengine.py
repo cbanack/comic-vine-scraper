@@ -1,5 +1,3 @@
-# corylow: comment and cleanup this file
-
 import clr, re
 
 import resources 
@@ -45,11 +43,11 @@ class ScrapeEngine(object):
       object as it's only parameter.
       '''
       
-      # the Configuration details for this ScrapeEngine.   
+      # the Configuration details for this ScrapeEngine.  used everywhere.  
       self.config = Configuration()
       
       # the ComicRack application object, i.e. the instance of ComicRack that
-      # is running this script.
+      # is running this script.  used everywhere.
       self.comicrack = comicrack
       
       # a list of methods that will each be fired whenever the 'scrape' 
@@ -69,6 +67,27 @@ class ScrapeEngine(object):
       # set to True, it indicates that the entire script should be cancelled as 
       # soon as possible.
       self.__cancelled_b = False
+
+
+
+   # ==========================================================================
+   def cancel(self):
+      '''
+      This method cancels the ScrapeEngine's current scrape operation, 
+      and causes the main processing loop to exit on the next iteration;
+      all ComicBooks that haven't yet been scraped will be skipped.
+      
+      This method is thread safe.
+      '''
+      
+      if not self.__cancelled_b:
+         def delegate(): 
+            if not self.__cancelled_b:
+               self.__cancelled_b = True;
+               for cancel_listener in self.cancel_listeners:
+                  cancel_listener()
+      utils.invoke(self.comicrack.MainWindow, delegate, True)
+
 
 
    # ==========================================================================
@@ -111,26 +130,6 @@ class ScrapeEngine(object):
 
       except Exception, ex:
          log.handle_error(ex)
-
-
-
-   # ==========================================================================
-   def cancel(self):
-      '''
-      This method cancels the ScrapeEngine's current scrape operation, 
-      and causes the main processing loop to exit on the next iteration;
-      all ComicBooks that haven't yet been scraped will be skipped.
-      
-      This method is thread safe.
-      '''
-      
-      if not self.__cancelled_b:
-         def delegate(): 
-            if not self.__cancelled_b:
-               self.__cancelled_b = True;
-               for cancel_listener in self.cancel_listeners:
-                  cancel_listener()
-      utils.invoke(self.comicrack.MainWindow, delegate, True)
 
 
 
@@ -424,48 +423,6 @@ class ScrapeEngine(object):
 
 
    # ==========================================================================   
-   def __query_series_refs(self, search_terms_s):
-      '''
-      This method queries the online database for a set of SeriesRef objects
-      that match the given (non-empty) search terms.   It will return a set 
-      of SeriesRefs, which may be empty if no matches could be found.
-      '''
-      if not search_terms_s:
-         raise Exception("cannot query for empty search terms")
-      
-      with ProgressBarForm(self.comicrack.MainWindow, self, 1) as progbar:
-         # this function gets called each time an series_ref is obtained
-         def callback(num_matches_n, expected_callbacks_n):
-            if not self.__cancelled_b:
-               if not progbar.Visible:
-                  progbar.prog.Maximum = expected_callbacks_n
-                  progbar.show_form()
-               if progbar.Visible and not self.__cancelled_b:
-                  progbar.prog.PerformStep()
-                  progbar.Text = 'Searching Comic Vine (' + \
-                     sstr(num_matches_n) + ' matches)'
-            Application.DoEvents()
-            return self.__cancelled_b
-         # search once, and if that fails, do it again with modified terms   
-         search_terms_s = self.__cleanup_search_terms(search_terms_s, False)
-         log.debug("searching for series that match '", search_terms_s, "'...")
-         series_refs = db.query_series_refs(search_terms_s, callback)
-         if len(series_refs) == 0:
-            altsearch_s = self.__cleanup_search_terms(search_terms_s, True);
-            if altsearch_s != search_terms_s:
-               log.debug("...nothing. trying alternate '", altsearch_s, "'...")
-               series_refs = db.query_series_refs(altsearch_s, callback)
-         
-      
-      if len(series_refs) == 0:
-         log.debug("...no results found for this search.")
-      else:
-         log.debug("...found {0} results".format(len(series_refs)))
-      return series_refs
-   
-
-
-   # ==========================================================================   
    def __choose_series_ref(self, book, search_terms_s, series_refs):
       '''
       This method displays the SeriesForm, a dialog that shows all of the
@@ -485,34 +442,6 @@ class ScrapeEngine(object):
             result = sform.show_form()
          log.debug('   ...chose to ', result.get_debug_string())
       return result
-
-
-
-   # ==========================================================================   
-   def __query_issue_refs(self, series_ref):
-      '''
-      This method queries the online database for a set of IssueRef objects
-      that match the given SeriesRef.   The returned set may be empty if no 
-      matches were found.
-      '''
-      
-      log.debug("finding all issues for '", series_ref, "'...")
-      with ProgressBarForm(self.comicrack.MainWindow, self, 1) as progform:
-         # this function gets called each time another issue_ref is obtained
-         def callback(complete_ratio_n):
-            complete_ratio_n = max(0.0, min(1.0, complete_ratio_n))
-            if complete_ratio_n < 1.0 and not progform.Visible\
-                  and not self.__cancelled_b:
-               progform.prog.Maximum = 100
-               progform.prog.Value = complete_ratio_n * 100
-               progform.show_form()
-            if progform.Visible and not self.__cancelled_b:
-               progform.prog.Value = complete_ratio_n * 100
-               progform.Text = 'Loading Series Details (' + \
-                  sstr((int)(complete_ratio_n * 100)) + "% complete)"
-            Application.DoEvents()
-            return self.__cancelled_b
-         return db.query_issue_refs(series_ref, callback)
 
 
 
@@ -590,40 +519,69 @@ class ScrapeEngine(object):
       return result # will not be None now
 
 
-   # ==========================================================================   
-   def __cleanup_search_terms(self, search_terms_s, alt_b):
-      '''
-      coryhigh: START HERE: move this method to db.py?
-      '''
-      # All of the symbols below cause inconsistency in title searches
-      # alt_b means use the alternate search terms
-      search_terms_s = search_terms_s.lower()
-      search_terms_s = search_terms_s.replace('.', '')
-      search_terms_s = search_terms_s.replace('_', ' ')
-      search_terms_s = search_terms_s.replace('-', ' ')
-      search_terms_s = re.sub(r'\b(vs\.?|versus|and|or|the|an|of|a|is)\b',
-         '', search_terms_s)
-      search_terms_s = re.sub(r'giantsize', r'giant size', search_terms_s)
-      search_terms_s = re.sub(r'giant[- ]*sized', r'giant size', search_terms_s)
-      search_terms_s = re.sub(r'kingsize', r'king size', search_terms_s)
-      search_terms_s = re.sub(r'king[- ]*sized', r'king size', search_terms_s)
-      search_terms_s = re.sub(r"directors", r"director's", search_terms_s)
-      search_terms_s = re.sub(r"\bvolume\b", r"\bvol\b", search_terms_s)
-      search_terms_s = re.sub(r"\bvol\.\b", r"\bvol\b", search_terms_s)
 
-      # of the alternate search terms is requested, try to expand single number
-      # words, and if that fails, try to contract them.
-      orig_search_terms_s = search_terms_s
-      if alt_b:
-         search_terms_s = utils.convert_number_words(search_terms_s, True)
-      if alt_b and search_terms_s == orig_search_terms_s:
-         search_terms_s = utils.convert_number_words(search_terms_s, False)
-         
-      # strip out punctuation
-      word = re.compile(r'[\w]{1,}')
-      search_terms_s = ' '.join(word.findall(search_terms_s))
+   # ==========================================================================   
+   def __query_series_refs(self, search_terms_s):
+      '''
+      This method queries the online database for a set of SeriesRef objects
+      that match the given (non-empty) search terms.   It will return a set 
+      of SeriesRefs, which may be empty if no matches could be found.
+      '''
+      if not search_terms_s:
+         raise Exception("cannot query for empty search terms")
       
-      return search_terms_s
+      with ProgressBarForm(self.comicrack.MainWindow, self, 1) as progbar:
+         # this function gets called each time an series_ref is obtained
+         def callback(num_matches_n, expected_callbacks_n):
+            if not self.__cancelled_b:
+               if not progbar.Visible:
+                  progbar.prog.Maximum = expected_callbacks_n
+                  progbar.show_form()
+               if progbar.Visible and not self.__cancelled_b:
+                  progbar.prog.PerformStep()
+                  progbar.Text = 'Searching Comic Vine (' + \
+                     sstr(num_matches_n) + ' matches)'
+            Application.DoEvents()
+            return self.__cancelled_b
+         log.debug("searching for series that match '", search_terms_s, "'...")
+         series_refs = db.query_series_refs(search_terms_s, callback)
+         
+      
+      if len(series_refs) == 0:
+         log.debug("...no results found for this search.")
+      else:
+         log.debug("...found {0} results".format(len(series_refs)))
+      return series_refs
+
+
+
+   # ==========================================================================   
+   def __query_issue_refs(self, series_ref):
+      '''
+      This method queries the online database for a set of IssueRef objects
+      that match the given SeriesRef.   The returned set may be empty if no 
+      matches were found.
+      '''
+      
+      log.debug("finding all issues for '", series_ref, "'...")
+      with ProgressBarForm(self.comicrack.MainWindow, self, 1) as progform:
+         # this function gets called each time another issue_ref is obtained
+         def callback(complete_ratio_n):
+            complete_ratio_n = max(0.0, min(1.0, complete_ratio_n))
+            if complete_ratio_n < 1.0 and not progform.Visible\
+                  and not self.__cancelled_b:
+               progform.prog.Maximum = 100
+               progform.prog.Value = complete_ratio_n * 100
+               progform.show_form()
+            if progform.Visible and not self.__cancelled_b:
+               progform.prog.Value = complete_ratio_n * 100
+               progform.Text = 'Loading Series Details (' + \
+                  sstr((int)(complete_ratio_n * 100)) + "% complete)"
+            Application.DoEvents()
+            return self.__cancelled_b
+         return db.query_issue_refs(series_ref, callback)
+
+
 
 
    # ==========================================================================
