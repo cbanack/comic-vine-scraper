@@ -12,8 +12,9 @@ from utils import sstr
 from dbmodels import DatabaseConnectionError
 
 clr.AddReference('System')
-from System import Array, Byte, Text, Uri
-from System.Net import HttpVersion, WebException, WebRequest
+from System import Text
+from System.Net import WebException, WebRequest
+from System.IO import StreamReader
 
 
 # This is the api key needed to access the comicvine website.
@@ -262,75 +263,13 @@ def __get_page(url):
    represents an actual network problem connecting to the Comic Vine database.
    '''
    
-   page = ''
-   response = None
-   responseStream = None
-
-   # All this mess comes from Ironpython not supporting urllib... if it was 
-   # supported everything would be as easy as this: page = urlopen(url).read()
-
-   # Replace all the space characters with escape codes safe for URL strings
-   requestUri = Uri(url.replace(' ', '%20')) # this is weak!
-   request = WebRequest.Create(requestUri)
-   request.Headers.Set(r'Accept-Language', r'en-us')
-   request.Headers.Set(r'UA-CPU', r'x86')
-   request.KeepAlive = True
-   request.Accept = r'image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, '\
-      'application/x-shockwave-flash, application/xaml+xml,'\
-      'application/vnd.ms-xpsdocument, application/x-ms-xbap,'\
-      'application/x-ms-application, application/vnd.ms-excel,'\
-      ' application/vnd.ms-powerpoint, application/msword,'\
-      ' application/x-silverlight, */*'
-   request.Referer = r'http://www.comicbookdb.com/'
-   request.UserAgent = r'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1;'\
-      ' .NET CLR 1.1.4322; .NET CLR 2.0.50727)'
-   request.Timeout = 30000
-   # it would be more efficient to turn the next line on ,but we're not set up
-   # for that right now.  rather that support compression, I'll just wait till
-   # urllib is available and use that instead!
-   
-   #request.Headers.Set(r'Accept-Encoding', r'gzip, deflate')
-   
    try:
-      request.ProtocolVersion = HttpVersion.Version10
+      request = WebRequest.Create(url.replace(' ', '%20'))
       response = request.GetResponse()
       responseStream = response.GetResponseStream()
-      buffer = Array.CreateInstance(Byte, 256)
-      read = 0
-      toobig = True
-      chunk = responseStream.Read(buffer, read, buffer.Length - read)
-      while chunk > 0:
-         read += chunk
-
-         # If we've reached the end of our buffer, check to see if there's
-         # any more information
-         if (read == buffer.Length):
-            nextByte = responseStream.ReadByte()
-
-            # End of stream? If so, we're done
-            if (nextByte == -1):
-               toobig = False
-               break
-
-            # Nope. Resize the buffer, put in the byte we've just
-            # read, and continue
-            newBuffer = Array.CreateInstance(Byte, buffer.Length * 2)
-            Array.Copy(buffer, newBuffer, buffer.Length)
-            newBuffer[read] = nextByte
-            buffer = newBuffer
-            read += 1
-         chunk = responseStream.Read(buffer, read, buffer.Length - read)
-      if toobig:
-         # Buffer is now too big. Shrink it.
-         ret = Array.CreateInstance(Byte, read)
-         Array.Copy(buffer, ret, read)
-         buffer = ret
-         del ret
-
-      page = Text.Encoding.UTF8.GetString(buffer)
-      
+      reader = StreamReader(responseStream, Text.Encoding.UTF8)
+      page = reader.ReadToEnd()
    except WebException, wex:
-      
       # this type of exception almost certainly means that the user's internet
       # is broken or the comicvine website is down.  so wrap it in a nice, 
       # recognizable exception before rethrowing it, so that error handlers can
@@ -339,10 +278,9 @@ def __get_page(url):
       raise DatabaseConnectionError("Comic Vine", url, wex)
    
    finally:
-      if responseStream:
-         responseStream.Close()
-      if response:
-         response.Close()
+      if 'reader' in vars(): reader.Close()
+      if 'responseStream' in vars(): responseStream.Close()
+      if 'response' in vars(): response.Close()
  
    return page
 
@@ -394,7 +332,4 @@ class _ComicVineError(Exception):
       to construct this object, followed by the associated string error name.
       '''  
       return self._error
-   
-   
-      
    
