@@ -25,9 +25,8 @@ Created on Feb 10, 2010
 """
 #corylow: comment and cleanup this file
 import sys, clr
-from dbmodels import DatabaseConnectionError
-from utils import sstr
 import utils
+from dbmodels import DatabaseConnectionError
 
 clr.AddReference('System')
 from System.Threading import Mutex
@@ -153,7 +152,7 @@ def handle_error(error):
       debug_exc() # a python exception
    else:
       debug("-------------------- .NET ERROR -------------------------")
-      debug(sstr(error).replace('\r','')) # a .NET exception
+      debug(utils.sstr(error).replace('\r','')) # a .NET exception 
         
    if type(error) == DatabaseConnectionError:  
       # if this is a DatabaseConnectionError, then it is a semi-expected 
@@ -252,7 +251,7 @@ class _Logger(object):
    def debug(self, *messages):
       """ Implements the module-level debug() method """
       
-      strings = map(sstr,messages)
+      strings = map(utils.sstr,messages)
       strings.append('\n')
       self._debugRaw( ''.join(strings) )
    
@@ -268,7 +267,7 @@ class _Logger(object):
             raise Exception("you must install the _Logger before using it")
          
          try:
-            output_line = sstr(message)
+            output_line = utils.sstr(message)
          except:
             # shouldn't happen!
             output_line = "***** LOGGING ERROR *****"
@@ -294,7 +293,7 @@ class _Logger(object):
       """ Implements the module-level debug_exc() method. """
       try:
          self.debug(''.join(['Caught ', sys.exc_info()[0].__name__, ': ',
-            sstr(sys.exc_info()[1])]))
+            utils.sstr(sys.exc_info()[1])]))
       except:
          self.debug(": Exception name couldn't be formatted :")
       
