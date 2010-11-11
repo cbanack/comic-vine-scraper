@@ -345,7 +345,7 @@ class _Logger(object):
          if self._logLines == None:
             raise Exception("you must install the _Logger before using it")
          
-         # corylow: use utf8 and "codecs.open" here!
+         # corylow: switch this to use .NET and utf8
          with file(filename, "w") as f:
             for line in self._logLines:
                f.write(line)

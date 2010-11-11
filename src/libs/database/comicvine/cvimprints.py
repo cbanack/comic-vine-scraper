@@ -1,5 +1,19 @@
-# v.3.4 -> changed "Marvel Comics" to "Marvel Comics"
-# This Python file uses the following encoding: utf-8
+# encoding: utf-8
+
+'''
+This module is used to find imprint names for publishers in the ComicVine 
+database.  
+
+Since ComicVine doesn't directly store imprint information, we are forced to 
+maintain a internal tables of known imprints and their publishers in order to
+do this.
+
+If you run this module, it will query the ComicVine database and report the
+discrepancies between the publishers in ComicVine, and the ones in our
+internal tables (i.e. when a new publisher appears, you can easily find out 
+about it and add it to the internal tables.) 
+'''
+
 import clr
 import log
 import re
@@ -7,9 +21,35 @@ from utils import sstr
 
 clr.AddReference('System')
 from System import Text
-from System.Net import WebException, WebRequest
-from System.IO import StreamReader
+from System.IO import StreamReader, StringWriter
 
+clr.AddReference('System.Net')
+from System.Net import WebException, WebRequest
+
+
+clr.AddReference('System.Web')
+from System.Web import HttpUtility
+
+# =============================================================================
+def find_parent_publisher(imprint_s):
+   '''
+   This method takes a publisher string that might be an imprint of another 
+   publisher.  If it is an imprint, the method returns a different publisher 
+   string representing the parent publisher for that imprint.  If it is not 
+   an imprint, this method returns the string that was passed in.
+   
+   Both the passed in and returned strings for these methods should EXACTLY
+   match their corresponding values in the ComicVine database (i.e. case, 
+   punctation, etc.)
+   ''' 
+   imprint_s = imprint_s.strip() # because the tables below are stripped, too
+   parent_s = imprint_s
+   if imprint_s in __imprint_map:
+      parent_s = __imprint_map[imprint_s]
+   return parent_s
+
+
+# the publishers that we know about that have at least one imprint
 __MARVEL = "Marvel"
 __DC = "DC Comics"
 __DARKHORSE = "Dark Horse Comics"
@@ -28,8 +68,55 @@ __NBM = "Nbm"
 __RADIO = "Radio Comix"
 __SLG = "Slg Publishing"
 
-# done through page 8, leadbelly publications
-publishers = frozenset([
+
+# the mapping of imprint names to their parent publisher names
+__imprint_map = {
+   "2000AD": __DC,
+   "Adventure": __MALIBU,
+   "America's Best Comics": __DC, # originally image
+   "Wildstorm": __DC,
+   "Antimatter": __AMRYL,
+   "Apparat": __AVATAR,
+   "Black Bull": __WIZARD,
+   "Blu Manga": __TOKYOPOP,
+   "Chaos! Comics": __DYNAMITE,
+   "Cliffhanger": __DC,
+   "CMX": __DC,
+   "Dark Horse Manga": __DARKHORSE,
+   "Desperado Publishing": __IMAGE,
+   "Epic": __MARVEL, 
+   "Focus": __DC, 
+   "Helix": __DC,
+   "Hero Comics": __HEROIC,
+   "Homage comics": __DC, # i.e. wildstorm
+   "Hudson Street Press": __PENGUIN,
+   "Icon Comics": __MARVEL,
+   "Impact": __DC,
+   "Jets Comics": __HAKUSENSHA,
+   "KiZoic": __APE,
+   "Marvel Digital Comics Unlimited" : __MARVEL,
+   "Marvel Knights": __MARVEL,
+   "Marvel Music": __MARVEL,
+   "Max": __MARVEL,
+   "Milestone": __DC,
+   "Minx": __DC,
+   "Papercutz": __NBM,
+   "Paradox Press": __DC,
+   "Piranha Press": __DC,
+   "Razorline": __MARVEL,
+   "ShadowLine": __IMAGE,
+   "Sin Factory Comix" : __RADIO,
+   "Slave Labor": __SLG,
+   "Soleil": __MARVEL,
+   "Tangent Comics": __DC,
+   "Ultraverse": __MALIBU,
+   "Vertigo": __DC,
+   "Zuda Comics": __DC,
+}
+
+# a set of all non-imprint publishers in the comic vine database
+# (used only for the imprint search script below)
+__other_publishers = frozenset([
    __MARVEL,
    __DC, 
    __DARKHORSE,
@@ -226,7 +313,7 @@ publishers = frozenset([
    "Awesome",
    "Azteca Productions",
    "B",
-   "B &amp; H Publishing Group",
+   "B & H Publishing Group",
    "BBC Books",
    "BC",
    "BKR Comics",
@@ -312,7 +399,7 @@ publishers = frozenset([
    "Brain Scan Studios",
    "Brainstorm",
    "Brave New Words",
-   "Brett&#39;s Comic Pile Publishing",
+   "Brett's Comic Pile Publishing",
    "Brick Computer Science Institute",
    "Broadsword Comics",
    "Broadway",
@@ -405,7 +492,7 @@ publishers = frozenset([
    "Commercial Comics",
    "Commercial Signs Of Canada",
    "Committed Comics",
-   "Company &amp; Sons",
+   "Company & Sons",
    "Comunicaciones Graficas Comgraf",
    "Condor Verlag",
    "Coniglio Editore",
@@ -436,11 +523,11 @@ publishers = frozenset([
    "Crystal Comics",
    "Ctrl Alt Del",
    "Cult Press",
-   "Cupples &amp; Leon",
+   "Cupples & Leon",
    "Cyberosia Publishing",
    "Cyclone Comics",
    "D. S. Publishing",
-   "D.C. Thomson &amp; Co.",
+   "D.C. Thomson & Co.",
    "DK Publishing",
    "DQU COMICS",
    "DWAP Productions",
@@ -474,8 +561,8 @@ publishers = frozenset([
    "Dennis F",
    "Der Freibeuter",
    "Determined Productions, Inc.",
-   "Devil&#39;s Due",
-   "Dial &quot;C&quot; for Comics",
+   "Devil's Due",
+   'Dial "C" for Comics',
    "DigiCube",
    "Digital Manga Distribution",
    "Digital Webbing",
@@ -498,7 +585,7 @@ publishers = frozenset([
    "Dragon Lady Press",
    "Dramenon Studios",
    "Drawn",
-   "Drawn &amp; Quarterly",
+   "Drawn & Quarterly",
    "Dreamwave Productions",
    "Drumfish Productions",
    "Dupuis",
@@ -522,7 +609,7 @@ publishers = frozenset([
    "Ediciones de la Flor",
    "Edifumetto",
    "Ediperiodici",
-   "Editions First - Gründ - Dragon d&#39;Or",
+   "Editions First - Gründ - Dragon d'Or",
    "Éditions Glénat",
    "Editions La Joie de Lire",
    "Editor",
@@ -644,7 +731,7 @@ publishers = frozenset([
    "Future Comics",
    "FutureQuake Press",
    "Futuropolis",
-   "G &amp; T Enterprises",
+   "G & T Enterprises",
    "G. Vincent Edizioni",
    "GG Studio",
    "Galassia",
@@ -737,7 +824,7 @@ publishers = frozenset([
    "Holyoke",
    "Hot Comics",
    "Hound Comics",
-   "Howard, Ainslee &amp; Co.",
+   "Howard, Ainslee & Co.",
    "Hugh Lauter Levin Associates",
    "Humanoids",
    "Hurricane Entertainment",
@@ -804,11 +891,11 @@ publishers = frozenset([
    "Krause Publications",
    "Kyle Baker Publishing",
    "L",
-   "L. Miller &amp; Son, Ltd",
+   "L. Miller & Son, Ltd",
    "L.F.P.",
    "LFB Luigi F. Bona",
    "La Musardine",
-   "La Repubblica / L&#39;Espresso",
+   "La Repubblica / L'Espresso",
    "Lab Rat Productions",
    "Last Gasp",
    "Layne Morgan Media",
@@ -830,7 +917,7 @@ publishers = frozenset([
    "Lion Library",
    "Literacy Volunteers Of Chicago",
    "Literary Enterprises",
-   "Little, Brown &amp; Co.",
+   "Little, Brown & Co.",
    "Lodestone",
    "Lohman Hills",
    "London Night Studios",
@@ -850,7 +937,7 @@ publishers = frozenset([
    "Magazine Management",
    "Magazzini Salani",
    "Magic Press",
-   "Magnus &amp; Bunker",
+   "Magnus & Bunker",
    "Majestic Entertainment",
    "Major Magazines",
    "Malmborg",
@@ -865,9 +952,9 @@ publishers = frozenset([
    "Martin L. Greim",
    "Max Bunker Press",
    "Maximum Press",
-   "McCain Ellio&#39;s Comics",
+   "McCain Ellio's Comics",
    "McK Publishing",
-   "McMann &amp; Tate",
+   "McMann & Tate",
    "Mcfarland",
    "Media Press",
    "Megaton Comics",
@@ -1054,7 +1141,7 @@ publishers = frozenset([
    "Richters F",
    "Rip Off Press",
    "Rocket North Publishing",
-   "Roger Corman&#39;s Cosmic Comics",
+   "Roger Corman's Cosmic Comics",
    "Ronin Studios",
    "Rooster Teeth Productions",
    "Rorschach Entertainment",
@@ -1109,7 +1196,7 @@ publishers = frozenset([
    "Smithsonian Institution",
    "Solson Publications",
    "Son of Sam Productions",
-   "Sound &amp; Vision International",
+   "Sound & Vision International",
    "Space Goat Productions",
    "Spacedog",
    "Spark Publications",
@@ -1139,7 +1226,7 @@ publishers = frozenset([
    "Story Comics",
    "Straw Dog",
    "Strawberry Jam Comics",
-   "Street &amp; Smith",
+   "Street & Smith",
    "Street And Smith",
    "Street and Steel",
    "Studio 407",
@@ -1293,91 +1380,72 @@ publishers = frozenset([
    "¡Ka-Boom! Estudio S.A. de C.V.",
 ])
 
-imprints = {
-   "2000AD": __DC,
-   "Adventure": __MALIBU,
-   "America&#39;s Best Comics": __DC, # originally image
-   "Wildstorm": __DC,
-   "Antimatter": __AMRYL,
-   "Apparat": __AVATAR,
-   "Black Bull": __WIZARD,
-   "Blu Manga": __TOKYOPOP,
-   "Chaos! Comics": __DYNAMITE,
-   "Cliffhanger": __DC,
-   "CMX": __DC,
-   "Dark Horse Manga": __DARKHORSE,
-   "Desperado Publishing": __IMAGE,
-   "Epic": __MARVEL, 
-   "Focus": __DC, 
-   "Helix": __DC,
-   "Hero Comics": __HEROIC,
-   "Homage comics": __DC, # i.e. wildstorm
-   "Hudson Street Press": __PENGUIN,
-   "Icon Comics": __MARVEL,
-   "Impact": __DC,
-   "Jets Comics": __HAKUSENSHA,
-   "KiZoic": __APE,
-   "Marvel Digital Comics Unlimited" : __MARVEL,
-   "Marvel Knights": __MARVEL,
-   "Marvel Music": __MARVEL,
-   "Max": __MARVEL,
-   "Milestone": __DC,
-   "Minx": __DC,
-   "Papercutz": __NBM,
-   "Paradox Press": __DC,
-   "Piranha Press": __DC,
-   "Razorline": __MARVEL,
-   "ShadowLine": __IMAGE,
-   "Sin Factory Comix" : __RADIO,
-   "Slave Labor": __SLG,
-   "Soleil": __MARVEL,
-   "Tangent Comics": __DC,
-   "Ultraverse": __MALIBU,
-   "Vertigo": __DC,
-   "Zuda Comics": __DC,
-}
 
+
+# =============================================================================
 if __name__ == '__main__':
+   '''
+   A script method that can be run to compare the contents of the tables in this
+   module with the publishers listed in the ComicVine database.  This script
+   should be run periodically, and used to update the tables in this module.
+   '''
+   
+   # first, gather the names of all the publishers on the ComicVine database
+   # by scraping them and adding them to a set of scraped publishers
    log.debug()
-   cv_publishers = set()
-   for i in range(1, 50):
+   print "Gathering publishers from ComicVine..."
+   scraped_publishers = set()
+   
+   done = False
+   page = 0
+   while not done:
+      page += 1
+      html = ""
       try:
          request = WebRequest.Create(
             'http://www.comicvine.com/publishers/?page='
-            + sstr(i) + '&sort=alphabetical')
+            + sstr(page) + '&sort=alphabetical')
          response = request.GetResponse()
          responseStream = response.GetResponseStream()
          reader = StreamReader(responseStream, Text.Encoding.UTF8)
-         page = reader.ReadToEnd()
-         matches =re.findall("(?m)<td[^>]*>\s*<a[^>]*>([^<]*)</a>\s*</td>",page)
-         cv_publishers.update( m.strip() for m in matches )
-         print"Page " + sstr(i) + ", " + sstr(len(matches)) + " publishers..."
-         if ( len(matches) != 100 ):
-            break
+         html = reader.ReadToEnd()
       except WebException, wex:
          print("unexpected web exception: " + str(wex)) 
       finally:
          if 'reader' in vars(): reader.Close()
          if 'responseStream' in vars(): responseStream.Close()
          if 'response' in vars(): response.Close()
+         
+      writer = StringWriter() # coryhigh: make this into a utility method
+      HttpUtility.HtmlDecode(html, writer)
+      html = writer.ToString()
+      matches =set( [m.strip() for m in 
+         re.findall("(?m)<td[^>]*>\s*<a[^>]*>([^<]*)</a>\s*</td>",html) ] )
+      done = matches <= scraped_publishers # stop when we are repeating results
+      if not done:
+         scraped_publishers.update( matches )
+         print"Page " + sstr(page) + ", " + sstr(len(matches))+" publishers..."
    
+   # 2. now that we've got all the publishers on ComicVine, go through our 
+   #    know publishers, and report a) if we have one that isn't in ComicVine
+   #    anymore, and b) if ComicVine now has one that we don't.
    all_clear = True 
    print("")  
           
-   for imprint in imprints:
-      if imprint not in cv_publishers:
+   for imprint in __imprint_map:
+      if imprint not in scraped_publishers:
          all_clear = False 
          print("Not in ComicVine: " + imprint)
          
-   for publisher in publishers:
-      if publisher not in cv_publishers:
+   for publisher in __other_publishers:
+      if publisher not in scraped_publishers:
          all_clear = False 
          print("Not in ComicVine: " + publisher)
          
-   for cv_pub in sorted(cv_publishers):
-      if cv_pub not in imprints and cv_pub not in publishers:
+   for publisher in sorted(scraped_publishers):
+      if publisher not in __imprint_map and publisher not in __other_publishers:
          all_clear = False 
-         print("Not in app: " + cv_pub)
+         print("Not in module: " + publisher)
 
    if all_clear:
       print("Nothing to update!")

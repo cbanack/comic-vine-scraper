@@ -170,7 +170,7 @@ def persist_map(map, file):
    given file will be destroyed. 
    """
    
-   # corylow: when possible, switch this to use codecs.open(, , utf-8)
+   # corylow: switch this to use .NET and utf8 (during load, too)
    try:
       with open(file, 'w') as f:
          f.write(":: This file was generated on "\

@@ -9,7 +9,6 @@ clr.AddReference('System.Drawing')
 from System.Drawing import Image
 
 # corylow: make this into a static class rather than module variables
-# corylow: when possible, swith to us os.path.dirname() here
 _SCRIPT_DIRECTORY =  __file__[:-len('resources.py')] 
 LOCAL_CACHE_DIRECTORY = _SCRIPT_DIRECTORY + 'localCache/'
 SETTINGS_FILE = _SCRIPT_DIRECTORY + 'settings.dat'

@@ -6,8 +6,6 @@ ComicBook objects (i.e. 'book' objects).
 import re
 import log
 from time import strftime
-from imprints import imprints
-from publishers import publishers
 from utils import sstr
 from dbmodels import IssueRef
 import db
@@ -121,30 +119,24 @@ def save_issue_to_book(issue, book, scraper):
    config.ignore_blanks_b, -1, lambda x : x > 0 )
    if ( value is not None ) :  book.Volume = value
     
-   # imprint -------------------
-   # if the current publisher is an imprint, and the user requests it, move
-   # that publisher into the imprint field and try to find the 'true' publisher.
-   if config.convert_imprints_b and issue.publisher_s:                                   
-      if imprints.has_key(issue.publisher_s.lower()):                                 
-         issue.imprint_s = issue.publisher_s                                           
-         issue.publisher_s = imprints[issue.publisher_s.lower()]
+   # if we found an imprint for this issue, the user may prefer that the 
+   # imprint be listed as the publisher (instead). if so, make that change
+   # before writing the 'imprint' and 'publisher' fields out to the book:
+   if not config.convert_imprints_b and issue.imprint_s:
+      issue.publisher_s = issue.imprint_s
+      issue.imprint_s = ''                                   
          
+   # imprint -------------------
    value = __massage_new_string("Imprint", issue.imprint_s, \
       book.Imprint, config.update_imprint_b, \
       config.ow_existing_b, config.ignore_blanks_b )
    if ( value is not None ) :  book.Imprint = value
          
    # publisher -----------------
-   # normalize well-known publisher names (i.e. Dark Horse Comics -> Dark Horse)
-   if issue.publisher_s: 
-      if publishers.has_key(issue.publisher_s.lower()):
-         issue.publisher_s = publishers[issue.publisher_s.lower()]
-         
    value = __massage_new_string("Publisher", issue.publisher_s, \
       book.Publisher, config.update_publisher_b, \
       config.ow_existing_b, config.ignore_blanks_b )
    if ( value is not None ) :  book.Publisher = value
-      
    
    # characters ----------------
    value = __massage_new_string("Characters", issue.characters_s, \

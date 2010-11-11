@@ -16,6 +16,7 @@ import re
 import utils
 from utils import is_string, is_number, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
+import cvimprints
 
 clr.AddReference('System')
 from System.IO import Directory, File, Path
@@ -65,7 +66,6 @@ def __query_series_refs(search_terms_s, callback_function):
 
       # a helpful function that turns a 'volume' into a 'SeriesRef'      
       def _makeref(volume):
-         # corynorm: make this use the "publisher's" list?
          publisher = '' if len(volume.publisher.__dict__) <= 1 else \
             volume.publisher.name
          thumb = None if len(volume.image.__dict__) <= 1 else \
@@ -618,8 +618,11 @@ def __issue_parse_series_details(issue, dom):
       
       cache[series_id] = (start_year_s, publisher_s)
    
-   # finally, we're done...
-   issue.publisher_s = publisher_s
+   # check if there's the current publisher really is the true publisher, or
+   # if it's really an imprint of another publisher.
+   issue.publisher_s = cvimprints.find_parent_publisher(publisher_s)
+   if issue.publisher_s != publisher_s:
+      issue.imprint_s = publisher_s
    issue.start_year_s = start_year_s
 
 
