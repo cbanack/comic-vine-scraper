@@ -273,13 +273,7 @@ class _Logger(object):
             output_line = "***** LOGGING ERROR *****"
              
          self._logLines.append( output_line )
-         
-         # invoking this on the application thread for the comicrack window
-         # can help prevent deadlock when running comicrack's debug window...
-         # but it might also be causing other deadlocking problems...
-         def delegate():
-            sys.__stdout__.write(output_line)
-         utils.invoke(self._comicrack_window, delegate, False)
+         sys.__stdout__.write(output_line)
       finally:
          self._mutex.ReleaseMutex()
 

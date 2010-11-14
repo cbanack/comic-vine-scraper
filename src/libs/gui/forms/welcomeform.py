@@ -26,15 +26,15 @@ class WelcomeForm(CVForm):
    '''
    
    #===========================================================================
-   def __init__(self, owner, books):
-      CVForm.__init__(self, owner, "welcomeformLocation")
+   def __init__(self, scraper, books):
       '''
       Initializes this form.
       
-      'owner' -> this form's owner window/dialog
+      'scraper' -> this the ScrapeEngine that we are running as part of.
       'books' -> a list of all the comic books being scraped.
       '''
       
+      CVForm.__init__(self, scraper.comicrack.MainWindow, "welcomeformLocation")
       self.__build_gui(books);
 
       

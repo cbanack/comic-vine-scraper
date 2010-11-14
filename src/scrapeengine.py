@@ -13,6 +13,7 @@ import utils
 import db
 import bookutils
 from welcomeform import WelcomeForm
+from finishform import FinishForm
 
 clr.AddReference('System')
 from System import Array
@@ -113,20 +114,16 @@ class ScrapeEngine(object):
 
          # do the main part of the script
          if books:
-            scrape_vs_skipped = self.__scrape(books)
-            log.debug("SCRAPED ", scrape_vs_skipped[0], " BOOKS")
-            log.debug("SKIPPED ", scrape_vs_skipped[1], " BOOKS")
-
+            results = self.__scrape(books)
+            with FinishForm(self, results[0], results[1]) as finish_form:
+               self.config = finish_form.show_form()
+            log.debug("--> scraped ", results[0], " books")
+            log.debug("--> skipped ", results[1], " books")
          if self.__cancelled_b:
-            print 'Scrape was cancelled by the user'
-            MessageBox.Show(self.comicrack.MainWindow,
-               'This scrape was cancelled.', 'Scrape cancelled.',
-               MessageBoxButtons.OK, MessageBoxIcon.Information)
+            log.debug("Scrape was cancelled by user.")
          else:
-            print 'Scrape completed normally'
-            MessageBox.Show(self.comicrack.MainWindow, 
-               'This scrape is complete', 'Scrape Complete', 
-               MessageBoxButtons.OK, MessageBoxIcon.Information)
+            log.debug("Scrape completed normally.")
+         
 
       except Exception, ex:
          log.handle_error(ex)
@@ -144,8 +141,9 @@ class ScrapeEngine(object):
       '''
       
       # return value of this method. how many books were scraped [0], 
-      # and how many skipped over by user [1].
-      scrape_vs_skip = [0,0];
+      # and how many skipped over by user [1]. these values start out accurate
+      # and are updated as we progress (i.e. 'skipped' books become 'scraped')
+      scrape_vs_skip = [0, len(books)];
       
       # 1. sort he ComicBooks so that all books that are from the same series
       #    are grouped together.  we'll loop through them in this order
@@ -154,7 +152,7 @@ class ScrapeEngine(object):
       # 2. show the welcome form. in addition to being a friendly summary of 
       #    what's about to happen, it loads (and allows the user to tweak)
       #    the Configuration that we'll use for the remainder of this operation.
-      with WelcomeForm(self.comicrack.MainWindow, books) as welcome_form:
+      with WelcomeForm(self, books) as welcome_form:
          self.config = welcome_form.show_form()
          if self.config:
             # 2a. print the entire configuration to the debug stream
@@ -191,18 +189,16 @@ class ScrapeEngine(object):
                   and not self.__cancelled_b:
                
                bookstatus =self.__scrape_book(book, scrape_cache, manual_search)
-               if self.__cancelled_b: 
-                  scrape_vs_skip[1] += len(books)-i; # loop will end
-               else:
-                  if bookstatus == self._BookStatus.UNSCRAPED:
-                     # this return code means 'no series could be found using 
-                     # the current (automatic or manual) search terms'.  when  
-                     # that happens, for the user to chose the search terms.
-                     manual_search = True
-                  elif bookstatus == self._BookStatus.SCRAPED:
-                     scrape_vs_skip[0] += 1;
-                  elif bookstatus == self._BookStatus.SKIPPED:
-                     scrape_vs_skip[1] += 1;
+               if bookstatus == self._BookStatus.UNSCRAPED:
+                  # this return code means 'no series could be found using 
+                  # the current (automatic or manual) search terms'.  when  
+                  # that happens, force the user to chose the search terms.
+                  manual_search = True
+               elif bookstatus == self._BookStatus.SCRAPED:
+                  scrape_vs_skip[0] += 1;
+                  scrape_vs_skip[1] -= 1;
+               elif bookstatus == self._BookStatus.SKIPPED:
+                  pass;
             log.debug()
             log.debug()
             

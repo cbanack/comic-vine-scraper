@@ -5,11 +5,12 @@ Created on Mar 10, 2010
 @author: cbanack
 '''
 #corylow: comment and cleanup this file
-import clr
+from System.Windows.Forms import FormBorderStyle
 from persistentform import PersistentForm
+import clr
+import log
 
 clr.AddReference('System.Windows.Forms')
-from System.Windows.Forms import FormBorderStyle
 
 #==============================================================================
 class CVForm(PersistentForm):

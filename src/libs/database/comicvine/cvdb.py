@@ -179,7 +179,7 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
    # fails can be found in bugs 135 and 136.  ('wildc.a.t.s', 'reborn!', etc.)
    fast = __query_issue_refs_fast(series_ref, callback_function);
    safe = set()
-   if len(fast) < 100:
+   if len(fast) < 100: # coryhigh: what about this? safe to up limit?
       # skip the safe query for very large series.  I'm still not sure about
       # the comicvine database, which sometimes seems to lock up during the 
       # safe query if the series is very large ('2000 ad's, 'spiderman', 

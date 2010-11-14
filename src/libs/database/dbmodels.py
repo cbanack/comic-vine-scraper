@@ -77,7 +77,7 @@ class SeriesRef:
       return self._cmpkey_s.__hash__()
        
    
-class Issue:
+class Issue(object):
    def __init__(self):
       self.issue_key = ''
       self.issue_num_s = ''
@@ -104,6 +104,18 @@ class Issue:
       self.rating_n = 0 # MUST be a float
       self.image_urls = []
       
+      # coryhigh: improve classes here?
+#   def get_title_s(self):
+#      return self.__title_s
+#   
+#   def set_title_s(self, value):
+#      self.__title_s = "bob";
+#      
+#   def del_title_s(self):
+#      del self.__title_s
+#      
+#   title_s = property(get_title_s, set_title_s, del_title_s, "bah")
+#      
    def __str__(self):
       return "Issue #" + sstr(self.issue_num_s) \
          + " (" + sstr(self.issue_key) + ")" 
