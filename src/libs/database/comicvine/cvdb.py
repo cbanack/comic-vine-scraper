@@ -172,24 +172,16 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
    '''
    
    # do a 'fast' query, and then a 'safe' query to catch anything the fast one
-   # might have missed.  the safe query is slower, but it never misses anything,
-   # and it uses the results of the fast query to speed itself up.  
-   #
-   # examples of series where this safe query is needed because the fast query
-   # fails can be found in bugs 135 and 136.  ('wildc.a.t.s', 'reborn!', etc.)
+   # might have missed, and remove any obsolete values in the fast query cache.
+   # the safe query is slower, but it always returns the right values, and it
+   # can use the results of the fast query to speed itself up.
    fast = __query_issue_refs_fast(series_ref, callback_function);
-   safe = set()
-   if len(fast) < 100: # coryhigh: what about this? safe to up limit?
-      # skip the safe query for very large series.  I'm still not sure about
-      # the comicvine database, which sometimes seems to lock up during the 
-      # safe query if the series is very large ('2000 ad's, 'spiderman', 
-      #'batman', etc.)  it might be possible to remove this above 'if' statement
-      safe = __query_issue_refs_safe( series_ref, fast, callback_function ); 
+   safe = __query_issue_refs_safe( series_ref, fast, callback_function ); 
    
    log.debug("   ...found ", len(fast), " issues using FAST issue query")
    log.debug("   ...found ", len(safe-fast), " more using SAFE issue query") 
       
-   return fast | safe
+   return safe
       
       
 # =============================================================================
@@ -198,12 +190,15 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
    This method is a FAST Comic Vine implementation of the identically named 
    method in the db.py module.  
    
-   It is not guaranteed to return EVERY issue in comic vine's database,
-   unfortunately, but it will return most of them, fairly quickly.
+   It is not guaranteed to return EVERY issue in comic vine's database, or even
+   ANY issues, or even (rarely) the RIGHT issues.  But it will usually return
+   most of all of them, and do so fairly quickly.
+   
+   For examples of where this method can fail, see bugs: 135, 136, 149
    '''
    
    # this gets set to true if the user clicks "cancel" during the callback
-   cancelled_b = [False]
+   cancelled_b = [False] 
    
    # map of issue_id strings to tuples.  contains one mapping for each issue 
    # that our search (below) will return.   each mapped tuple contains 
@@ -237,7 +232,7 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
                   break
                else:
                   issue_key = tuple[1]
-                  issues_to_tuples[issue_key] = tuple
+                  issues_to_tuples[issue_key] = (tuple[0],tuple[1],tuple[2])
             issue_data = f.readline()
          del issue_data
          loaded_from_cache_n = len(issues_to_tuples)
@@ -272,6 +267,9 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
       issue_number_s = re.sub( r'\.0*\s*$', '', issue_number_s)
       if not issues_to_tuples.has_key(issue_key_s): 
          issues_to_tuples[issue_key_s]=(issue_number_s, issue_key_s, vol_key_s)         
+         return 1
+      else:
+         return 0
          
    def _done_loop():
       return len(issues_to_tuples) >= total_to_load_n or \
@@ -282,29 +280,27 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
       if ("issue" in dom.results.__dict__):
          if type(dom.results.issue) == type([]):
             for issue in dom.results.issue:
-               _parse_issue_dom(issue)
+               loaded_from_web_n += _parse_issue_dom(issue)
          else:
-            _parse_issue_dom(dom.results.issue)
+            loaded_from_web_n += _parse_issue_dom(dom.results.issue)
       cancelled_b[0] = callback_function(
          len(issues_to_tuples)/float(total_to_load_n))
       skip_n = 0 if skip_n > 0 and skip_n < PAGE else skip_n - PAGE
       
    if cancelled_b[0]:
       pass
-   elif total_to_load_n == len(issues_to_tuples):      
-      loaded_from_web_n = total_to_load_n - loaded_from_cache_n
-   elif total_to_load_n > len(issues_to_tuples):
-      # this is weird (see issue 123), but possible because of some unknowable
-      # quirk in the comicvine database.  doing this fixes that bug.
-      loaded_from_web_n = total_to_load_n - loaded_from_cache_n
-      log.debug("warning: comicvine is missing issues (i.e. avoided bug 123)")
-   else:
-      # shouldn't be possible
-      File.Delete(cache_file)
-      raise Exception("didn't load details for all issues???")
+   elif total_to_load_n < len(issues_to_tuples):
+      # this is rare, if comic vine deletes an issue, and adds 2 new ones, the
+      # cache is too big now, and we might end up with more loaded issues (from
+      # web + cache) than there are in CV! at least one issue we've loaded
+      # is invalid, so better to have this whole method return nothing.
+      log.debug("warning: cache had obsolete issues. clearing it.")
+      File.Delete(cache_file) # cache is corrupt, reload it next time
+      issues_to_tuples = {} # better to return nothing than an invalid list
+      loaded_from_web_n = 0 # don't write our current tuples out
       
-   # 6. update the cache file so next time this is operation is faster
-   if not cancelled_b[0] and loaded_from_web_n > 0:
+   # 6. update the cache file so next time this operation is faster
+   if not cancelled_b[0] and loaded_from_web_n > 0: 
       def _compare_tuples(t1, t2):
          return cmp(int(t1[2]), int(t2[2])) or cmp(t1[0], t2[0])
       
@@ -339,6 +335,9 @@ def __query_issue_refs_safe( \
    very slowly.   If you already know some of the IssueRefs that it will find,
    however, you can speed its operation up considerable by providing them as 
    in the 'already_found' argument (a set of IssueRefs).
+   
+   This method will never return issues that are not in the comic vine database,
+   even if such issues are provided in the 'already_found' set.
    '''
    
    # a comicvine series key can be interpreted as an integer
@@ -356,7 +355,6 @@ def __query_issue_refs_safe( \
 
    # 2. read in all issues from the cache, including the 'already_found' list, 
    #    which we treat as though it was part of the cache.
-   loaded_from_web_n = 0
    if already_found:
       issue_refs = issue_refs.union(already_found)
    if File.Exists(cache_file):
@@ -371,7 +369,6 @@ def __query_issue_refs_safe( \
                   issue_refs.add( newref );
             issue_data = f.readline()
          del issue_data
-   loaded_from_cache_n = len(issue_refs)
 
    # 3. now do a query to comicvine to see if we should grab some more issues
    dom = cvconnection._query_issue_ids_dom_safe(sstr(series_id_n)) 
@@ -390,33 +387,45 @@ def __query_issue_refs_safe( \
 
       # 5. now if we didn't get all the issues from the cache, start
       #    querying comicvine to get them individually
-      loaded_from_web_n = total_to_load_n - loaded_from_cache_n
-      if loaded_from_web_n > 0:
-            issue_keys = [ref.issue_key for ref in issue_refs]
-            def _grab_issue(issue):
-               if issue.id not in issue_keys:
-                  issue_page = cvconnection._query_issue_number_dom(issue.id)
-                  issue_num_s = issue_page.results.issue_number
-                  if not is_string(issue_num_s): issue_num_s = ''
-                  issue_num_s = issue_num_s.replace('.00', '')
-                  issue_refs.add(IssueRef(issue_num_s, issue.id))
-                  cancelled_b[0] =\
-                     callback_function(float(len(issue_refs))/total_to_load_n)
+      issue_keys = set([ref.issue_key for ref in issue_refs])
+      expected_issue_keys = set()
+      loaded_from_web_n = 0
+      def _grab_issue(issue):
+         expected_issue_keys.add(issue.id)
+         if issue.id not in issue_keys:
+            issue_page = cvconnection._query_issue_number_dom(issue.id)
+            issue_num_s = issue_page.results.issue_number
+            if not is_string(issue_num_s): issue_num_s = ''
+            issue_num_s = issue_num_s.replace('.00', '')
+            issue_refs.add(IssueRef(issue_num_s, issue.id))
+            cancelled_b[0] =\
+               callback_function(float(len(issue_refs))/total_to_load_n)
+            return 1
+         else:
+            return 0
 
-            if total_to_load_n == 1:
-               _grab_issue(dom.results.issues.issue)
-            else:
-               # pre sort the issues in the results by issue id, as a proxy
-               # for issue number (which we can't have yet.)  this should 
-               # lead to the progress bar counting up mostly (see issue 82)
-               dom.results.issues.issue.sort(None, lambda iss : int(iss.id))
-               for issue in dom.results.issues.issue:
-                  _grab_issue(issue)
-                  if cancelled_b[0]:
-                     break
+      if total_to_load_n == 1:
+         loaded_from_web_n += _grab_issue(dom.results.issues.issue)
+      else:
+         # 5a. pre sort the issues in the results by issue id, as a proxy
+         # for issue number (which we can't have yet.)  this should 
+         # lead to the progress bar counting up mostly (see issue 82)
+         dom.results.issues.issue.sort(None, lambda iss : int(iss.id))
+         for issue in dom.results.issues.issue:
+            loaded_from_web_n += _grab_issue(issue)
+            if cancelled_b[0]:
+               break
+      # 5b. there could be obsolete values in the cache/already_found set.
+      #     if so, remove them from our results.
+      obsolete_issue_refs = set()
+      for ref in issue_refs:
+         if not ref.issue_key in expected_issue_keys:
+            log.debug("warning: ignoring obsolete issue: ", ref.issue_key)
+            obsolete_issue_refs.add(ref)
+      issue_refs = issue_refs - obsolete_issue_refs
 
    # 6. update the cache file so next time this is operation is faster
-   loaded_from_web_n = len(issue_refs) - loaded_from_cache_n # robustness
+   #    even if we are cancelled, this could speed things up next time.
    if loaded_from_web_n > 0:
       with open(cache_file, 'w') as f:
          for ref in issue_refs:
