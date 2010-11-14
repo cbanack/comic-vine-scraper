@@ -8,7 +8,6 @@ Created on Mar 10, 2010
 from System.Windows.Forms import FormBorderStyle
 from persistentform import PersistentForm
 import clr
-import log
 
 clr.AddReference('System.Windows.Forms')
 

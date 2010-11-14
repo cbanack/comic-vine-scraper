@@ -23,17 +23,18 @@ class FinishForm(CVForm):
    '''
    
    #===========================================================================
-   def __init__(self, scraper, scraped_n, skipped_n):
+   def __init__(self, scraper, status):
       '''
       Initializes this form.
       
       'scraper' -> the ScrapeEngine that we are running as part of.
-      'scraped_n' -> the number of books that were scraped (reported to user)
-      'skipped_n' -> the number of books that were skipped (reported to user)
+      'status' -> a list containing two integers, the first is the number of 
+                 books that were scraped and the second is the number that were
+                 skipped (both reported to the user by this form)
       '''
       
       CVForm.__init__(self, scraper.comicrack.MainWindow, "finishformLocation")
-      self.__build_gui(scraped_n, skipped_n)
+      self.__build_gui( status[0], status[1] )
 
       
    # ==========================================================================

@@ -68,6 +68,11 @@ class ScrapeEngine(object):
       # set to True, it indicates that the entire script should be cancelled as 
       # soon as possible.
       self.__cancelled_b = False
+      
+      # a list of two values, the first value tells how many books this 
+      # scrape engine has scraped, the second tells how many it has skipped.
+      # it becomes valid as soon as the main processing loop starts running.
+      self.__status = [0,0]
 
 
 
@@ -114,19 +119,21 @@ class ScrapeEngine(object):
 
          # do the main part of the script
          if books:
-            results = self.__scrape(books)
-            with FinishForm(self, results[0], results[1]) as finish_form:
-               self.config = finish_form.show_form()
-            log.debug("--> scraped ", results[0], " books")
-            log.debug("--> skipped ", results[1], " books")
-         if self.__cancelled_b:
-            log.debug("Scrape was cancelled by user.")
-         else:
-            log.debug("Scrape completed normally.")
-         
-
+            self.__scrape(books) # this populates the "status" variable
+            
+         log.debug("Scraper terminated normally (scraped {0}, skipped {1})."\
+            .format(self.__status[0], self.__status[1]))
+            
       except Exception, ex:
          log.handle_error(ex)
+         
+      finally:
+         try:
+            # show the user a dialog describing what was scraped
+            with FinishForm(self, self.__status) as finish_form:
+               self.config = finish_form.show_form()
+         except Exception, ex:
+            log.handle_error(ex)
 
 
 
@@ -140,10 +147,10 @@ class ScrapeEngine(object):
       were skipped over. 
       '''
       
-      # return value of this method. how many books were scraped [0], 
-      # and how many skipped over by user [1]. these values start out accurate
-      # and are updated as we progress (i.e. 'skipped' books become 'scraped')
-      scrape_vs_skip = [0, len(books)];
+      # initialize the status member variable, and then keep it up-to-date 
+      # from now on (so that it can be used to report the status of this 
+      # scrape, even if an error occurs.)
+      self.__status = [0, len(books)];
       
       # 1. sort he ComicBooks so that all books that are from the same series
       #    are grouped together.  we'll loop through them in this order
@@ -161,7 +168,7 @@ class ScrapeEngine(object):
          else:
             # 2b. a null config means the user cancelled the scrape
             self.__cancelled_b = True
-            return scrape_vs_skip
+            return
 
       # 3. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
@@ -195,8 +202,8 @@ class ScrapeEngine(object):
                   # that happens, force the user to chose the search terms.
                   manual_search = True
                elif bookstatus == self._BookStatus.SCRAPED:
-                  scrape_vs_skip[0] += 1;
-                  scrape_vs_skip[1] -= 1;
+                  self.__status[0] += 1;
+                  self.__status[1] -= 1;
                elif bookstatus == self._BookStatus.SKIPPED:
                   pass;
             log.debug()
@@ -204,8 +211,6 @@ class ScrapeEngine(object):
             
       finally:
          if comic_form: comic_form.close_threadsafe()
-         
-      return scrape_vs_skip
 
 
 
@@ -436,7 +441,7 @@ class ScrapeEngine(object):
          log.debug('displaying the series selection dialog...')
          with  SeriesForm(self, book, series_refs, search_terms_s) as sform:
             result = sform.show_form()
-         log.debug('   ...chose to ', result.get_debug_string())
+         log.debug('   ...user chose to ', result.get_debug_string())
       return result
 
 
@@ -510,7 +515,7 @@ class ScrapeEngine(object):
                series_name_s) as issue_form:
             result = issue_form.show_form()
             result = result if result else IssueFormResult(IssueFormResult.BACK)
-         log.debug('   ...chose to ', result.get_debug_string())
+         log.debug('   ...user chose to ', result.get_debug_string())
 
       return result # will not be None now
 
