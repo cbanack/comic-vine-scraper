@@ -23,7 +23,7 @@ module while either of those two methods are running.
 Created on Feb 10, 2010
 @author: cbanack
 """
-#corylow: comment and cleanup this file
+#corylow: comment and cleanup this file (method cases?)
 import sys, clr
 import utils
 from dbmodels import DatabaseConnectionError

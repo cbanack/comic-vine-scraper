@@ -92,7 +92,7 @@ class ScrapeEngine(object):
                self.__cancelled_b = True;
                for cancel_listener in self.cancel_listeners:
                   cancel_listener()
-      utils.invoke(self.comicrack.MainWindow, delegate, True)
+      utils.invoke(self.comicrack.MainWindow, delegate, False)
 
 
 
