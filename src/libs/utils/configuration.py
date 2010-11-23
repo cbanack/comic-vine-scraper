@@ -46,6 +46,7 @@ class Configuration:
    __FAST_RESCRAPE = 'fastRescrape'
    __RESCRAPE_NOTES = 'updateNotes'
    __RESCRAPE_TAGS = 'updateTags'
+   __SUMMARY_DIALOG = 'summaryDialog'
    
    def __init__(self):
       self.ow_existing_b = True
@@ -59,6 +60,7 @@ class Configuration:
       self.fast_rescrape_b = True
       self.rescrape_notes_b = True
       self.rescrape_tags_b = True
+      self.summary_dialog_b = True
 
       self.update_series_b = True
       self.update_number_b = True
@@ -199,6 +201,9 @@ class Configuration:
       if Configuration.__RESCRAPE_TAGS in loaded:
          self.rescrape_tags_b = loaded[Configuration.__RESCRAPE_TAGS]
          
+      if Configuration.__SUMMARY_DIALOG in loaded:
+         self.summary_dialog_b = loaded[Configuration.__SUMMARY_DIALOG]
+         
    
    def save_defaults(self):
       defaults = {}
@@ -236,6 +241,7 @@ class Configuration:
       defaults[Configuration.__FAST_RESCRAPE] = self.fast_rescrape_b
       defaults[Configuration.__RESCRAPE_NOTES] = self.rescrape_notes_b
       defaults[Configuration.__RESCRAPE_TAGS] = self.rescrape_tags_b
+      defaults[Configuration.__SUMMARY_DIALOG] = self.summary_dialog_b
    
       persist_map(defaults, resources.SETTINGS_FILE)
    
@@ -256,6 +262,7 @@ class Configuration:
       self.fast_rescrape_b == other.fast_rescrape_b and \
       self.rescrape_notes_b == other.rescrape_notes_b and \
       self.rescrape_tags_b == other.rescrape_tags_b and \
+      self.summary_dialog_b == other.summary_dialog_b and \
                                                         \
       self.update_series_b == other.update_series_b and \
       self.update_number_b == other.update_number_b and \
@@ -335,5 +342,6 @@ class Configuration:
       "[{0}] Rescraping: Tags".format(x(self.rescrape_tags_b)).ljust(30) +\
       "\n" + \
       "[{0}] Show Covers".format(x(self.show_covers_b)).ljust(30)+\
+      "[{0}] Summary Dialog".format(x(self.summary_dialog_b)).ljust(30)+\
       "\n" + \
       "-------------------------------------------------------------------"

@@ -76,6 +76,7 @@ class ConfigForm(CVForm):
       self.__specify_series_cb = None
       self.__convert_imprints_cb = None
       self.__show_covers_cb = None
+      self.__summary_dialog_cb = None
       self.__download_thumbs_cb = None
       self.__preserve_thumbs_cb = None
       self.__scrape_in_groups_cb = None
@@ -259,7 +260,7 @@ class ConfigForm(CVForm):
       self.__fast_rescrape_cb = CheckBox()
       self.__fast_rescrape_cb.AutoSize = True
       self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
-      self.__fast_rescrape_cb.Location = Point(52, 25)
+      self.__fast_rescrape_cb.Location = Point(52, 15)
       self.__fast_rescrape_cb.Size = Size(218, 17)
       self.__fast_rescrape_cb.Text = \
          "Use previous choice when 'rescraping' comics"
@@ -269,7 +270,7 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb = CheckBox()
       self.__rescrape_tags_cb.AutoSize = True
       self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_tags_cb.Location = Point(82, 50)
+      self.__rescrape_tags_cb.Location = Point(82, 40)
       self.__rescrape_tags_cb.Size = Size(218, 17)
       self.__rescrape_tags_cb.Text = "Save that choice in 'Tags'"
       self.__rescrape_tags_cb.CheckedChanged += self.__update_gui_fired 
@@ -278,7 +279,7 @@ class ConfigForm(CVForm):
       self.__rescrape_notes_cb = CheckBox()
       self.__rescrape_notes_cb.AutoSize = True
       self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_notes_cb.Location = Point(82, 75)
+      self.__rescrape_notes_cb.Location = Point(82, 65)
       self.__rescrape_notes_cb.Size = Size(218, 17)
       self.__rescrape_notes_cb.Text = "Save that choice in 'Notes'"
       self.__rescrape_notes_cb.CheckedChanged += self.__update_gui_fired
@@ -287,7 +288,7 @@ class ConfigForm(CVForm):
       self.__scrape_in_groups_cb = CheckBox()
       self.__scrape_in_groups_cb.AutoSize = True
       self.__scrape_in_groups_cb.FlatStyle = FlatStyle.System
-      self.__scrape_in_groups_cb.Location = Point(52, 110)
+      self.__scrape_in_groups_cb.Location = Point(52, 95)
       self.__scrape_in_groups_cb.Size = Size(250, 17)
       self.__scrape_in_groups_cb.Text = \
          "When several comics appear to be from the same\n" \
@@ -298,28 +299,40 @@ class ConfigForm(CVForm):
       self.__specify_series_cb = CheckBox()
       self.__specify_series_cb.AutoSize = True
       self.__specify_series_cb.FlatStyle = FlatStyle.System
-      self.__specify_series_cb.Location = Point(52, 160)
+      self.__specify_series_cb.Location = Point(52, 140)
       self.__specify_series_cb.Size = Size(250, 17)
       self.__specify_series_cb.Text = \
          'Confirm each series name before searching for it'
-      self.__specify_series_cb.CheckedChanged += self.__update_gui_fired 
+      self.__specify_series_cb.CheckedChanged += self.__update_gui_fired
+       
       
       # 6. --- build the 'display cover art' checkbox
       self.__show_covers_cb = CheckBox()
       self.__show_covers_cb.AutoSize = True
       self.__show_covers_cb.FlatStyle = FlatStyle.System
-      self.__show_covers_cb.Location = Point(52, 200)
+      self.__show_covers_cb.Location = Point(52, 173)
       self.__show_covers_cb.Size = Size(250, 17)
       self.__show_covers_cb.Text = \
          'When possible, display comic book cover images'
       self.__show_covers_cb.CheckedChanged += self.__update_gui_fired
+      
+      # 7. --- build the 'specify series name' checkbox
+      self.__summary_dialog_cb = CheckBox()
+      self.__summary_dialog_cb.AutoSize = True
+      self.__summary_dialog_cb.FlatStyle = FlatStyle.System
+      self.__summary_dialog_cb.Location = Point(52, 205)
+      self.__summary_dialog_cb.Size = Size(250, 17)
+      self.__summary_dialog_cb.Text = \
+         'Show summary message when finished scraping'
+      self.__summary_dialog_cb.CheckedChanged += self.__update_gui_fired 
             
-      # 7. --- add 'em all to the tabpage 
+      # 8. --- add 'em all to the tabpage 
       tabpage.Controls.Add(self.__scrape_in_groups_cb)
       tabpage.Controls.Add(self.__fast_rescrape_cb)
       tabpage.Controls.Add(self.__rescrape_tags_cb)
       tabpage.Controls.Add(self.__rescrape_notes_cb)
       tabpage.Controls.Add(self.__specify_series_cb)
+      tabpage.Controls.Add(self.__summary_dialog_cb)
       tabpage.Controls.Add(self.__show_covers_cb)
       
       return tabpage
@@ -471,6 +484,7 @@ class ConfigForm(CVForm):
       config.scrape_in_groups_b = self.__scrape_in_groups_cb.Checked
       config.rescrape_notes_b = self.__rescrape_notes_cb.Checked
       config.rescrape_tags_b = self.__rescrape_tags_cb.Checked
+      config.summary_dialog_b = self.__summary_dialog_cb.Checked
       return config
  
    
@@ -521,6 +535,7 @@ class ConfigForm(CVForm):
       self.__scrape_in_groups_cb.Checked = config.scrape_in_groups_b
       self.__rescrape_notes_cb.Checked = config.rescrape_notes_b
       self.__rescrape_tags_cb.Checked = config.rescrape_tags_b
+      self.__summary_dialog_cb.Checked = config.summary_dialog_b
       
       self.__update_gui_fired()
       

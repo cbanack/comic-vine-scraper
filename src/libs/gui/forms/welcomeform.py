@@ -8,7 +8,6 @@ Created on June 2, 2010
 import clr
 import resources
 from cvform import CVForm 
-from configuration import Configuration
 from configform import ConfigForm
 
 clr.AddReference('System.Windows.Forms')
@@ -132,28 +131,20 @@ class WelcomeForm(CVForm):
    # ==========================================================================
    def show_form(self):
       '''
-      Displays this form, blocking until the user closes it.  When it is closed,
-      it will either return None, which indicates that the user cancelled the
-      dialog, and that the script should be cancelled, or it returns the 
-      Configuration object that should be used for the remainder of the 
-      script's execution.
+      Displays this form, blocking until the user closes it.  Returns a boolean
+      indicating whether the user cancelled the dialog and scrape operation
+      (False) or whether the user clicked ok to continue (True).
       '''
       
       dialogAnswer = self.ShowDialog() # blocks
-      if dialogAnswer == DialogResult.OK:
-         config = Configuration()
-         config.load_defaults()
-      else:
-         config = None
-      return config
-      
+      return dialogAnswer == DialogResult.OK;      
       
    # ==========================================================================
    def __show_configform(self, sender, args):
       '''
       Displays the configform, blocking until the user closes it.   Changes made
-      to the settings in that form will be propogated to the return value of the
-      show_form() method.
+      to the settings in that form will be saved in the user's profile, where
+      they can be loaded when needed.
       '''
       
       with ConfigForm(self) as config_form:

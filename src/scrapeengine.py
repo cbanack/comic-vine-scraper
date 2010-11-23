@@ -119,7 +119,8 @@ class ScrapeEngine(object):
 
          # do the main part of the script
          if books:
-            self.__scrape(books) # this populates the "status" variable
+            # this populates the "status" variable, and the "config" variable
+            self.__scrape(books) 
             
          log.debug("Scraper terminated normally (scraped {0}, skipped {1})."\
             .format(self.__status[0], self.__status[1]))
@@ -128,12 +129,13 @@ class ScrapeEngine(object):
          log.handle_error(ex)
          
       finally:
-         try:
-            # show the user a dialog describing what was scraped
-            with FinishForm(self, self.__status) as finish_form:
-               self.config = finish_form.show_form()
-         except Exception, ex:
-            log.handle_error(ex)
+         if self.config.summary_dialog_b:
+            try:
+               # show the user a dialog describing what was scraped
+               with FinishForm(self, self.__status) as finish_form:
+                  finish_form.show_form()
+            except Exception, ex:
+               log.handle_error(ex)
 
 
 
@@ -160,15 +162,16 @@ class ScrapeEngine(object):
       #    what's about to happen, it loads (and allows the user to tweak)
       #    the Configuration that we'll use for the remainder of this operation.
       with WelcomeForm(self, books) as welcome_form:
-         self.config = welcome_form.show_form()
-         if self.config:
-            # 2a. print the entire configuration to the debug stream
+         self.__cancelled_b = not welcome_form.show_form()
+         self.config = Configuration()
+         self.config.load_defaults()
+         if self.__cancelled_b:
+            # 2a. user cancelled the scrape
+            return
+         else:
+            # 2b. print the entire configuration to the debug stream
             log.debug(self.config)
             log.debug() 
-         else:
-            # 2b. a null config means the user cancelled the scrape
-            self.__cancelled_b = True
-            return
 
       # 3. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
