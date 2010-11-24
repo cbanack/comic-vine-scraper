@@ -4,12 +4,12 @@ This module contains the CVForm class.
 Created on Mar 10, 2010
 @author: cbanack
 '''
-#corylow: comment and cleanup this file
-from System.Windows.Forms import FormBorderStyle
-from persistentform import PersistentForm
-import clr
 
+import clr
 clr.AddReference('System.Windows.Forms')
+
+from System.Windows.Forms import FormBorderStyle, Keys
+from persistentform import PersistentForm
 
 #==============================================================================
 class CVForm(PersistentForm):
@@ -26,8 +26,9 @@ class CVForm(PersistentForm):
       Requires an owner parameter, which is the Form that will own this form.
       The other two parameters are passed up to the PersistentForm superclass.
       '''
-      PersistentForm.__init__( self, persist_loc_key, persist_size_key )
+      super(CVForm, self).__init__( persist_loc_key, persist_size_key )
       
+      # these are the default properties of all CVForms.
       self.Owner = owner 
       self.Modal = False
       self.MaximizeBox = False                                                
@@ -39,13 +40,26 @@ class CVForm(PersistentForm):
 
    #===========================================================================
    def __enter__(self):
-      ''' Called automatically when you using this form in a "with" block. '''
+      ''' Called automatically if you use this form in a python "with" block.'''
       return self
    
    
    #===========================================================================
    def __exit__(self, type, value, traceback):
-      ''' Called automatically when you using this form in a "with" block. '''
+      ''' Called automatically if you use this form in a python "with" block.'''
+      
+      # ensure that the form is closed and disposed in a timely manner
       self.Close()
       self.Dispose()
 
+
+   #===========================================================================
+   def ProcessCmdKey(self, msg, keys):
+      ''' Called anytime the user presses a key while this form has focus. '''
+      
+      # overidden to ensure that all CVForms close themselves
+      # if you press the escape key. 
+      if keys == Keys.Escape:
+         self.Close()
+      else:
+         super(CVForm, self).ProcessCmdKey(msg, keys)
