@@ -1,7 +1,6 @@
 '''
-Created on May 6, 2010
 
-@author: cbanack
+@author: Cory Banack
 '''
 
 #corylow: comment and cleanup this file
@@ -105,6 +104,8 @@ class Issue(object):
       self.image_urls = []
       
       # coryhigh: improve classes here?
+      # coryhigh: make sure everyone is using "new" type objects
+      # (i.e. explicitly subclassing "object")
 #   def get_title_s(self):
 #      return self.__title_s
 #   

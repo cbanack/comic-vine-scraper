@@ -12,6 +12,8 @@ If you run this module, it will query the ComicVine database and report the
 discrepancies between the publishers in ComicVine, and the ones in our
 internal tables (i.e. when a new publisher appears, you can easily find out 
 about it and add it to the internal tables.) 
+
+@author: Cory Banack
 '''
 
 import clr

@@ -4,8 +4,7 @@ described in the db.py module.  That module can delegate its function calls to
 the functions in this module, but other than that, external modules should 
 NOT call these functions directly.
   
-Created on May 9, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 
 import clr

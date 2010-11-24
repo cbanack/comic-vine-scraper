@@ -1,4 +1,8 @@
-''' This module is home to the SearchForm class '''
+''' 
+This module is home to the SearchForm class.
+
+@author: Cory Banack
+'''
 
 import clr
 from cvform import CVForm

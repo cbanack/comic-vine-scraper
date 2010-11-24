@@ -9,8 +9,7 @@ While no promises about the underlying implementation are made, you should
 expect that this implementation accesses data from a remote source, and 
 therefore may be quite slow!
 
-Created on May 6, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 import cvdb
 import utils

@@ -1,8 +1,7 @@
 '''
 This module contains the PersistentForm class.
 
-Created on Mar 10, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 #corylow: comment and cleanup this file
 
@@ -34,16 +33,16 @@ class PersistentForm(Form):
    
    
    #===========================================================================
-   def __init__(self, persist_loc_key = None, persist_size_key = None):
+   def __init__(self, persist_loc_key_s = None, persist_size_key_s = None):
       '''
       Constructs a new PersistentForm.
       
-      If persist_loc_key is specified, this form will attempt to save and
+      If persist_loc_key_s is specified, this form will attempt to save and
       restore its previous location every time it is run.  If no previous is
       available, or if this parameter is None, then the form will be centered on
       it's parent via Form.CenterToParent().
       
-      If persist_size_key is specified, this form will attempt to save and 
+      If persist_size_key_s is specified, this form will attempt to save and 
       restore its previous size every time it is run (a feature which only makes
       sense if the form is resizable!).  If no previous is available, or if this
       parameter is None, the form will use its natural size (i.e. no change)
@@ -53,14 +52,16 @@ class PersistentForm(Form):
       settings file! 
       '''
 
+      super(PersistentForm, self).__init__()
+      
       # whether or not the user has moved or resized this form.
       self._bounds_changed = False
       
       # the pref key for persisting this form's location, or None to skip
-      self._persist_loc_key = persist_loc_key
-      
+      self._persist_loc_key_s = persist_loc_key_s
+
       # the pref key for persisting this form's size, or None to skip
-      self._persist_size_key = persist_size_key
+      self._persist_size_key_s = persist_size_key_s
       
       self._initialize()
 
@@ -113,22 +114,22 @@ class PersistentForm(Form):
       """
       
       do_default_loc = True
-      if self._persist_size_key or self._persist_loc_key:
+      if self._persist_size_key_s or self._persist_loc_key_s:
          prefs = load_map(resources.GEOMETRY_FILE)
          
          # grab the stored size value, if any, and apply it
-         if self._persist_size_key and self._persist_size_key in prefs:
+         if self._persist_size_key_s and self._persist_size_key_s in prefs:
             try:
-               size = prefs[self._persist_size_key].split(',')
+               size = prefs[self._persist_size_key_s].split(',')
                self.Size = Size(int(size[0]), int(size[1]))
             except:
                # didn't work, just stick with the forms current size
                pass
             
          # grab the stored location value, if any, and apply it
-         if self._persist_loc_key and self._persist_loc_key in prefs:
+         if self._persist_loc_key_s and self._persist_loc_key_s in prefs:
             try:
-               loc = prefs[self._persist_loc_key].split(',')
+               loc = prefs[self._persist_loc_key_s].split(',')
                loc = Point(int(loc[0]), int(loc[1]))
                self.Location = loc
                do_default_loc = False
@@ -148,17 +149,17 @@ class PersistentForm(Form):
       """
       
       # might as well use an off thread, makes the gui a bit more responsive
-      log.debug("saved window geometry: ", self._persist_loc_key, 
-                " ", self._persist_size_key )
+      log.debug("saved window geometry: ", self._persist_loc_key_s, 
+                " ", self._persist_size_key_s )
       
       def delegate():
-         if self._persist_size_key or self._persist_loc_key:
+         if self._persist_size_key_s or self._persist_loc_key_s:
             prefs = load_map(resources.GEOMETRY_FILE)
-            if self._persist_loc_key:
-               prefs[self._persist_loc_key] =\
+            if self._persist_loc_key_s:
+               prefs[self._persist_loc_key_s] =\
                   sstr(self.Location.X) + "," + sstr(self.Location.Y)
-            if self._persist_size_key:
-               prefs[self._persist_size_key] =\
+            if self._persist_size_key_s:
+               prefs[self._persist_size_key_s] =\
                   sstr(self.Width) + "," + sstr(self.Height)
             persist_map(prefs, resources.GEOMETRY_FILE)
       Thread(ThreadStart(delegate)).Start()

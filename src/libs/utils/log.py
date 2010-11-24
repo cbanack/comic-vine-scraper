@@ -20,8 +20,7 @@ This module is threadsafe while running, but is not when during install() and
 uninstall(), so care should be taken not to call any other method in this 
 module while either of those two methods are running.  
 
-Created on Feb 10, 2010
-@author: cbanack
+@author: Cory Banack
 """
 #corylow: comment and cleanup this file (method cases?)
 import sys, clr

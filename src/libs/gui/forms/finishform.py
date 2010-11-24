@@ -1,8 +1,7 @@
 '''
 This module is home to the FinishForm class.
 
-Created on November 13, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 
 import clr

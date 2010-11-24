@@ -1,6 +1,8 @@
 ''' 
 This module contains utility methods for working with ComicRack
 ComicBook objects (i.e. 'book' objects).
+
+@author: Cory Banack
 '''
 
 import re

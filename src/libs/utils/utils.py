@@ -1,8 +1,7 @@
 '''
 This module contains a variety of generally useful utility methods.
 
-Created on Feb 28, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 import clr
 import log

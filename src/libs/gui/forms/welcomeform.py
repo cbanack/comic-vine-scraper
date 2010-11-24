@@ -1,8 +1,7 @@
 '''
 This module is home to the WelcomeForm class.
 
-Created on June 2, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 
 import clr

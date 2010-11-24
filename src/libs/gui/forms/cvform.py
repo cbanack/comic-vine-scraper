@@ -1,8 +1,7 @@
 '''
 This module contains the CVForm class.
 
-Created on Mar 10, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 
 import clr
@@ -20,13 +19,13 @@ class CVForm(PersistentForm):
    '''
 
    #===========================================================================
-   def __init__(self, owner, persist_loc_key = "", persist_size_key = "" ):
+   def __init__(self, owner, persist_loc_key_s = "", persist_size_key_s = "" ):
       ''' 
       Constructs a new CVForm.
       Requires an owner parameter, which is the Form that will own this form.
       The other two parameters are passed up to the PersistentForm superclass.
       '''
-      super(CVForm, self).__init__( persist_loc_key, persist_size_key )
+      super(CVForm, self).__init__( persist_loc_key_s, persist_size_key_s )
       
       # these are the default properties of all CVForms.
       self.Owner = owner 

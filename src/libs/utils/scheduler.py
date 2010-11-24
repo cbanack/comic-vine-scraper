@@ -1,4 +1,8 @@
-''' This module is home to the Scheduler class. '''
+''' 
+This module is home to the Scheduler class. 
+
+@author: Cory Banack
+'''
 
 import clr
 import log

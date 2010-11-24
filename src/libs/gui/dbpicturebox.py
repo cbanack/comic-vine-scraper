@@ -2,8 +2,7 @@
 This module contains the DBPictureBox class, which can be used to display 
 remotely loaded images using an asyncrhonous off-loading thread manner.
 
-Created on March 7, 2010
-@author: cbanack
+@author: Cory Banack
 '''
 import clr
 import resources

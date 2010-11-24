@@ -1,4 +1,8 @@
-''' This module is home to the IssueCoverPanel class. '''
+''' 
+This module is home to the IssueCoverPanel class.
+ 
+@author: Cory Banack
+'''
 
 import clr
 from dbpicturebox import DBPictureBox 

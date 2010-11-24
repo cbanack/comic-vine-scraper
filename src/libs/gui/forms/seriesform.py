@@ -1,4 +1,8 @@
-''' This module is home to the SeriesForm and SeriesFormResult classes.'''
+''' 
+This module is home to the SeriesForm and SeriesFormResult classes.
+
+@author: Cory Banack
+'''
 
 import re
 import clr

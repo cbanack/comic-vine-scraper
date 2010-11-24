@@ -1,4 +1,8 @@
-''' This module is home to the IssuesForm and IssuesFormResult classes. '''
+'''
+This module is home to the IssuesForm and IssuesFormResult classes. 
+
+@author: Cory Banack
+'''
 
 import clr
 clr.AddReference('Microsoft.VisualBasic')

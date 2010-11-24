@@ -1,7 +1,6 @@
 '''
-Created on Feb 16, 2010
 
-@author: cbanack
+@author: Cory Banack
 '''
 #corylow: comment and cleanup this file
 

@@ -3,8 +3,9 @@ This module contains useful canned methods for accessing the Comic Vine
 database (API) over the Internet.  The documentation for this API and the 
 related queries can be found at:  http://api.comicvine.com/documentation/
 
-@author: cbanack
+@author: Cory Banack
 '''
+
 import clr
 import log
 import xml2py
