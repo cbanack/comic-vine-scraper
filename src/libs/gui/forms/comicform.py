@@ -170,11 +170,11 @@ class ComicForm(CVForm):
       if fileless:
          # 1a. this is a fileless book, so use it's series name
          book_name = book.Series 
-         if book_name: 
-            book_name += (' #' + book.Number) if book.Number else '' 
          if not book_name:
             book_name = '<unknown>' # generally shouldn't happen
-      
+         book_name += (' #' + sstr(book.Number)) if book.Number else ''
+         book_name += (' (Vol. ' + sstr(book.Volume) +")") if book.Volume >= 0 \
+            else (' (' + sstr(book.Year) +')') if book.Year >= 0 else ''
         
       # 2. obtain the front page of the book, to put in our _PictureBoxPanel.
       cover_image = None
