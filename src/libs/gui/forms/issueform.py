@@ -34,14 +34,12 @@ class IssueForm(CVForm):
    '''
    
    #===========================================================================
-   def __init__(self, scraper, book, issue_ref_hint,
-         issue_refs, series_name_s):
+   def __init__(self, scraper, issue_ref_hint, issue_refs, series_name_s):
       ''' 
       Initializes this form.  If a good issue key hint is given, that issue will
       be preselected in the table if possible.
       
       'scraper' -> the currently running ScrapeEngine
-      'book' -> the comic book being scraped
       'issue_ref_hint' -> may be the issue id for the given book (or may not!)
       'issue_refs' -> a set or list containing the IssueRefs to display
       'series_name_s' -> the name of the series that the given issues belong to
@@ -75,11 +73,11 @@ class IssueForm(CVForm):
       if len(issue_refs) <= 0:
          raise Exception("do not invoke the IssueForm with no IssueRefs!")
       CVForm.__init__(self, scraper.comicrack.MainWindow, "issueformLocation")
-      self.__build_gui(book, issue_ref_hint, series_name_s)
+      self.__build_gui(issue_ref_hint, series_name_s)
       scraper.cancel_listeners.append(self.Close)
       
    # ==========================================================================
-   def __build_gui(self, book, issue_ref_hint, series_name_s):
+   def __build_gui(self, issue_ref_hint, series_name_s):
       ''' Constructs and initializes the gui for this form. '''
       
       # 1. --- build each gui component

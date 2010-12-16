@@ -161,7 +161,7 @@ class ScrapeEngine(object):
       
       # 1. sort he ComicBooks so that all books that are from the same series
       #    are grouped together.  we'll loop through them in this order
-      Array.Sort(books, self._BookComparer())
+      books.sort(self._BookComparer().Compare)
 
       # 2. show the welcome form. in addition to being a friendly summary of 
       #    what's about to happen, it loads (and allows the user to tweak)
@@ -192,7 +192,7 @@ class ScrapeEngine(object):
             book = books[i]
 
             # 4a. notify 'start_scrape_listeners' that we're scraping a new book
-            log.debug("======> scraping next eComic book: '", book.FileName,"'")
+            log.debug("======> scraping next comic book: '",book.filename_s,"'")
             for start_scrape in self.start_scrape_listeners:
                start_scrape(book, len(books) - i)
 
@@ -286,7 +286,7 @@ class ScrapeEngine(object):
             "scraping details directly: " + sstr(issue_ref));
          try:
             issue = db.query_issue(issue_ref)
-            bookutils.save_issue_to_book(issue, book, self)
+            book.save_issue(issue, self)
             return self._BookStatus.SCRAPED
          except:
             log.debug_exc("Error rescraping details:")
@@ -307,7 +307,7 @@ class ScrapeEngine(object):
          del scrape_cache[key] 
       if key not in scrape_cache: 
          # get serach terms for the book that we're scraping
-         search_terms_s = book.ShadowSeries.strip()
+         search_terms_s = book.series_s
          if manual_search_b or not search_terms_s:
             # show dialog asking the user for the right search terms
             search_terms_s = self.__choose_search_terms(search_terms_s)
@@ -399,7 +399,7 @@ class ScrapeEngine(object):
             # we've the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
             issue = db.query_issue( result.get_ref() )
-            bookutils.save_issue_to_book(issue, book, self)
+            book.save_issue(issue, self)
             return self._BookStatus.SCRAPED
 
       raise Exception("should never get here")
@@ -474,8 +474,7 @@ class ScrapeEngine(object):
       result = None;  # the return value; must start out null
       
       series_name_s = series_ref.series_name_s
-      issue_num_s = book.ShadowNumber
-      issue_num_s = '' if not issue_num_s else issue_num_s.strip()
+      issue_num_s = '' if not book.issue_num_s else book.issue_num_s
 
 
       # 1. try to find the issue number directly in the given issue_refs.  
@@ -519,8 +518,7 @@ class ScrapeEngine(object):
          forcing_s = ' (forced)' if force_b else ''
          hint = result.get_ref() if result else None
          log.debug("displaying the issue selection dialog", forcing_s, "...")
-         with IssueForm(self, book, hint, issue_refs, 
-               series_name_s) as issue_form:
+         with IssueForm(self, hint, issue_refs, series_name_s) as issue_form:
             result = issue_form.show_form()
             result = result if result else IssueFormResult(IssueFormResult.BACK)
          log.debug('   ...user chose to ', result.get_debug_string())
@@ -615,22 +613,22 @@ class ScrapeEngine(object):
          map  as a cache to avoid rescraping for the same _ScrapedSeries
          object over and over again.
          '''
-          
-         sname = '' if not book.ShadowSeries else book.ShadowSeries
-         if sname and book.ShadowFormat:
-            sname += sstr(book.ShadowFormat)
+         # coryhigh: START HERE: move this into comicbook object...?
+         sname = '' if not book.series_s else book.series_s
+         if sname and book.format_s:
+            sname += sstr(book.format_s)
          sname = re.sub('\W+', '', sname).lower()
 
          svolume = ''
          if sname:
-            if book.ShadowVolume and book.ShadowVolume > 0:
-               svolume = "[v" + sstr(book.ShadowVolume) + "]"
+            if book.volume_n and book.volume_n > 0:
+               svolume = "[v" + sstr(book.volume_n) + "]"
          else:
             # if we can't find a name at all (very weird), fall back to the
             # ComicRack ID, which should be unique and thus ensure that this 
             # comic doesn't get lumped in to the same series choice as any 
             # other unnamed comics! 
-            sname = sstr(book.Id)
+            sname = book.uuid_s
          return sname + svolume
 
 
@@ -653,15 +651,15 @@ class ScrapeEngine(object):
       them in order of increasing mapkeys, and where the mapkeys are the same,
       in order of increasing issue number. 
       '''
-
+      # coryhigh: this probably doesn't have to be a .NET object anymore
       def Compare(self, book1, book2):
          try:
             key1 = ScrapeEngine._ScrapedSeries.build_mapkey(book1)
             key2 = ScrapeEngine._ScrapedSeries.build_mapkey(book2)
             result = key1.CompareTo(key2)
             if result == 0:
-               num1 = '' if not book1.ShadowNumber else sstr(book1.ShadowNumber)
-               num2 = '' if not book2.ShadowNumber else sstr(book2.ShadowNumber)
+               num1 = '' if not book1.issue_num_s else book1.issue_num_s
+               num2 = '' if not book2.issue_num_s else book2.issue_num_s
                def pad(num):
                   try:
                      f = float(num.lower().strip('abcdefgh'))

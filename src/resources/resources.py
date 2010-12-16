@@ -22,14 +22,3 @@ if SCRIPT_VERSION.startswith("!"):
 def createComicVineLogo():
    dir = __file__[:-(len(__name__) + len('.py'))]
    return Image.FromFile( dir + 'comicvinelogo.png')
-
-def getComicName(eComic, include_volume=False, include_issue=False ):
-   comic_name = 'unknown comic'
-   if eComic.ShadowSeries != '' and eComic.ShadowSeries is not None:
-      comic_name = eComic.ShadowSeries
-      if include_volume and eComic.ShadowVolume >= 0:
-         comic_name += ' (V' + str(eComic.ShadowVolume) +')'
-      if include_issue and eComic.ShadowNumber >= 0:
-            comic_name += ", #" + eComic.ShadowNumber 
-
-   return comic_name

@@ -39,7 +39,7 @@ class SeriesForm(CVForm):
       Initializes this form.
       
       'scraper' -> the currently running ScrapeEngine
-      'book' -> the comic book being scraped
+      'book' -> the ComicBook being scraped
       'series_refs' -> set or list containing the SeriesRefs to display
       'search_terms_s' -> the user's search string that found the series models
       '''
@@ -126,7 +126,7 @@ class SeriesForm(CVForm):
       ''' 
       Builds and returns the table for this form.
       'series_refs' -> a list with one SeriesRef object for each found series
-      'book' -> the comic book being scraped
+      'book' -> the ComicBook being scraped
       'enter_button' -> the button to "press" if the user hits enter
       '''
       
@@ -335,9 +335,9 @@ class SeriesForm(CVForm):
       
       # 1. first, compute the 'namescore', which is based on how many words in
       #    our book name match words in the series' name
-      bookname_s = '' if not book.ShadowSeries else book.ShadowSeries
-      if bookname_s and book.ShadowFormat:
-         bookname_s += ' ' + sstr(book.ShadowFormat)
+      bookname_s = '' if not book.series_s else book.series_s
+      if bookname_s and book.format_s:
+         bookname_s += ' ' + book.format_s
       bookwords = split(bookname_s)   
       serieswords = split(series_ref.series_name_s)
       
@@ -351,7 +351,7 @@ class SeriesForm(CVForm):
       
       # 2. now get the 'bookscore', which compares our books issue number
       #    with the number of issues in the series
-      booknumber_n = book.ShadowNumber if book.ShadowNumber else '-1000'
+      booknumber_n = book.issue_num_s if book.issue_num_s else '-1000'
       booknumber_n = re.sub('[^\d.-]+', '', booknumber_n)
       try:
          booknumber_n = float(booknumber_n)
@@ -376,9 +376,9 @@ class SeriesForm(CVForm):
          series_year_n = 0
          
       yearscore_n = 0
-      if valid_year_b(book.ShadowYear):
+      if valid_year_b(book.year_n):
          if valid_year_b(series_year_n):
-            yearscore_n -= abs(series_year_n - book.ShadowYear)
+            yearscore_n -= abs(series_year_n - book.year_n)
             yearscore_n -= 50 if yearscore_n < -2 else 0
          else:
             yearscore_n = -100

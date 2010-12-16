@@ -165,34 +165,26 @@ class ComicForm(CVForm):
       '''
 
       # 1. obtain a nice filename string to put into out Label      
-      book_name = book.FileNameWithExtension
+      book_name = book.filename_ext_s
       fileless = False if book_name else True
       if fileless:
          # 1a. this is a fileless book, so use it's series name
-         book_name = book.Series 
+         book_name = book.series_s 
          if not book_name:
             book_name = '<unknown>' # generally shouldn't happen
-         book_name += (' #' + sstr(book.Number)) if book.Number else ''
-         book_name += (' (Vol. ' + sstr(book.Volume) +")") if book.Volume >= 0 \
-            else (' (' + sstr(book.Year) +')') if book.Year >= 0 else ''
+         book_name += (' #' + book.issue_num_s) if book.issue_num_s else ''
+         book_name += (' (Vol. ' + sstr(book.volume_n) +")") \
+            if book.volume_n >= 0 else (' (' + sstr(book.year_n) +')') \
+            if book.year_n >= 0 else ''
         
-      # 2. obtain the front page of the book, to put in our _PictureBoxPanel.
-      cover_image = None
-      if fileless:
-         cover_image = None
-      else:
-         cover_index = 0 
-         if book.FrontCoverPageIndex > 0:
-            cover_index = book.FrontCoverPageIndex
-         cover_image = \
-            self.__scraper.comicrack.App.GetComicPage( book, cover_index )
-         cover_image = utils.strip_back_cover(cover_image)
+      # 2. obtain a copy of the cover page of the book
+      cover_image = book.get_cover_image()
        
       # 3. install those values into the ComicForm.  update progressbar.        
       def delegate():
          # NOTE: now we're on the ComicForm Application Thread
          self.__label.Text = "Scraping:  " + book_name
-         self.__pbox_panel.set_image(cover_image) # cover image may be none
+         self.__pbox_panel.set_image(cover_image) # cover image may be None
          if self.__progbar.Maximum == 0:
             self.__progbar.Maximum = num_remaining
          self.__progbar.PerformStep()
