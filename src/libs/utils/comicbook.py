@@ -16,15 +16,16 @@ import utils
 #==============================================================================
 class ComicBook(object):
 
-   # sortability?
-   
    #===========================================================================   
    def __init__(self, cr_book, scraper):
       if not cr_book:
          raise Exception("invalid backing comic book")
       self.__cr_book = cr_book
       self.__comicrack = scraper.comicrack
+
    
+   # adapter properties that provide read-only access to this ComicBook's 
+   # backing ComicRack comic book object  # coryhigh: comment these
    series_s = property( lambda self : self.__cr_book.ShadowSeries.strip() )
    issue_num_s = property( lambda self : self.__cr_book.ShadowNumber.strip() )
    volume_n = property( lambda self : self.__cr_book.ShadowVolume )
@@ -37,10 +38,46 @@ class ComicBook(object):
    filename_ext_s = property(lambda self : self.__cr_book.FileNameWithExtension)
       
       
-   # ==========================================================================
+   #==========================================================================
+   def unique_series_s(self):
+      '''
+      The unique series name for this ComicBook.   This is a special 
+      string such that any books that "appear" to be from the same series will 
+      have the same unique series name, and any that appear to be from 
+      different series will have different unique series names.
+      
+      This value is not the same as the series_s property.  It takes that 
+      property (the series name) into account, but it ALSO considers other 
+      values that may differentiate series with the same name, like volume 
+      and format.   It is also guaranteed to produce a unique value even if 
+      all other data in this ComicBook is empty.
+      
+      The unique series name is meant to be used internally (i.e. the key for
+      a map, or for grouping ComicBooks), not for displaying to users.
+      '''
+      
+      sname = '' if not self.series_s else self.series_s
+      if sname and self.format_s:
+         sname += self.format_s
+      sname = re.sub('\W+', '', sname).lower()
+
+      svolume = ''
+      if sname:
+         if self.volume_n and self.volume_n > 0:
+            svolume = "[v" + sstr(self.volume_n) + "]"
+      else:
+         # if we can't find a name at all (very weird), fall back to the
+         # ComicRack ID, which should be unique and thus ensure that this 
+         # comic doesn't get lumped in to the same series choice as any 
+         # other unnamed comics! 
+         sname = self.uuid_s
+      return sname + svolume
+        
+      
+   #==========================================================================
    def get_cover_image(self):
       ''' 
-      Retrieves an copy (a .NET Image object) of the cover page for this 
+      Retrieves an COPY (a .NET Image object) of the cover page for this 
       ComicBook.  Returns null if one could not be obtained for any reason.
       '''
       

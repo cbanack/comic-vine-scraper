@@ -3,7 +3,7 @@ This module is home to the ScrapeEngine class.
 
 @author: Cory Banack
 '''
-import clr, re
+import clr
 
 import resources 
 import log
@@ -19,10 +19,6 @@ import db
 import bookutils
 from welcomeform import WelcomeForm
 from finishform import FinishForm
-
-clr.AddReference('System')
-from System import Array
-from System.Collections import IComparer
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -159,9 +155,26 @@ class ScrapeEngine(object):
       # scrape, even if an error occurs.)
       self.__status = [0, len(books)];
       
-      # 1. sort he ComicBooks so that all books that are from the same series
-      #    are grouped together.  we'll loop through them in this order
-      books.sort(self._BookComparer().Compare)
+      # 1. sort the ComicBooks in order of increasing series, and where the 
+      #    series are the same, in order of increasing issue number.  we'll
+      #    loop through them in this order.
+      def __compare_books(book1, book2):
+         result = book1.unique_series_s().CompareTo(book2.unique_series_s())
+         if result == 0:
+            num1 = '' if not book1.issue_num_s else book1.issue_num_s
+            num2 = '' if not book2.issue_num_s else book2.issue_num_s
+            def pad(num):
+               try:
+                  f = float(num.lower().strip('abcdefgh'))
+                  if f < 10: return "000" + num
+                  elif f < 100: return "00" + num
+                  elif f < 1000: return "0" + num
+                  else: return num
+               except:
+                  return num
+            result = pad(num1).CompareTo(pad(num2))
+         return result
+      books.sort(cmp=__compare_books)
 
       # 2. show the welcome form. in addition to being a friendly summary of 
       #    what's about to happen, it loads (and allows the user to tweak)
@@ -300,7 +313,7 @@ class ScrapeEngine(object):
       log.debug("no CVDB tag found in book, beginning search...")
       search_terms_s = None
       series_refs = None
-      key = self._ScrapedSeries.build_mapkey(book)
+      key = book.unique_series_s()
       if key in scrape_cache and not self.config.scrape_in_groups_b:
          # uncaching this key forces the scraper to treat this comic series
          # as though this was the first time we'd seen it
@@ -602,35 +615,6 @@ class ScrapeEngine(object):
          self.series_ref = None  
          self.issue_refs = None
  
-      @classmethod
-      def build_mapkey(cls, book):
-         '''
-         Constructs a "mapkey" for the given ComicBook.   The idea is that any 
-         books that appear to be from the same series should have the same 
-         mapkeys.  
-         
-         We can map these keys to _ScrapeSeries objects, and use the resulting
-         map  as a cache to avoid rescraping for the same _ScrapedSeries
-         object over and over again.
-         '''
-         # coryhigh: START HERE: move this into comicbook object...?
-         sname = '' if not book.series_s else book.series_s
-         if sname and book.format_s:
-            sname += sstr(book.format_s)
-         sname = re.sub('\W+', '', sname).lower()
-
-         svolume = ''
-         if sname:
-            if book.volume_n and book.volume_n > 0:
-               svolume = "[v" + sstr(book.volume_n) + "]"
-         else:
-            # if we can't find a name at all (very weird), fall back to the
-            # ComicRack ID, which should be unique and thus ensure that this 
-            # comic doesn't get lumped in to the same series choice as any 
-            # other unnamed comics! 
-            sname = book.uuid_s
-         return sname + svolume
-
 
    # ==========================================================================
    class _BookStatus(object):
@@ -643,35 +627,4 @@ class ScrapeEngine(object):
       SCRAPED = "scraped"   # successfully scraped
       SKIPPED = "skipped"   # user chose to skip this book
 
-
-   # ==========================================================================
-   class _BookComparer(IComparer):
-      '''
-      This class is used to sort ComicBook objects.  It is designed to sort
-      them in order of increasing mapkeys, and where the mapkeys are the same,
-      in order of increasing issue number. 
-      '''
-      # coryhigh: this probably doesn't have to be a .NET object anymore
-      def Compare(self, book1, book2):
-         try:
-            key1 = ScrapeEngine._ScrapedSeries.build_mapkey(book1)
-            key2 = ScrapeEngine._ScrapedSeries.build_mapkey(book2)
-            result = key1.CompareTo(key2)
-            if result == 0:
-               num1 = '' if not book1.issue_num_s else book1.issue_num_s
-               num2 = '' if not book2.issue_num_s else book2.issue_num_s
-               def pad(num):
-                  try:
-                     f = float(num.lower().strip('abcdefgh'))
-                     if f < 10: return "000" + num
-                     elif f < 100: return "00" + num
-                     elif f < 1000: return "0" + num
-                     else: return num
-                  except:
-                     return num
-               result = pad(num1).CompareTo(pad(num2))
-            return result
-         except Exception, ex:
-            log.debug_exc("exception in BookComparer:")
-            raise(ex)
 

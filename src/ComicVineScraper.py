@@ -65,8 +65,6 @@ def ComicVineScraper(books):
          # create a Scraping Engine and use it to scrape the given books.
          engine = ScrapeEngine(ComicRack)
          comic_books = [ ComicBook(book, engine) for book in books ]
-         for book in comic_books:
-            log.debug(book.series_s)
          engine.scrape(comic_books)
          
    finally:
