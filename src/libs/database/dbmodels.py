@@ -6,7 +6,7 @@
 #corylow: comment and cleanup this file
 
 from utils import sstr
-class IssueRef: 
+class IssueRef(object): 
    def __init__(self, issue_num_s, issue_key):
       # issue_num_s can be '' or any other string
       # issue key must be something ('not issue_key' == False)
@@ -36,7 +36,7 @@ class IssueRef:
       return self._cmpkey_s.__hash__() 
 
       
-class SeriesRef:
+class SeriesRef(object):
    def __init__(self, series_key, series_name_s, start_year_s, publisher_s,
          issue_count_s, thumb_url_s):
       # series name will become series key if empty
@@ -104,7 +104,6 @@ class Issue(object):
       self.image_urls = []
       
       # coryhigh: improve classes here?
-      # coryhigh: make sure everyone is using "new" type objects
       # (i.e. explicitly subclassing "object")
 #   def get_title_s(self):
 #      return self.__title_s

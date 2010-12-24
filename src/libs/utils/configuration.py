@@ -10,7 +10,7 @@ from utils import persist_map, load_map
 clr.AddReference('System')
 from System.IO import File
 
-class Configuration:
+class Configuration(object):
       
    __UPDATE_SERIES = 'updateSeries'
    __UPDATE_NUMBER = 'updateNumber'
