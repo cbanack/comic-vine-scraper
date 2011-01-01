@@ -22,12 +22,18 @@ class ComicBook(object):
          raise Exception("invalid backing comic book")
       self.__cr_book = cr_book
       self.__comicrack = scraper.comicrack
+      
+      # we keep our own copy of series name and issue number, because sometimes
+      # we have to "repair" them.  these values are immutable after this point.   
+      self.__series_s = self.__cr_book.ShadowSeries.strip()
+      self.__issue_num_s = self.__cr_book.ShadowNumber.strip()
+      self.__repair_bad_filename_parsing()
 
    
    # adapter properties that provide read-only access to this ComicBook's 
    # backing ComicRack comic book object  # coryhigh: comment these
-   series_s = property( lambda self : self.__cr_book.ShadowSeries.strip() )
-   issue_num_s = property( lambda self : self.__cr_book.ShadowNumber.strip() )
+   series_s = property( lambda self : self.__series_s )
+   issue_num_s = property( lambda self : self.__issue_num_s )
    volume_n = property( lambda self : self.__cr_book.ShadowVolume )
    format_s = property( lambda self : self.__cr_book.ShadowFormat )
    year_n = property( lambda self : self.__cr_book.ShadowYear )
@@ -518,3 +524,21 @@ class ComicBook(object):
       if retval != None:
          retval = float(retval) if type(old_value) == float else int(retval)
       return retval
+   
+   
+   # ==========================================================================
+   def __repair_bad_filename_parsing(self):
+      ''' 
+      Occasionally the ComicRack parser doesn't do a good job parsing in the
+      series name and issue number (both critical bits of data for our
+      purposes!).  Ideally, this would be fixed in ComicRack, but since that
+      doesn't seem like it's gonna happen, I'll patch up know problems in this
+      method instead.
+      '''
+      
+      # fix parsing for filenames like:  "2000AD 1234 (1-1-11).cbz"
+      match = re.match(r"2000\s*a[\s\.]*d[\s\.](\d+).*", self.filename_s, re.I)
+      if match:
+         log.debug("fixed series name/ issue number for: ", self.filename_s );
+         self.__series_s = "2000AD"
+         self.__issue_num_s = match.group(1)
