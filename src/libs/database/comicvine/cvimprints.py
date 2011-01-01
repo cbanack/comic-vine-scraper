@@ -71,6 +71,7 @@ __RADIO = "Radio Comix"
 __SLG = "Slg Publishing"
 __TOKUMA = "Tokuma Shoten"
 
+
 # the mapping of imprint names to their parent publisher names
 __imprint_map = {
    "2000AD": __DC,
@@ -99,6 +100,7 @@ __imprint_map = {
    "Marvel Digital Comics Unlimited" : __MARVEL,
    "Marvel Knights": __MARVEL,
    "Marvel Music": __MARVEL,
+   "Marvel UK": __MARVEL,
    "Max": __MARVEL,
    "Milestone": __DC,
    "Minx": __DC,
@@ -438,6 +440,7 @@ __other_publishers = frozenset([
    "Caliber Comics",
    "California Comics",
    "Cambridge House Publishers",
+   "Campus Editions",
    "Candle Light Press",
    "Candlewick Press",
    "Canew Ideas",
@@ -546,6 +549,7 @@ __other_publishers = frozenset([
    "DWAP Productions",
    "Dab Enterprises",
    "Dabel Brothers Productions",
+   "Daewon C.I.",
    "Dagens Nyheters F",
    "Dagger Enterprises",
    "Daim Press",
@@ -652,6 +656,7 @@ __other_publishers = frozenset([
    "Edizioni Araldo",
    "Edizioni Audace",
    "Edizioni BD",
+   "Edizioni del Vascello",
    "Edizioni San Paolo",
    "Edizioni Star Comics",
    "Edizioni d’Arte “Lo Scarabeo”",
@@ -1001,6 +1006,7 @@ __other_publishers = frozenset([
    "Modern",
    "Mojo Press",
    "Mondial",
+   "Mondo Bizzarro",
    "Monkeysuit Press",
    "Monster Comics",
    "Monsterverse",
@@ -1205,6 +1211,7 @@ __other_publishers = frozenset([
    "Seaboard Publishing",
    "Second To Some",
    "Semic As",
+   "Semic Española de Ediciones",
    "Semic International",
    "Sergio Bonelli Editore",
    "Seven Seas Entertainment",
@@ -1213,6 +1220,7 @@ __other_publishers = frozenset([
    "Shinshokan",
    "Shivae Studios",
    "Shogakukan",
+   "Shōnen Gahōsha",
    "Shooting Star",
    "Showcase Publications",
    "Shueisha",
@@ -1311,6 +1319,7 @@ __other_publishers = frozenset([
    "Tom Doherty Associates",
    "Tom Stacey",
    "Tome Press",
+   "Tonkam",
    "Top Cow",
    "Top Shelf",
    "Topps",
@@ -1349,6 +1358,7 @@ __other_publishers = frozenset([
    "Utterly Strange Publications",
    "Valiant",
    "Valve",
+   "Vamperotica Entertainment",
    "Vanguard Productions",
    "Vents d'Ouest",
    "Vermillon",
@@ -1372,6 +1382,7 @@ __other_publishers = frozenset([
    "WSOY",
    "Wallace Wood",
    "Walt Disney Company Italia",
+   "Wani Books",
    "Warner Books",
    "Warner Brothers",
    "Warp Graphics",
