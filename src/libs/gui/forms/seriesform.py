@@ -10,6 +10,7 @@ from buttondgv import ButtonDataGridView
 from cvform import CVForm
 from dbpicturebox import DBPictureBox
 from utils import sstr
+import datetime
 
 clr.AddReference('System')
 from System.ComponentModel import ListSortDirection
@@ -321,7 +322,7 @@ class SeriesForm(CVForm):
       that ref matches the given book.   The higher the score, the closer
       the match.  Scores can be negative.
       '''
-
+      
       # this function splits up the given comic book series name into
       # separate words, so we can compare different series names word-by-word
       def split( name_s ):
@@ -334,7 +335,8 @@ class SeriesForm(CVForm):
          return name_s.split()
       
       # 1. first, compute the 'namescore', which is based on how many words in
-      #    our book name match words in the series' name
+      #    our book name match words in the series' name (usually comes up with 
+      #    a value on the range [5, 20], approximately.)
       bookname_s = '' if not book.series_s else book.series_s
       if bookname_s and book.format_s:
          bookname_s += ' ' + book.format_s
@@ -349,42 +351,57 @@ class SeriesForm(CVForm):
       namescore_n -= len(serieswords)
       
       
-      # 2. now get the 'bookscore', which compares our books issue number
-      #    with the number of issues in the series
+      # 2. get the 'bookscore', which compares our book's issue number
+      #    with the number of issues in the series.  a step function that 
+      #    returns a very high number (100) if the number of issues in the 
+      #    series is compatible, and a very low one (-100) if it is not.  
       booknumber_n = book.issue_num_s if book.issue_num_s else '-1000'
       booknumber_n = re.sub('[^\d.-]+', '', booknumber_n)
       try:
          booknumber_n = float(booknumber_n)
       except:
          booknumber_n = -999
-         
-      bookscore_n = 0
-      try: 
-         bookscore_n += 100 if booknumber_n<=series_ref.issue_count_n else - 100
-      except:
-         bookscore_n = 0
+      series_count_n = series_ref.issue_count_n
+      if series_count_n > 100:
+         # all large series have a "good" bookscore, cause they are very 
+         # long-running and popular. Also, we might overlook them in the 
+         # bookscore because and databases will often not have all of issues, 
+         # so their issue count will not be high enough.
+         bookscore_n = 100
+      else:    
+         # otherwise, if we get a good score only if we have the right
+         # number of books in the series to match the booknumber (-1 for
+         # delayed updates of the database).
+         bookscore_n = 100 if booknumber_n-1 <= series_count_n else -100
+      
 
-      # 3. now get the 'yearscore', which compares the year of the book 
-      #    (if available) to the year of the series.
+      # 3. get the 'yearscore', which severely penalizes (-500) any series 
+      #    that started after the year that the current book was published.
+      current_year_n = datetime.datetime.now().year
       def valid_year_b(year_n):
-         return year_n > 1900 and year_n < 2100
-      try:
-         series_year_n = int(series_ref.start_year_s)
-         if not valid_year_b(series_year_n):
-            series_year_n = 0
-      except:
-         series_year_n = 0
-         
+         return year_n > 1900 and year_n <= current_year_n+1
+      
+      try: series_year_n = int(series_ref.start_year_s)
+      except: series_year_n = 0
+
       yearscore_n = 0
       if valid_year_b(book.year_n):
-         if valid_year_b(series_year_n):
-            yearscore_n -= abs(series_year_n - book.year_n)
-            yearscore_n -= 50 if yearscore_n < -2 else 0
-         else:
+         if not valid_year_b(series_year_n):
             yearscore_n = -100
+         elif series_year_n > book.year_n:
+            yearscore_n = -500
+            
+      # 4. get the 'recency score', which is a tiny negative value (usually
+      #    around on the range [-0.50, 0]) that gets worse (smaller) the older 
+      #    the series is.   this is really a tie-breaker for series with 
+      #    otherwise identical scores. 
+      if valid_year_b(series_year_n):
+         recency_score_n = -(current_year_n - series_year_n) / 100.0;
+      else:
+         recency_score_n = -1.0
          
-      #4. add up and return all the scores
-      return bookscore_n + namescore_n + yearscore_n
+      # 5. add up and return all the scores
+      return bookscore_n + namescore_n + yearscore_n + recency_score_n
    
    
    # ==========================================================================

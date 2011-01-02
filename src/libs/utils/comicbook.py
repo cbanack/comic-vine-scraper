@@ -539,6 +539,10 @@ class ComicBook(object):
       # fix parsing for filenames like:  "2000AD 1234 (1-1-11).cbz"
       match = re.match(r"2000\s*a[\s\.]*d[\s\.](\d+).*", self.filename_s, re.I)
       if match:
-         log.debug("fixed series name/ issue number for: ", self.filename_s );
          self.__series_s = "2000AD"
          self.__issue_num_s = match.group(1)
+       
+      # comicrack doesn't recognize the "TPB" (trade paperback) format marker
+      # on the end of the series name, so it doesn't strip it off properly.  
+      if self.series_s.lower().endswith(" tpb"):
+         self.__series_s = self.series_s[:-4] 
