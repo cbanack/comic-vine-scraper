@@ -21,7 +21,7 @@ from welcomeform import WelcomeForm
 from finishform import FinishForm
 
 clr.AddReference('System.Windows.Forms')
-from System.Windows.Forms import Application, MessageBox, \
+from System.Windows.Forms import Application, Form, MessageBox, \
     MessageBoxButtons, MessageBoxIcon
     
     
@@ -231,6 +231,7 @@ class ScrapeEngine(object):
             log.debug()
             
       finally:
+         self.comicrack.MainWindow.Activate() # fixes issue 159
          if comic_form: comic_form.close_threadsafe()
 
 

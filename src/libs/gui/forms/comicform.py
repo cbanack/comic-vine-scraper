@@ -295,7 +295,7 @@ class ComicForm(CVForm):
    def CenterToParent(self):
       # Overridden  to  makes the initial position of this form a little nicer
       # users will quickly set their own form positions anyway.
-      CVForm.CenterToParent(self)
+      super(ComicForm, self).CenterToParent(self)
       self.Location = Point(self.Location.X - self.Width, self.Location.Y)
       
       
