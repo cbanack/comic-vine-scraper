@@ -15,7 +15,7 @@ from dbmodels import DatabaseConnectionError
 clr.AddReference('System')
 from System import Text
 from System.Net import WebException, WebRequest
-from System.IO import StreamReader
+from System.IO import IOException, StreamReader
 
 
 # This is the api key needed to access the comicvine website.
@@ -270,7 +270,7 @@ def __get_page(url):
       responseStream = response.GetResponseStream()
       reader = StreamReader(responseStream, Text.Encoding.UTF8)
       page = reader.ReadToEnd()
-   except WebException, wex:
+   except (WebException, IOException) as wex:
       # this type of exception almost certainly means that the user's internet
       # is broken or the comicvine website is down.  so wrap it in a nice, 
       # recognizable exception before rethrowing it, so that error handlers can
