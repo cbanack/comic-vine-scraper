@@ -21,7 +21,7 @@ from welcomeform import WelcomeForm
 from finishform import FinishForm
 
 clr.AddReference('System.Windows.Forms')
-from System.Windows.Forms import Application, Form, MessageBox, \
+from System.Windows.Forms import Application, MessageBox, \
     MessageBoxButtons, MessageBoxIcon
     
     
@@ -155,28 +155,7 @@ class ScrapeEngine(object):
       # scrape, even if an error occurs.)
       self.__status = [0, len(books)];
       
-      # 1. sort the ComicBooks in order of increasing series, and where the 
-      #    series are the same, in order of increasing issue number.  we'll
-      #    loop through them in this order.
-      def __compare_books(book1, book2):
-         result = book1.unique_series_s().CompareTo(book2.unique_series_s())
-         if result == 0:
-            num1 = '' if not book1.issue_num_s else book1.issue_num_s
-            num2 = '' if not book2.issue_num_s else book2.issue_num_s
-            def pad(num):
-               try:
-                  f = float(num.lower().strip('abcdefgh'))
-                  if f < 10: return "000" + num
-                  elif f < 100: return "00" + num
-                  elif f < 1000: return "0" + num
-                  else: return num
-               except:
-                  return num
-            result = pad(num1).CompareTo(pad(num2))
-         return result
-      books.sort(cmp=__compare_books)
-
-      # 2. show the welcome form. in addition to being a friendly summary of 
+      # 1. show the welcome form. in addition to being a friendly summary of 
       #    what's about to happen, it loads (and allows the user to tweak)
       #    the Configuration that we'll use for the remainder of this operation.
       with WelcomeForm(self, books) as welcome_form:
@@ -189,7 +168,11 @@ class ScrapeEngine(object):
          else:
             # 2b. print the entire configuration to the debug stream
             log.debug(self.config)
-            log.debug() 
+            log.debug()
+            
+      # 2. sort the ComicBooks in the order that we're gonna loop them in
+      #    (sort AFTER config is loaded cause config affects the sort!)
+      books = self.__sort_books(books) 
 
       # 3. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
@@ -417,6 +400,57 @@ class ScrapeEngine(object):
             return self._BookStatus.SCRAPED
 
       raise Exception("should never get here")
+
+
+   # ==========================================================================
+   def __sort_books(self, books):
+      '''
+      Examines the given list of ComicBook objects, and returns a new list
+      that contains the same comics, but sorted in order of increasing series
+      name, and where the series names are the same, in order of increasing 
+      issue number.  Comics for which an IssueRef can be instantly generated
+      (comics that have been scraped before) will automatically be sorted to
+      the beginning of the list.
+      '''
+      
+      # this is the comparator we'll use for sorting this list
+      def __compare_books(book1, book2):
+         result = book1.unique_series_s().CompareTo(book2.unique_series_s())
+         if result == 0:
+            num1 = '' if not book1.issue_num_s else book1.issue_num_s
+            num2 = '' if not book2.issue_num_s else book2.issue_num_s
+            def pad(num):
+               try:
+                  f = float(num.lower().strip('abcdefgh'))
+                  if f < 10: return "000" + num
+                  elif f < 100: return "00" + num
+                  elif f < 1000: return "0" + num
+                  else: return num
+               except:
+                  return num
+            result = pad(num1).CompareTo(pad(num2))
+         return result
+
+      # divide the books up into the ones that will scrape quickly (cause they
+      # are rescrapes) and ones that have never been scraped before.  sort each
+      # group separately, and append the sorted lists together so the fast ones 
+      # will come first.   (the idea is to save the user interaction until
+      # the end of the scrape operation.  see issue 161.)
+      slow_scrape_books = []
+      fast_scrape_books = []
+      if self.config.fast_rescrape_b:
+         for book in books:
+            if bookutils.extract_issue_ref(book):
+               fast_scrape_books.append(book)
+            else:
+               slow_scrape_books.append(book)
+      else:
+         slow_scrape_books = list(books)
+      
+      slow_scrape_books.sort(cmp=__compare_books)     
+      fast_scrape_books.sort(cmp=__compare_books)     
+      
+      return fast_scrape_books+slow_scrape_books
 
 
    # ==========================================================================   
