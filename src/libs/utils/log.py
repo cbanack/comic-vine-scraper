@@ -33,6 +33,9 @@ from System.Threading import Mutex
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import DialogResult, MessageBox, \
     MessageBoxButtons, MessageBoxIcon, SaveFileDialog
+    
+from System.IO import StreamWriter
+from System.Text import UTF8Encoding 
 
 # a global variable, an instance of the Logger class that will only be
 # available when this module has been "installed" ( with install() )
@@ -338,10 +341,12 @@ class _Logger(object):
          if self._logLines == None:
             raise Exception("you must install the _Logger before using it")
          
-         # corylow: switch this to use .NET and utf8
-         with file(filename, "w") as f:
+         try:
+            writer = StreamWriter(filename, False, UTF8Encoding())
             for line in self._logLines:
-               f.write(line)
+               writer.Write(line)
+         finally:
+            if writer: writer.Dispose()
       finally:
          self._mutex.ReleaseMutex()
       
