@@ -6,7 +6,6 @@
 import clr
 import log
 from cvform import CVForm 
-import utils
 from configuration import Configuration
 
 clr.AddReference('System.Windows.Forms')
@@ -209,11 +208,7 @@ class ConfigForm(CVForm):
       self.__update_checklist.MultiColumn = True
       self.__update_checklist.SelectionMode = SelectionMode.One
       self.__update_checklist.Size = Size(250, 180)
-      def update_gui_fired_later(sender, args):
-         def do_update():
-            self.__update_gui_fired()
-         utils.invoke(self, do_update, False)
-      self.__update_checklist.ItemCheck += update_gui_fired_later
+      self.__update_checklist.ItemCheck += self.__update_gui_fired
       
       self.__update_checklist.Items.Add(ConfigForm.__SERIES_CB)
       self.__update_checklist.Items.Add(ConfigForm.__VOLUME_CB)
