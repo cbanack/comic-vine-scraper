@@ -185,9 +185,8 @@ class ComicForm(CVForm):
          # NOTE: now we're on the ComicForm Application Thread
          self.__label.Text = "Scraping:  " + book_name
          self.__pbox_panel.set_image(cover_image) # cover image may be None
-         if self.__progbar.Maximum == 0:
-            self.__progbar.Maximum = num_remaining
          self.__progbar.PerformStep()
+         self.__progbar.Maximum = self.__progbar.Value + num_remaining
          self.__cancel_button.Text="Cancel (" + \
             sstr(num_remaining) + " remaining)"
          self.Update()

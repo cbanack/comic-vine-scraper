@@ -177,41 +177,56 @@ class ScrapeEngine(object):
       # 3. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
       comic_form = ComicForm.show_threadsafe(self)
+      
       try:
-         
          # this caches the scraped data we've accumulated as we loop
          scrape_cache = {}
          
-         # 4. start the "Main Processing Loop"
-         for i in range( len(books) ):
+         # 4. start the "Main Processing Loop". 
+         #    notice the list of books can get longer while we're looping,
+         #    if we choose to delay processing a book until the end.
+         i = 0;
+         orig_length = len(books)
+         while i < len(books):
             if self.__cancelled_b: break
             book = books[i]
 
             # 4a. notify 'start_scrape_listeners' that we're scraping a new book
             log.debug("======> scraping next comic book: '",book.filename_s,"'")
+            num_remaining = len(books) - i
             for start_scrape in self.start_scrape_listeners:
-               start_scrape(book, len(books) - i)
+               start_scrape(book, num_remaining)
 
             # 4b. ...keep trying to scrape that book until either it is scraped,
             #     the user chooses to skip it, or the user cancels altogether.
-            manual_search = self.config.specify_series_b
+            manual_search_b = self.config.specify_series_b
+            fast_rescrape_b = self.config.fast_rescrape_b and i < orig_length
             bookstatus = self._BookStatus.UNSCRAPED
             while bookstatus == self._BookStatus.UNSCRAPED \
                   and not self.__cancelled_b:
                
-               bookstatus =self.__scrape_book(book, scrape_cache, manual_search)
+               bookstatus = self.__scrape_book(book, scrape_cache,
+                 manual_search_b, fast_rescrape_b)
                if bookstatus == self._BookStatus.UNSCRAPED:
                   # this return code means 'no series could be found using 
                   # the current (automatic or manual) search terms'.  when  
                   # that happens, force the user to chose the search terms.
-                  manual_search = True
+                  manual_search_b = True
                elif bookstatus == self._BookStatus.SCRAPED:
+                  # book was scraped normally, all is good, update status
                   self.__status[0] += 1;
                   self.__status[1] -= 1;
                elif bookstatus == self._BookStatus.SKIPPED:
+                  # book was skipped, status is already correct for that book
                   pass;
+               elif bookstatus == self._BookStatus.DELAYED:
+                  # put this book into the end of the list, where we can try
+                  # rescraping (with fast_rescrape_b set to false this time)
+                  # after we've handled the ones that we can do automatically.
+                  books.append(book)
             log.debug()
             log.debug()
+            i = i + 1
             
       finally:
          self.comicrack.MainWindow.Activate() # fixes issue 159
@@ -220,7 +235,8 @@ class ScrapeEngine(object):
 
 
    # ==========================================================================
-   def __scrape_book(self, book, scrape_cache, manual_search_b):
+   def __scrape_book(self, book, scrape_cache, 
+         manual_search_b, fast_rescrape_b):
       '''
       This method is the heart of the Main Processing Loop. It scrapes a single
       ComicBook object by first figuring out which issue entry in the database 
@@ -247,6 +263,13 @@ class ScrapeEngine(object):
        method, so if this method is called repeatedly, the same scrape_cache 
        should be passed in each time.
        
+       Iff 'fast_rescrape_b' is set to true, this method will attempt to find 
+       and use any database key that was written to the book during a previous
+       scrape.  This key allows us to instantly identify a comic, thus skipping
+       the steps described above.  If no key is available, just fall back to
+       the user-interactive method of identifying the comic.
+       
+       
        RETURN VALUES
        
        _BookStatus.UNSCRAPED: if the book wasn't be scraped, either because
@@ -257,8 +280,13 @@ class ScrapeEngine(object):
           of the user cancelled the entire current scrape operation (check the
           status if the ScrapeEngine).
           
-       _BoolStatus.SCRAPED: if the book was scraped successfully, and now 
+       _BookStatus.SCRAPED: if the book was scraped successfully, and now 
           contains updated metadata.
+          
+       _BookStatus.DELAYED: if we attempted to do a fast_rescrape on the book,
+          but failed because the database key was invalid.  the book has not
+          been scraped successfully.
+          
        
       '''
 
@@ -278,7 +306,7 @@ class ScrapeEngine(object):
          log.debug("found SKIP tag, so skipping the scrape for this book.")
          return self._BookStatus.SKIPPED
 
-      if issue_ref and self.config.fast_rescrape_b:
+      if issue_ref and fast_rescrape_b:
          log.debug("found rescrape tag in book, " + 
             "scraping details directly: " + sstr(issue_ref));
          try:
@@ -287,8 +315,8 @@ class ScrapeEngine(object):
             return self._BookStatus.SCRAPED
          except:
             log.debug_exc("Error rescraping details:")
-            log.debug("Ignoring rescrape tag; falling back to normal search...")
-            issue_ref = None # fall through to the next section
+            log.debug("we'll retry scraping this book again at the end.")
+            return self._BookStatus.DELAYED
 
       # 2. search for all the series in the database that match the current
       #    book.  if info for this book's series has already been cached, we 
@@ -658,8 +686,9 @@ class ScrapeEngine(object):
       while the scraper is running or finished.
       '''
       
-      UNSCRAPED = "unscraped"   # hasn't been scraped yet
       SCRAPED = "scraped"   # successfully scraped
       SKIPPED = "skipped"   # user chose to skip this book
+      UNSCRAPED = "unscraped"   # hasn't been scraped yet
+      DELAYED = "delayed"  # hasn't been scraped, try again later
 
 
