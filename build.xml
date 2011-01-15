@@ -11,9 +11,9 @@
    <property name="src.dir" location="src"/>
 	
 	
-   <!-- ================================= 
+   <!-- ================================== 
          target: dist              
-        ================================= -->
+        ================================== -->
    <target name="dist" depends="clean"
    	description="--> Creates the distributable zip file.">
       
