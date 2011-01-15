@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse-pydev version="1.0"?>
+
+<pydev_project>
+<pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
+<path>/comic-vine-scraper/src</path>
+<path>/comic-vine-scraper/tools/launcher</path>
+<path>/comic-vine-scraper/src/libs</path>
+<path>/comic-vine-scraper/src/resources</path>
+<path>/comic-vine-scraper/src/libs/database/comicvine</path>
+<path>/comic-vine-scraper/src/libs/database</path>
+<path>/comic-vine-scraper/src/libs/gui</path>
+<path>/comic-vine-scraper/src/libs/gui/forms</path>
+<path>/comic-vine-scraper/src/libs/utils</path>
+</pydev_pathproperty>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">ironpython 2.6</pydev_property>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
+</pydev_project>
