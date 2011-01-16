@@ -26,9 +26,12 @@ class ComicRack:
       def GetComicPage(self, arg1, arg2):
             return None
       def SetCustomBookThumbnail(self, book, bitmap):
-         return True    
+         return True
    class MainForm(Form):
       pass
+   @classmethod
+   def Localize(cls, resource, key, backuptext):
+      return backuptext    
    
    App = AppImpl()
    MainWindow = MainForm()
