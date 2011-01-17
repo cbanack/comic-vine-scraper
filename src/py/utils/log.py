@@ -49,15 +49,16 @@ _comicrack_window = None
 def install(comicrack_window):
    """
    Installs this module. This must be called before any other method in 
-   this module is called.
+   this module is called.  You must take steps to GUARANTEE that this module's
+   uninstall() method is called once you have called this method.
    
-   Takes a single optional parameter, which is the minimum line width of the 
-   code identifier tag that is prepended onto debug lines.
+   Takes a single parameter, which is the ComicRack.MainWindow object for
+   the ComicRack object that we are running as part of.
    """
 
    global _logger, _comicrack_window
    if _logger is not None or _comicrack_window is not None:
-      raise Exception("don't install '" + __name__+ "' module twice")
+      raise Exception("don't install '" + __name__+ "' module twice!")
    _comicrack_window = comicrack_window
    _logger = _Logger(comicrack_window) 
 

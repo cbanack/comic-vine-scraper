@@ -20,6 +20,7 @@
 # coryhigh: FIX THE ABOVE COMMENT!!
 import clr
 import log
+import i18n
 import re
 from scrapeengine import ScrapeEngine
 from utils import sstr
@@ -50,16 +51,20 @@ def ComicVineScraper(books):
       # fire up the debug logging system
       log.install(ComicRack.MainWindow)
       
+      
       # install a handler to catch uncaught Winforms exceptions
       def exception_handler(sender, event):
          log.handle_error(event.Exception)
       Application.ThreadException \
          += ThreadExceptionEventHandler(exception_handler)
+         
+      # fire up the localization/internationalization system
+      i18n.install(ComicRack)
 
       # uncomment this to create a pickled load file for my pydev launcher
       #with open("k:/sample.pickled", "w") as f:
          #cPickle.dump(books, f);
-         
+      log.debug("Test: " , i18n.get("Test") )
       # see if we're in a valid environment
       if __validate_environment() and books:
          # create a Scraping Engine and use it to scrape the given books.
@@ -69,9 +74,13 @@ def ComicVineScraper(books):
          
    finally:
       
+      # shut down the localization/internationalization system
+      i18n.uninstall()
+      
       # make sure the Winform exception handler is removed
       Application.ThreadException -=\
          ThreadExceptionEventHandler(exception_handler)
+         
       # shut down the logging system
       log.uninstall()
       
