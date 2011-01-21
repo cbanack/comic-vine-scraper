@@ -64,7 +64,7 @@ def ComicVineScraper(books):
       # uncomment this to create a pickled load file for my pydev launcher
       #with open("k:/sample.pickled", "w") as f:
          #cPickle.dump(books, f);
-      log.debug("Test: " , i18n.get("Test") )
+      
       # see if we're in a valid environment
       if __validate_environment() and books:
          # create a Scraping Engine and use it to scrape the given books.

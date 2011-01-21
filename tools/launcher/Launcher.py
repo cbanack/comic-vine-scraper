@@ -40,11 +40,14 @@ class ComicRack:
 
 ComicVineScraper.ComicRack = ComicRack
 
-resources._SCRIPT_DIRECTORY = os.path.dirname( \
-   os.path.dirname( os.path.dirname(__file__))) + r'/profile/' 
-resources.LOCAL_CACHE_DIRECTORY = resources._SCRIPT_DIRECTORY + r'localCache/'
+resources._SCRIPT_DIRECTORY = os.path.dirname(
+   os.path.dirname( os.path.dirname(__file__))) + r"\profile\\"
+resources.LOCAL_CACHE_DIRECTORY = resources._SCRIPT_DIRECTORY + r'localCache\\'
 resources.SETTINGS_FILE = resources._SCRIPT_DIRECTORY + r'settings.dat'
 resources.GEOMETRY_FILE = resources._SCRIPT_DIRECTORY + r'geometry.dat'
+resources.I18N_DEFAULTS_FILE = os.path.dirname( 
+   os.path.dirname( os.path.dirname(__file__))) + \
+   r'\src\resources\languages\en.zip'
 
 # now grab the
 class Launcher(object):
