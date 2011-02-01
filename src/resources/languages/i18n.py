@@ -2,22 +2,32 @@
 This module contains the I18n ( = "internationalization") class, which is 
 used to obtain properly internationalized strings for display to the user. 
 
+To use it, call i18n.install() to get things started.
+Then, i18n.get("keystring") to obtain the internationalized string
+When done, call i18n.uninstall() (this is very important)
+
+To add new keystrings, edit the en.zip file.
+
 @author: Cory Banack
 '''
 import clr
 import resources
 
-clr.AddReference("Ionic.Zip.dll")
-from Ionic.Zip import ZipFile #@UnresolvedImport
-
 clr.AddReference("System")
 from System.IO import StreamReader
-from System.Text import UTF8Encoding 
+from System.Text import UTF8Encoding
 
 clr.AddReference("System.Xml.Linq")
 from System.Xml.Linq import XElement
 
-# a global variable, an instance of the I18n class that will only be 
+clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
+from Ionic.Zip import ZipFile #@UnresolvedImport
+
+clr.AddReference('MessageBoxManager.dll') # a 3rd party dll
+from System.Windows.Forms import MessageBoxManager #@UnresolvedImport
+
+
+# a global variable; the singleton instance of the I18n class. will only be 
 # available to our module's methods when this module has been "installed"
 __i18n = None
 
@@ -36,6 +46,21 @@ def install(comicrack):
       raise Exception("don't install '" + __name__ + "' module twice!")
    __i18n = __I18n(comicrack)
    
+   # the MessageBoxManager is a helpful little DLL that I downloaded from here:
+   #    http://www.codeproject.com/KB/miscctrl/Localizing_MessageBox.aspx
+   #
+   # it allows me to define localized strings for the different button types in
+   # a MessageBox.  it MUST be uninstalled afterwards, to change things back!
+   MessageBoxManager.Register()
+   MessageBoxManager.OK = get("MessageBoxOk")
+   MessageBoxManager.Cancel = get("MessageBoxCancel");
+   MessageBoxManager.Retry = get("MessageBoxRetry")
+   MessageBoxManager.Ignore = get("MessageBoxIgnore");
+   MessageBoxManager.Abort = get("MessageBoxAbort");
+   MessageBoxManager.Yes = get("MessageBoxYes");
+   MessageBoxManager.No = get("MessageBoxNo");
+   
+   
 #==============================================================================
 def uninstall(): 
    """
@@ -45,6 +70,7 @@ def uninstall():
    script, you should probably use a try-finally section to ensure it!
    """
    
+   MessageBoxManager.Unregister()
    global __i18n
    if __i18n:
       __i18n = None
@@ -73,8 +99,6 @@ def get(key_s):
    return __i18n.get(key_s)
       
       
-   
-    
 
 #==============================================================================
 class __I18n(object):
@@ -117,7 +141,6 @@ class __I18n(object):
       #       ...
       #    </Texts>
       # </TR>
-         
            
       default_strings = {}
       zip = resources.I18N_DEFAULTS_FILE

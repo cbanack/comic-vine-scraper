@@ -6,6 +6,7 @@ This module is home to the FinishForm class.
 
 import clr
 import resources
+import i18n
 from cvform import CVForm 
 
 clr.AddReference('System.Windows.Forms')
@@ -101,7 +102,7 @@ class FinishForm(CVForm):
       button.DialogResult = DialogResult.OK
       button.Location = Point(120, 58)
       button.Size = Size(60, 23)
-      button.Text = 'Ok'
+      button.Text = i18n.get("MessageBoxOk")
       button.UseVisualStyleBackColor = True
       return button
 
