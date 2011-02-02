@@ -1,23 +1,28 @@
-###############################################################################
-#
-# ComicVineScraper.py
-#
-#   This is the 'entry point' into the Comic Vine Scraper add-on for 
-#   ComicRack.  This script requires the latest version of ComicRack in order 
-#   to run.
-#   
-#
-#   Credits:    - written and maintained by Cory Banack
-#               - based on the ComicVineInfo script started by wadegiles 
-#                   and perezmu (from the ComicRack) forum
-#               - xml2py.py and ipypulldom.py modules (c) DevHawk.net
-#               - ComicVine API (c) whiskeymedia.com (http://api.comicvine.com)
-#
-#   This software is licensed under the Apache 2.0 software license.
-#   http://www.apache.org/licenses/LICENSE-2.0.html
-#             
-###############################################################################
-# coryhigh: FIX THE ABOVE COMMENT!!
+''' ===========================================================================
+
+This module is the entry point into the 'Comic Vine Scraper' add-on for 
+ComicRack.  It conforms to ComicRack add-on specifications, outlined at:
+
+     http://comicrack.cyolito.com/faqs/28-comicrack-scripts
+
+
+License: 
+    
+   The Comic Vine Scraper add-on is licensed under the Apache 2.0 software 
+   license, available at: http://www.apache.org/licenses/LICENSE-2.0.html
+
+       
+Credits:
+
+   The add-on is written and maintained by Cory Banack.  It is based on the
+   the ComicVineInfo script started by wadegiles and perezmu (from the 
+   ComicRack forums).  It also makes use of the following:
+       - the ComicVine API - http://api.comicvine.com/
+       - xml2py.py and ipypulldom.py - http://devhawk.net/
+       - the DotNetZip library - http://dotnetzip.codeplex.com/
+       - MessageBoxManager - http://www.codeproject.com/
+
+=========================================================================== '''
 import clr
 import log
 import i18n
@@ -39,7 +44,7 @@ if False:
 
 
 # ============================================================================      
-# Don't change this comment; it's needed to integrate into ComicRack!
+# Don't change this comment; it's needed to integrate us into ComicRack!
 #
 #@Name   Comic Vine Scraper...
 #@Image  comicvinescraper.png
@@ -71,6 +76,9 @@ def ComicVineScraper(books):
          engine = ScrapeEngine(ComicRack)
          comic_books = [ ComicBook(book, engine) for book in books ]
          engine.scrape(comic_books)
+         
+   except Exception, ex:
+      log.handle_error(ex)
          
    finally:
       
@@ -104,7 +112,7 @@ def __validate_environment():
    try:
       version = re.split(r'\.', ComicRack.App.ProductVersion) 
       def hash( major, minor, build ):
-         return float(sstr(major * 5000 + minor) + "." + sstr(build))
+         return float(sstr(major * 5000 + minor) + "." + sstr(build)) 
       
       valid_environment = \
          hash(int(version[0]),int(version[1]), int(version[2])) >= \
@@ -113,12 +121,9 @@ def __validate_environment():
       if not valid_environment:
          log.debug("WARNING: script requires ComicRack ", REQUIRED_MAJOR, '.',
             REQUIRED_MINOR, '.', REQUIRED_BUILD, ' or higher.  Exiting...')
-         MessageBox.Show( ComicRack.MainWindow,
-            'This script reqires a newer version of ComicRack in order to\n' +
-            'run properly.  Please download and install the latest version\n' +
-            'from the ComicRack website, and then try again.', 
-            'ComicRack Update Required',
-             MessageBoxButtons.OK, MessageBoxIcon.Warning)
+         MessageBox.Show( ComicRack.MainWindow, i18n.get("ComicRackOODText"),
+            i18n.get("ComicRackOODTitle"), MessageBoxButtons.OK, 
+            MessageBoxIcon.Warning)
          
    except:
       log.debug_exc("WARNING: couldn't validate comicrack version")
