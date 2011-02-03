@@ -19,6 +19,7 @@ import db
 import bookutils
 from welcomeform import WelcomeForm
 from finishform import FinishForm
+import i18n
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -34,8 +35,8 @@ class ScrapeEngine(object):
    
    Those books will be processed one at a time, with windows and dialogs
    popping up to interact with the user as needed (including a single 
-   ComicForm window, which is present the during the entire scrape to show
-   the user the status of the ScrapeEngine.)
+   ComicForm window, which is present the during the entire scrape, always
+   showing the user the current status of the ScrapeEngine.)
    '''
 
    # ==========================================================================
@@ -346,14 +347,10 @@ class ScrapeEngine(object):
          if self.__cancelled_b: 
             return self._BookStatus.SKIPPED
          if not series_refs:
-            MessageBox.Show(self.comicrack.MainWindow,
-               "Couldn't find any comic books that match the search terms:\n\n"\
-               "     '" + search_terms_s + "'\n\n"\
-               "Be sure that these search terms are spelled correctly!\n\n"\
-               "Searches should include part (or all) of a comic book's "\
-               "title,\nbut NOT its issue number, publisher, publication "\
-               "date, etc.",
-               "Search Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            MessageBox.Show(self.comicrack.MainWindow, 
+               i18n.get("SeriesSearchFailedText").format(search_terms_s),
+               i18n.get("SeriesSearchFailedTitle"), MessageBoxButtons.OK, 
+               MessageBoxIcon.Warning)
             return self._BookStatus.UNSCRAPED
 
       # 3. now that we have a set if series_refs that match this book, 
@@ -582,11 +579,9 @@ class ScrapeEngine(object):
       # 3. if there are no issue_refs and that's a problem; tell the user
       if len(issue_refs) == 0:
          MessageBox.Show(self.comicrack.MainWindow,
-         "You selected '" + series_name_s + "'.\n\n"
-         "This series cannot be displayed because it does not \n"
-         "contain any issues in the Comic Vine database.\n\n"
-         "You can add missing issues at: http://comicvine.com/",
-         "Series has No Issues", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+         i18n.get("NoIssuesAvailableText").format(series_name_s),
+         i18n.get("NoIssuesAvailableTitle"), MessageBoxButtons.OK, 
+         MessageBoxIcon.Warning)
          result = IssueFormResult(IssueFormResult.BACK)
          log.debug("no issues in this series; forcing user to go back...")
       elif force_b or not result:
@@ -622,8 +617,8 @@ class ScrapeEngine(object):
                   progbar.show_form()
                if progbar.Visible and not self.__cancelled_b:
                   progbar.prog.PerformStep()
-                  progbar.Text = 'Searching Comic Vine (' + \
-                     sstr(num_matches_n) + ' matches)'
+                  progbar.Text = \
+                     i18n.get("SearchProgbarText").format(sstr(num_matches_n))
             Application.DoEvents()
             return self.__cancelled_b
          log.debug("searching for series that match '", search_terms_s, "'...")
@@ -658,12 +653,11 @@ class ScrapeEngine(object):
                progform.show_form()
             if progform.Visible and not self.__cancelled_b:
                progform.prog.Value = complete_ratio_n * 100
-               progform.Text = 'Loading Series Details (' + \
-                  sstr((int)(complete_ratio_n * 100)) + "% complete)"
+               progform.Text = i18n.get("IssuesProgbarText")\
+                  .format(sstr((int)(complete_ratio_n * 100)))
             Application.DoEvents()
             return self.__cancelled_b
          return db.query_issue_refs(series_ref, callback)
-
 
 
 
