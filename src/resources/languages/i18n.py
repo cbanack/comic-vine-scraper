@@ -165,10 +165,10 @@ class __I18n(object):
             value_s = entry.Attribute("Text").Value
             value_s = value_s.strip() if value_s else value_s
             if key_s and value_s:
-               default_strings[key_s] = value_s
+               default_strings[key_s] =\
+                  value_s.replace("\\n", "\n").replace("\\t","\t")
                #log.debug(key_s, " ---> ", value_s)
       return default_strings   
-      
    
    #===========================================================================
    def get(self, key_s):
