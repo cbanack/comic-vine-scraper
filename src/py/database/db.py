@@ -13,7 +13,7 @@ therefore may be quite slow!
 '''
 import cvdb
 import utils
-
+# coryhigh: externalize
 # a cache for storing the results of series reference searches
 # maps 'search terms string' -> 'list of SeriesRefs objects'
 __series_ref_cache = {}

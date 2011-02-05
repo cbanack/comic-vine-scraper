@@ -3,7 +3,7 @@
 @author: Cory Banack
 '''
 #corylow: comment and cleanup this file
-
+# coryhigh: externalize
 from cvform import CVForm
 import clr
 import log

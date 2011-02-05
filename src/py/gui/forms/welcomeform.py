@@ -3,7 +3,7 @@ This module is home to the WelcomeForm class.
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 import resources
 from cvform import CVForm 

@@ -3,7 +3,7 @@ This module is home to the IssueCoverPanel class.
  
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 from dbpicturebox import DBPictureBox 
 from utils import sstr

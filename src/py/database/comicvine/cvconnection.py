@@ -5,7 +5,7 @@ related queries can be found at:  http://api.comicvine.com/documentation/
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 import log
 import xml2py

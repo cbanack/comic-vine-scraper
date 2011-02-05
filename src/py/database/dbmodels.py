@@ -2,7 +2,7 @@
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 #corylow: comment and cleanup this file
 
 from utils import sstr

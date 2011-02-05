@@ -1,10 +1,10 @@
-#corylow: comment and cleanup this file
 
 '''
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
+#corylow: comment and cleanup this file
 
 import clr
 from cvform import CVForm

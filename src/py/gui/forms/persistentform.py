@@ -4,7 +4,7 @@ This module contains the PersistentForm class.
 @author: Cory Banack
 '''
 #corylow: comment and cleanup this file
-
+# coryhigh: externalize
 import clr
 import log
 from utils import sstr, load_map, persist_map

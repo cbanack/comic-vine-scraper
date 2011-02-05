@@ -3,7 +3,7 @@ This module is home to the IssuesForm and IssuesFormResult classes.
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection

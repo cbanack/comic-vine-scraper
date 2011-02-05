@@ -3,7 +3,7 @@ This module is home to the SearchForm class.
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 from cvform import CVForm
 

@@ -15,7 +15,7 @@ about it and add it to the internal tables.)
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 import log
 import re

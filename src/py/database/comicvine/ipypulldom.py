@@ -10,7 +10,7 @@
 # You must not remove this notice, or any other, from this software.
 #
 #####################################################################################
-
+# coryhigh: externalize
 import clr
 clr.AddReference('System.Xml') 
 

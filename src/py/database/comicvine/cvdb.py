@@ -6,7 +6,7 @@ NOT call these functions directly.
   
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 import resources
 import cvconnection

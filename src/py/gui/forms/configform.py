@@ -2,7 +2,7 @@
 @author: Cory Banack
 '''
 # corylow: comment and cleanup this file
-
+# coryhigh: externalize
 import clr
 import log
 from cvform import CVForm 

@@ -2,7 +2,7 @@
 @author: Cory Banack
 '''
 # corylow: comment and cleanup this file
-
+# coryhigh: externalize
 import clr
 import resources
 from utils import persist_map, load_map

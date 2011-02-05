@@ -4,8 +4,7 @@ from ComicRack that we are scraping data into.
 
 @author: Cory Banack
 '''
-
-#import clr
+# coryhigh: externalize
 import re
 import log
 from time import strftime
