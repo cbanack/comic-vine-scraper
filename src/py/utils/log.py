@@ -22,6 +22,7 @@ module while either of those two methods are running.
 
 @author: Cory Banack
 """
+# coryhigh: externalize
 #corylow: comment and cleanup this file (method cases?)
 import sys, clr
 import utils

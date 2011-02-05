@@ -4,6 +4,8 @@ remotely loaded images using an asyncrhonous off-loading thread manner.
 
 @author: Cory Banack
 '''
+# coryhigh: externalize
+
 import clr
 import resources
 import utils

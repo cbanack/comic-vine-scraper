@@ -3,7 +3,7 @@ This module is home to the FinishForm class.
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 import resources
 import i18n

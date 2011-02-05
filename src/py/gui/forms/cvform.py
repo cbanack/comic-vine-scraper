@@ -3,7 +3,7 @@ This module contains the CVForm class.
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import clr
 clr.AddReference('System.Windows.Forms')
 

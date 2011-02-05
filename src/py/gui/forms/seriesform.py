@@ -3,7 +3,7 @@ This module is home to the SeriesForm and SeriesFormResult classes.
 
 @author: Cory Banack
 '''
-
+# coryhigh: externalize
 import re
 import clr
 from buttondgv import ButtonDataGridView
