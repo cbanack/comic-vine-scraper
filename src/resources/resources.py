@@ -21,6 +21,7 @@ I18N_XML_ENTRY = 'Script.ComicVineScraper.xml'
 SCRIPT_VERSION = "!DEV!"
 if SCRIPT_VERSION.startswith("!"):
    SCRIPT_VERSION = "0.0.0"
+SCRIPT_FULLNAME = 'Comic Vine Scraper - v' + SCRIPT_VERSION
 
 def createComicVineLogo():
    dir = __file__[:-(len(__name__) + len('.py'))]

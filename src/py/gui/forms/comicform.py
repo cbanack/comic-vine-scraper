@@ -1,15 +1,17 @@
 '''
+The module is the home of the ComicForm class.
 
 @author: Cory Banack
 '''
-#corylow: comment and cleanup this file
-# coryhigh: externalize
-from cvform import CVForm
+
 import clr
 import log
 import resources
 import utils
+#import i18n
 from utils import sstr
+from cvform import CVForm
+
 clr.AddReference('IronPython')
 
 clr.AddReference('System')
@@ -26,6 +28,10 @@ from System.Windows.Forms import AnchorStyles, Application, AutoScaleMode, \
    Button, FormBorderStyle, Label, Panel, PictureBox, ProgressBar, \
    PictureBoxSizeMode
 
+_my_i18n = {"ComicFormUnknown":"unknown", "ComicFormVolume":"Vol.",
+   "ComicFormScrapingLabel":"Scraping:  ",
+   "ComicFormCancelButton":"Cancel ({0} remaining)"}
+
 # =============================================================================
 class ComicForm(CVForm):
    '''
@@ -33,14 +39,14 @@ class ComicForm(CVForm):
    a ScrapeEngine.  The dialog displays an image of the ComicBook that's 
    currently being scraped, along with a few other details, and a 'cancel' 
    button that the user can use at any time to cancel the entire scraping
-   operation.
+   operation.  It is visible at all times while scraping.
    
    This class runs its own Application message loop, so that it can be 
    responsive at all times, even when the main application's message loop is
-   busy with network io.  Since most of the rest of the scraper application is 
-   running on a different thread than this form, it is important to remember 
-   to properly 'invoke' any code that makes calls between this form and any
-   other forms (or vice versa.) 
+   busy with network IO.  Since most of the rest of the scraper application is 
+   running on a different thread than this Form, it is important to remember 
+   to properly 'invoke' any code that makes calls between this Form and any
+   other Forms (or vice versa.) 
    '''
    
    # ==========================================================================
@@ -74,7 +80,7 @@ class ComicForm(CVForm):
       self.__cancel_button = self.__build_cancelbutton()
          
       # 2. -- configure this form, and add all the gui components to it
-      self.Text = 'Comic Vine Scraper'
+      self.Text = self.Text = resources.SCRIPT_FULLNAME
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(346, 604)  
       self.MinimumSize = Size(166,275)
@@ -98,7 +104,7 @@ class ComicForm(CVForm):
       
    # ==========================================================================
    def __build_progbar(self):
-      ''' builds and returns the progress bar for this form '''
+      ''' Builds and returns the progress bar for this form. '''
       
       pb = ProgressBar()
       pb.Minimum = 0
@@ -114,10 +120,10 @@ class ComicForm(CVForm):
    
    # ==========================================================================
    def __build_label(self):
-      ''' builds and returns the label for this form '''
+      ''' Builds and returns the label for this form. '''
       
-      label = Label() # test is updated by the 'update' method
-      label.Text = 'Scraping comic book info from Comicvine...'
+      label = Label() 
+      label.Text = '' # updated everytime we start scraping a new comic
       label.Location = Point(13, 45)
       label.Size = Size(320, 15)
       label.Anchor = AnchorStyles.Top | AnchorStyles.Left |AnchorStyles.Right
@@ -127,7 +133,7 @@ class ComicForm(CVForm):
    
    # ==========================================================================
    def __build_pboxpanel(self):
-      ''' builds and returns the picturebox panel for this form '''
+      ''' Builds and returns the picturebox panel for this form. '''
       
       pbox = _PictureBoxPanel()
       pbox.Location = Point (13, 65)
@@ -139,10 +145,10 @@ class ComicForm(CVForm):
    
    # ==========================================================================
    def __build_cancelbutton(self):
-      ''' builds and returns the cancel button for this form '''
+      ''' Builds and returns the cancel button for this form. '''
       
       button = Button()
-      button.Text="Cancel Scrape"  # gets updated by the 'update' method
+      button.Text=""  # gets updated by the 'update' method
       def cancel(sender, args):
          button.Enabled = False
          self.Close()
@@ -164,16 +170,17 @@ class ComicForm(CVForm):
       'num_remaining' -> the # of books left to scrape (including current one) 
       '''
 
-      # 1. obtain a nice filename string to put into out Label      
+      # 1. obtain a nice filename string to put into out Label    
       book_name = book.filename_ext_s
       fileless = False if book_name else True
       if fileless:
-         # 1a. this is a fileless book, so use it's series name
+         # 1a. this is a fileless book, so build up a nice, detailed name
          book_name = book.series_s 
          if not book_name:
-            book_name = '<unknown>' # generally shouldn't happen
+            book_name = "<" + _my_i18n.get("ComicFormUnknown") + ">"
          book_name += (' #' + book.issue_num_s) if book.issue_num_s else ''
-         book_name += (' (Vol. ' + sstr(book.volume_n) +")") \
+         book_name += (' ({0} {1})'.format(
+            _my_i18n.get("ComicFormVolume"), sstr(book.volume_n) ) ) \
             if book.volume_n >= 0 else (' (' + sstr(book.year_n) +')') \
             if book.year_n >= 0 else ''
         
@@ -183,12 +190,12 @@ class ComicForm(CVForm):
       # 3. install those values into the ComicForm.  update progressbar.        
       def delegate():
          # NOTE: now we're on the ComicForm Application Thread
-         self.__label.Text = "Scraping:  " + book_name
+         self.__label.Text = _my_i18n.get("ComicFormScrapingLabel") + book_name
          self.__pbox_panel.set_image(cover_image) # cover image may be None
          self.__progbar.PerformStep()
          self.__progbar.Maximum = self.__progbar.Value + num_remaining
-         self.__cancel_button.Text="Cancel (" + \
-            sstr(num_remaining) + " remaining)"
+         self.__cancel_button.Text=\
+            _my_i18n.get("ComicFormCancelButton").format(sstr(num_remaining))
          self.Update()
       utils.invoke(self, delegate, False)
  
@@ -296,7 +303,6 @@ class ComicForm(CVForm):
       # users will quickly set their own form positions anyway.
       super(ComicForm, self).CenterToParent(self)
       self.Location = Point(self.Location.X - self.Width, self.Location.Y)
-      
       
       
 
