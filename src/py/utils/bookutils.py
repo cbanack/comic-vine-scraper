@@ -4,7 +4,6 @@ ComicBook objects (i.e. 'book' objects).
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
 import re
 from dbmodels import IssueRef
 

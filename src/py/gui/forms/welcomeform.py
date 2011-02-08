@@ -53,7 +53,7 @@ class WelcomeForm(CVForm):
       self.AcceptButton = ok
       self.CancelButton = cancel
       self.AutoScaleMode = AutoScaleMode.Font
-      self.Text = 'Comic Vine Scraper - v' + resources.SCRIPT_VERSION
+      self.Text = resources.SCRIPT_FULLNAME
       self.ClientSize = Size(396, 100)
    
       self.Controls.Add(label)

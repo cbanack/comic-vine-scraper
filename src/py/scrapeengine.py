@@ -170,7 +170,6 @@ class ScrapeEngine(object):
             # 2b. print the entire configuration to the debug stream
             log.debug(self.config)
             log.debug()
-            
       # 2. sort the ComicBooks in the order that we're gonna loop them in
       #    (sort AFTER config is loaded cause config affects the sort!)
       books = self.__sort_books(books) 
