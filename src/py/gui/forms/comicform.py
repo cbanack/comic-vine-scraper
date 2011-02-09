@@ -8,7 +8,7 @@ import clr
 import log
 import resources
 import utils
-#import i18n
+import i18n
 from utils import sstr
 from cvform import CVForm
 
@@ -27,10 +27,6 @@ clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AnchorStyles, Application, AutoScaleMode, \
    Button, FormBorderStyle, Label, Panel, PictureBox, ProgressBar, \
    PictureBoxSizeMode
-
-_my_i18n = {"ComicFormUnknown":"unknown", "ComicFormVolume":"Vol.",
-   "ComicFormScrapingLabel":"Scraping:  ",
-   "ComicFormCancelButton":"Cancel ({0} remaining)"}
 
 # =============================================================================
 class ComicForm(CVForm):
@@ -177,10 +173,10 @@ class ComicForm(CVForm):
          # 1a. this is a fileless book, so build up a nice, detailed name
          book_name = book.series_s 
          if not book_name:
-            book_name = "<" + _my_i18n.get("ComicFormUnknown") + ">"
+            book_name = "<" + i18n.get("ComicFormUnknown") + ">"
          book_name += (' #' + book.issue_num_s) if book.issue_num_s else ''
          book_name += (' ({0} {1})'.format(
-            _my_i18n.get("ComicFormVolume"), sstr(book.volume_n) ) ) \
+            i18n.get("ComicFormVolume"), sstr(book.volume_n) ) ) \
             if book.volume_n >= 0 else (' (' + sstr(book.year_n) +')') \
             if book.year_n >= 0 else ''
         
@@ -190,12 +186,12 @@ class ComicForm(CVForm):
       # 3. install those values into the ComicForm.  update progressbar.        
       def delegate():
          # NOTE: now we're on the ComicForm Application Thread
-         self.__label.Text = _my_i18n.get("ComicFormScrapingLabel") + book_name
+         self.__label.Text = i18n.get("ComicFormScrapingLabel") + book_name
          self.__pbox_panel.set_image(cover_image) # cover image may be None
          self.__progbar.PerformStep()
          self.__progbar.Maximum = self.__progbar.Value + num_remaining
          self.__cancel_button.Text=\
-            _my_i18n.get("ComicFormCancelButton").format(sstr(num_remaining))
+            i18n.get("ComicFormCancelButton").format(sstr(num_remaining))
          self.Update()
       utils.invoke(self, delegate, False)
  
