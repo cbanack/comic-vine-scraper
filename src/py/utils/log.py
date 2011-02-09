@@ -235,7 +235,7 @@ class _Logger(object):
       """ Frees up all resources owned or co-opted by this class """
       
       # protect access to the logLines by using the mutex.
-      self._mutex.WaitOne(0)
+      self._mutex.WaitOne(-1)
       try:
          self._logLines = None
          self._comicrack_window = None
@@ -265,7 +265,7 @@ class _Logger(object):
       """ Records the given message, and writes it out to the -real- stdout. """
          
       # protect access to the logLines with a mutex (for multiple threads)
-      self._mutex.WaitOne(0)
+      self._mutex.WaitOne(-1)
       try:
          if self._logLines == None:
             raise Exception("you must install the _Logger before using it")
@@ -338,7 +338,7 @@ class _Logger(object):
       """ Implements the module-level dump() method. """
       
       # protect access to the logLines with a mutex (for multiple threads)
-      self._mutex.WaitOne(0)
+      self._mutex.WaitOne(-1)
       try:
          if self._logLines == None:
             raise Exception("you must install the _Logger before using it")
