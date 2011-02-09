@@ -1,6 +1,5 @@
 '''
 This module is home to the ScrapeEngine class.
-
 @author: Cory Banack
 '''
 import clr
