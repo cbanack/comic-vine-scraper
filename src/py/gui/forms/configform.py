@@ -1,4 +1,6 @@
 '''
+This module contains the ConfigForm class (a popup dialog).
+
 @author: Cory Banack
 '''
 # corylow: comment and cleanup this file
@@ -7,6 +9,7 @@ import clr
 import log
 from cvform import CVForm 
 from configuration import Configuration
+import i18n
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
@@ -26,38 +29,37 @@ class ConfigForm(CVForm):
    changes that were made; clicking OK will save them permanently.
    '''
    
-   # these are the strings that the user sees for each checkbox; they can 
-   # also be used to reference each checkbox inside the checkboxlist
-   __SERIES_CB = 'Series'
-   __NUMBER_CB = 'Number'
-   __MONTH_CB = 'Month'
-   __TITLE_CB = 'Title'
-   __ALT_SERIES_CB = 'Alternate Series'
-   __WRITER_CB = 'Writer'
-   __PENCILLER_CB = 'Penciller'
-   __INKER_CB = 'Inker'
-   __COVER_ARTIST_CB = 'Cover Artist'
-   __COLORIST_CB = 'Colorist'
-   __LETTERER_CB = 'Letterer'
-   __EDITOR_CB = 'Editor'
-   __SUMMARY_CB = 'Summary'
-   __YEAR_CB = 'Year'
-   __IMPRINT_CB = 'Imprint'
-   __PUBLISHER_CB = 'Publisher'
-   __VOLUME_CB = 'Volume'
-   __CHARACTERS_CB = 'Characters'
-   __TEAMS_CB = 'Teams'
-   __LOCATIONS_CB = 'Locations'
-   __WEBPAGE_CB = 'Webpage'
-   __RATING_CB = 'Rating'
-
-   
    # ==========================================================================
    def __init__(self, owner):
       ''' 
       Initializes this form.
       owner -> this form's owner window/dialog
       '''
+      
+      # these are the strings that the user sees for each checkbox; they can 
+      # also be used to reference each checkbox inside the checkboxlist
+      ConfigForm.__SERIES_CB = i18n.get("ConfigFormSeriesCB")
+      ConfigForm.__NUMBER_CB = i18n.get("ConfigFormNumberCB")
+      ConfigForm.__MONTH_CB = i18n.get("ConfigFormMonthCB")
+      ConfigForm.__TITLE_CB = i18n.get("ConfigFormTitleCB")
+      ConfigForm.__ALT_SERIES_CB = i18n.get("ConfigFormAltSeriesCB")
+      ConfigForm.__WRITER_CB = i18n.get("ConfigFormWriterCB")
+      ConfigForm.__PENCILLER_CB = i18n.get("ConfigFormPencillerCB")
+      ConfigForm.__INKER_CB = i18n.get("ConfigFormInkerCB")
+      ConfigForm.__COVER_ARTIST_CB = i18n.get("ConfigFormCoverCB")
+      ConfigForm.__COLORIST_CB = i18n.get("ConfigFormColoristCB")
+      ConfigForm.__LETTERER_CB = i18n.get("ConfigFormLettererCB")
+      ConfigForm.__EDITOR_CB = i18n.get("ConfigFormEditorCB")
+      ConfigForm.__SUMMARY_CB = i18n.get("ConfigFormSummaryCB")
+      ConfigForm.__YEAR_CB = i18n.get("ConfigFormYearCB")
+      ConfigForm.__IMPRINT_CB = i18n.get("ConfigFormImprintCB")
+      ConfigForm.__PUBLISHER_CB = i18n.get("ConfigFormPublisherCB")
+      ConfigForm.__VOLUME_CB = i18n.get("ConfigFormVolumeCB")
+      ConfigForm.__CHARACTERS_CB = i18n.get("ConfigFormCharactersCB")
+      ConfigForm.__TEAMS_CB = i18n.get("ConfigFormTeamsCB")
+      ConfigForm.__LOCATIONS_CB = i18n.get("ConfigFormLocationsCB")
+      ConfigForm.__WEBPAGE_CB = i18n.get("ConfigFormWebCB")
+      ConfigForm.__RATING_CB = i18n.get("ConfigFormRatingCB")
       
       # the ok button for this dialog
       self.__ok_button = None
@@ -103,7 +105,7 @@ class ConfigForm(CVForm):
       # 2. -- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(396, 335)
-      self.Text = 'Comic Vine Scraper Settings'
+      self.Text = i18n.get("ConfigFormTitle")
    
       self.Controls.Add(self.__ok_button)                                     
       self.Controls.Add(self.__cancel_button)                                 
@@ -116,7 +118,7 @@ class ConfigForm(CVForm):
       self.__restore_button.TabIndex = 2
       tabcontrol.TabIndex = 3                                 
 
-      self.__update_gui_fired()  
+      self.__fired_update_gui()  
 
       
    # ==========================================================================
@@ -127,7 +129,7 @@ class ConfigForm(CVForm):
       button.DialogResult = DialogResult.OK
       button.Location = Point(228, 300)
       button.Size = Size(75, 23)
-      button.Text = '&Ok'
+      button.Text = i18n.get("ConfigFormOK")
       return button
 
    
@@ -136,10 +138,10 @@ class ConfigForm(CVForm):
       ''' builds and returns the restore button for this form '''
       
       button = Button()
-      button.Click += self.__restore_defaults_fired
+      button.Click += self.__fired_restore_defaults
       button.Location = Point(10, 300)
       button.Size = Size(150, 23)
-      button.Text = '&Restore Defaults'
+      button.Text = i18n.get("ConfigFormRestore")
       return button
 
    
@@ -151,7 +153,7 @@ class ConfigForm(CVForm):
       button.DialogResult = DialogResult.Cancel
       button.Location = Point(309, 300)
       button.Size = Size(75, 23)
-      button.Text = '&Cancel'
+      button.Text = i18n.get("ConfigFormCancel")
       return button
 
       
@@ -176,28 +178,28 @@ class ConfigForm(CVForm):
       ''' builds and returns the "Details" Tab for the TabControl '''
       
       tabpage = TabPage()
-      tabpage.Text = "Details"
+      tabpage.Text = i18n.get("ConfigFormDetailsTab")
       
       # 1. --- a description label for this tabpage
       label = Label()
       label.AutoSize = True
       label.Location = Point(9, 20)
       label.Size = Size(299, 13)
-      label.Text = 'Please choose which details you want to update:'
+      label.Text = i18n.get("ConfigFormDetailsText")
       
       # 2. --- the 'select all' button
       checkall_button = Button()
-      checkall_button.Click += self.__checkall_fired
+      checkall_button.Click += self.__fired_checkall
       checkall_button.Location = Point(275, 97)
       checkall_button.Size = Size(80, 23)
-      checkall_button.Text = 'Select &All'
+      checkall_button.Text = i18n.get("ConfigFormDetailsAll")
       
       # 3. --- the 'deselect all' button
       uncheckall_button = Button()
-      uncheckall_button.Click += self.__uncheckall_fired
+      uncheckall_button.Click += self.__fired_uncheckall
       uncheckall_button.Location = Point(275, 128)
       uncheckall_button.Size = Size(80, 23)
-      uncheckall_button.Text = 'Select &None'
+      uncheckall_button.Text = i18n.get("ConfigFormDetailsNone")
       
       # 4. --- build the update checklist (contains all the 'data' checkboxes)
       self.__update_checklist = CheckedListBox()
@@ -208,7 +210,7 @@ class ConfigForm(CVForm):
       self.__update_checklist.MultiColumn = True
       self.__update_checklist.SelectionMode = SelectionMode.One
       self.__update_checklist.Size = Size(250, 180)
-      self.__update_checklist.ItemCheck += self.__update_gui_fired
+      self.__update_checklist.ItemCheck += self.__fired_update_gui
       
       self.__update_checklist.Items.Add(ConfigForm.__SERIES_CB)
       self.__update_checklist.Items.Add(ConfigForm.__VOLUME_CB)
@@ -258,7 +260,7 @@ class ConfigForm(CVForm):
       self.__fast_rescrape_cb.Size = Size(218, 17)
       self.__fast_rescrape_cb.Text = \
          "Use previous choice when 'rescraping' comics"
-      self.__fast_rescrape_cb.CheckedChanged += self.__update_gui_fired
+      self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
       
       # 2. -- build the 'add rescrape hints to tags' checkbox
       self.__rescrape_tags_cb = CheckBox()
@@ -267,7 +269,7 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb.Location = Point(82, 40)
       self.__rescrape_tags_cb.Size = Size(218, 17)
       self.__rescrape_tags_cb.Text = "Save that choice in 'Tags'"
-      self.__rescrape_tags_cb.CheckedChanged += self.__update_gui_fired 
+      self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
       
       # 3. -- build the 'add rescrape hints to notes' checkbox
       self.__rescrape_notes_cb = CheckBox()
@@ -276,7 +278,7 @@ class ConfigForm(CVForm):
       self.__rescrape_notes_cb.Location = Point(82, 65)
       self.__rescrape_notes_cb.Size = Size(218, 17)
       self.__rescrape_notes_cb.Text = "Save that choice in 'Notes'"
-      self.__rescrape_notes_cb.CheckedChanged += self.__update_gui_fired
+      self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
    
       # 4. --- build the 'scrape in groups'
       self.__scrape_in_groups_cb = CheckBox()
@@ -287,7 +289,7 @@ class ConfigForm(CVForm):
       self.__scrape_in_groups_cb.Text = \
          "When several comics appear to be from the same\n" \
          "series, only ask about the first one." 
-      self.__scrape_in_groups_cb.CheckedChanged += self.__update_gui_fired
+      self.__scrape_in_groups_cb.CheckedChanged += self.__fired_update_gui
        
       # 5. --- build the 'specify series name' checkbox
       self.__specify_series_cb = CheckBox()
@@ -297,7 +299,7 @@ class ConfigForm(CVForm):
       self.__specify_series_cb.Size = Size(250, 17)
       self.__specify_series_cb.Text = \
          'Confirm each series name before searching for it'
-      self.__specify_series_cb.CheckedChanged += self.__update_gui_fired
+      self.__specify_series_cb.CheckedChanged += self.__fired_update_gui
        
       
       # 6. --- build the 'display cover art' checkbox
@@ -308,7 +310,7 @@ class ConfigForm(CVForm):
       self.__show_covers_cb.Size = Size(250, 17)
       self.__show_covers_cb.Text = \
          'When possible, display comic book cover images'
-      self.__show_covers_cb.CheckedChanged += self.__update_gui_fired
+      self.__show_covers_cb.CheckedChanged += self.__fired_update_gui
       
       # 7. --- build the 'specify series name' checkbox
       self.__summary_dialog_cb = CheckBox()
@@ -318,7 +320,7 @@ class ConfigForm(CVForm):
       self.__summary_dialog_cb.Size = Size(250, 17)
       self.__summary_dialog_cb.Text = \
          'Show summary message when finished scraping'
-      self.__summary_dialog_cb.CheckedChanged += self.__update_gui_fired 
+      self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
             
       # 8. --- add 'em all to the tabpage 
       tabpage.Controls.Add(self.__scrape_in_groups_cb)
@@ -349,7 +351,7 @@ class ConfigForm(CVForm):
       self.__convert_imprints_cb.Size = Size(250, 17)
       self.__convert_imprints_cb.Text = \
          'Convert scraped imprints to parent publisher'
-      self.__convert_imprints_cb.CheckedChanged += self.__update_gui_fired
+      self.__convert_imprints_cb.CheckedChanged += self.__fired_update_gui
        
       # 2. -- build the 'overwrite existing' checkbox
       self.__ow_existing_cb = CheckBox()
@@ -359,7 +361,7 @@ class ConfigForm(CVForm):
       self.__ow_existing_cb.Size = Size(218, 17)
       self.__ow_existing_cb.Text = \
          'Allow scraper to overwrite existing values in comics'
-      self.__ow_existing_cb.CheckedChanged += self.__update_gui_fired 
+      self.__ow_existing_cb.CheckedChanged += self.__fired_update_gui 
    
       # 3. --- build the 'ignore blanks' checkbox
       self.__ignore_blanks_cb = CheckBox()                                          
@@ -369,7 +371,7 @@ class ConfigForm(CVForm):
       self.__ignore_blanks_cb.Size = Size(250, 17)                                  
       self.__ignore_blanks_cb.Text =\
          "...except when the new values would be empty"                            
-      self.__ignore_blanks_cb.CheckedChanged += self.__update_gui_fired 
+      self.__ignore_blanks_cb.CheckedChanged += self.__fired_update_gui 
    
       # 4. --- build the 'download thumbnails' checkbox
       self.__download_thumbs_cb = CheckBox()
@@ -379,7 +381,7 @@ class ConfigForm(CVForm):
       self.__download_thumbs_cb.Size = Size(250, 17)
       self.__download_thumbs_cb.Text = \
          'Update thumbnails for fileless comics'
-      self.__download_thumbs_cb.CheckedChanged += self.__update_gui_fired
+      self.__download_thumbs_cb.CheckedChanged += self.__fired_update_gui
       
       # 5. --- build the 'preserve thumbnails' checkbox
       self.__preserve_thumbs_cb = CheckBox()
@@ -389,7 +391,7 @@ class ConfigForm(CVForm):
       self.__preserve_thumbs_cb.Size = Size(250, 17)
       self.__preserve_thumbs_cb.Text = \
          '...&except when they already have thumbnails'
-      self.__preserve_thumbs_cb.CheckedChanged += self.__update_gui_fired
+      self.__preserve_thumbs_cb.CheckedChanged += self.__fired_update_gui
             
       # 6. --- add 'em all to the tabpage 
       tabpage.Controls.Add(self.__ow_existing_cb)
@@ -531,34 +533,34 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb.Checked = config.rescrape_tags_b
       self.__summary_dialog_cb.Checked = config.summary_dialog_b
       
-      self.__update_gui_fired()
+      self.__fired_update_gui()
       
       
    # ==========================================================================
-   def __restore_defaults_fired(self, sender, args):
+   def __fired_restore_defaults(self, sender, args):
       ''' called when the user clicks the "restore defaults"  button '''
       
       self.__set_configuration(Configuration())
       log.debug("all settings were restored to their default values")
-      self.__update_gui_fired()
+      self.__fired_update_gui()
       
       
    # ==========================================================================
-   def __update_gui_fired(self, sender = None, args = None):
+   def __fired_update_gui(self, sender = None, args = None):
       ''' called anytime the gui for this form should be updated '''
       self.__ignore_blanks_cb.Enabled = self.__ow_existing_cb.Checked
       self.__preserve_thumbs_cb.Enabled = self.__download_thumbs_cb.Checked
        
               
    # ==========================================================================
-   def __checkall_fired(self, sender, args):
+   def __fired_checkall(self, sender, args):
       ''' called when the user clicks the "select all" button '''
       for i in range(self.__update_checklist.Items.Count):
          self.__update_checklist.SetItemChecked(i, True)
    
    
    # ==========================================================================
-   def __uncheckall_fired(self, sender, args):
+   def __fired_uncheckall(self, sender, args):
       ''' called when the user clicks the "select none" button '''
       for i in range(self.__update_checklist.Items.Count):
          self.__update_checklist.SetItemChecked(i, False)
