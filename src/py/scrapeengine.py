@@ -324,7 +324,7 @@ class ScrapeEngine(object):
       log.debug("no CVDB tag found in book, beginning search...")
       search_terms_s = None
       series_refs = None
-      key = book.unique_series_s()
+      key = book.unique_series_s
       if key in scrape_cache and not self.config.scrape_in_groups_b:
          # uncaching this key forces the scraper to treat this comic series
          # as though this was the first time we'd seen it
@@ -438,7 +438,7 @@ class ScrapeEngine(object):
       
       # this is the comparator we'll use for sorting this list
       def __compare_books(book1, book2):
-         result = book1.unique_series_s().CompareTo(book2.unique_series_s())
+         result = book1.unique_series_s.CompareTo(book2.unique_series_s)
          if result == 0:
             num1 = '' if not book1.issue_num_s else book1.issue_num_s
             num2 = '' if not book2.issue_num_s else book2.issue_num_s

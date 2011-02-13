@@ -74,7 +74,7 @@ def ComicVineScraper(books):
       if __validate_environment() and books:
          # create a Scraping Engine and use it to scrape the given books.
          engine = ScrapeEngine(ComicRack)
-         comic_books = [ ComicBook(book, engine) for book in books ]
+         comic_books = [ ComicBook(book) for book in books ]
          engine.scrape(comic_books)
          
    except Exception, ex:

@@ -181,7 +181,7 @@ class ComicForm(CVForm):
             if book.year_n >= 0 else ''
         
       # 2. obtain a copy of the cover page of the book
-      cover_image = book.get_cover_image()
+      cover_image = book.create_cover_image(self.__scraper)
        
       # 3. install those values into the ComicForm.  update progressbar.        
       def delegate():
