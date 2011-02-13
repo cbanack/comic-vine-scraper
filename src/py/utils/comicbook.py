@@ -4,7 +4,6 @@ from ComicRack that we are scraping data into.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
 import re
 import log
 from time import strftime
@@ -14,51 +13,123 @@ import utils
 
 #==============================================================================
 class ComicBook(object):
+   '''
+   This class is a wrapper for the ComicRack ComicBook object, which adds 
+   additional, scraper-oriented functionality to the object, and provides 
+   read-only access to some of its data.
+   '''
 
    #===========================================================================   
-   def __init__(self, cr_book, scraper):
+   def __init__(self, cr_book):
+      '''
+      Initializes this ComicBook object based on an underlying ComicRack 
+      ComicBook object (the cr_book) parameter.
+      '''
+      
       if not cr_book:
          raise Exception("invalid backing comic book")
       self.__cr_book = cr_book
-      self.__comicrack = scraper.comicrack
+      
+      if self.__cr_book.Id is None:
+         raise Exception("invalid unique id string")
+      if self.__cr_book.FileName is None or \
+            self.__cr_book.FileName.strip() == "":
+         raise Exception("invalid unique filenamne")
+      if self.__cr_book.FileNameWithExtension is None or \
+            self.__cr_book.FileNameWithExtension.strip() == "":
+         raise Exception("invalid unique filename + ext")
       
       # we keep our own copy of series name and issue number, because sometimes
       # we have to "repair" them.  these values are immutable after this point.   
-      self.__series_s = self.__cr_book.ShadowSeries.strip()
-      self.__issue_num_s = self.__cr_book.ShadowNumber.strip()
+      self.__series_s = self.__cr_book.ShadowSeries.strip() \
+         if self.__cr_book.ShadowSeries else ""
+      self.__issue_num_s = self.__cr_book.ShadowNumber.strip() \
+         if self.__cr_book.ShadowNumber else ""
       self.__repair_bad_filename_parsing()
 
    
-   # adapter properties that provide read-only access to this ComicBook's 
-   # backing ComicRack comic book object  # coryhigh: comment these
+   # the series name of this comicbook as a string.  not None, maybe empty.
    series_s = property( lambda self : self.__series_s )
+   
+   # the issue 'number' of this comicbook as a string. not None. maybe empty.
    issue_num_s = property( lambda self : self.__issue_num_s )
-   volume_n = property( lambda self : self.__cr_book.ShadowVolume )
-   format_s = property( lambda self : self.__cr_book.ShadowFormat )
-   year_n = property( lambda self : self.__cr_book.ShadowYear )
-   tags_s = property( lambda self : self.__cr_book.Tags ) # comma separated
-   notes_s = property( lambda self : self.__cr_book.Notes )
+   
+   # the volume (start year) of this comic book, as an integer >= 0, 
+   # or else -1 to indicate a blank value.
+   volume_n = property( lambda self :  self.__cr_book.ShadowVolume 
+      if self.__cr_book.ShadowVolume >= -1 else -1   )
+   
+   # the year (of publication) of this comic book, as an integer >= 0, 
+   # or else -1 to indicate a blank value.
+   year_n = property( lambda self : self.__cr_book.ShadowYear 
+      if self.__cr_book.ShadowYear >= -1 else -1   )
+   
+   # the format of this comic book, as a string, or "" if empty.  Not None.
+   format_s = property( lambda self : self.__cr_book.ShadowFormat
+      if self.__cr_book.ShadowFormat else "" )
+   
+   # a comma separated string listing the tags associated with this comic book.   
+   # maybe be empty, but will not be None.
+   tags_s = property( lambda self : self.__cr_book.Tags 
+      if self.__cr_book.Tags else "" )
+   
+   # the notes string for this comic book.  Mayb be "", but will not be None.
+   notes_s = property( lambda self : self.__cr_book.Notes
+      if self.__cr_book.Notes else "" )
+   
+   # the unique id string associated with this comicbook.  no other book will
+   # have this id string, and the string will never be None or "".
    uuid_s = property( lambda self : utils.sstr(self.__cr_book.Id) )
+   
+   # the name of this comic book's backing file, NOT including its 
+   # file extension.  will not be null or None.
    filename_s = property( lambda self : self.__cr_book.FileName )
+   
+   # the name of this comic book's backing file, including its file extension.
+   # will not be null or None.
    filename_ext_s = property(lambda self : self.__cr_book.FileNameWithExtension)
-      
-      
+   
+   # the unique id string associated with thie comic books series.  all comic
+   # books that appear to be from the same series will have the same id string,
+   # which will be different for each series. will not be null or None.
+   unique_series_s = property( lambda self : self.__unique_series_s() )  
+
+
    #==========================================================================
-   def unique_series_s(self):
-      '''
-      The unique series name for this ComicBook.   This is a special 
-      string such that any books that "appear" to be from the same series will 
-      have the same unique series name, and any that appear to be from 
-      different series will have different unique series names.
+   def create_cover_image(self, scraper):
+      ''' 
+      Retrieves an COPY of the cover page (a .NET Image object from ComicRack's)
+      database for this ComicBook.  Returns None if one could not be obtained.
       
-      This value is not the same as the series_s property.  It takes that 
-      property (the series name) into account, but it ALSO considers other 
-      values that may differentiate series with the same name, like volume 
-      and format.   It is also guaranteed to produce a unique value even if 
-      all other data in this ComicBook is empty.
+      scraper --> the ScraperEngine object that is currently running 
+      '''
+      
+      book_name = self.filename_ext_s
+      fileless = False if book_name else True
+      cover_image = None
+      if fileless:
+         cover_image = None
+      else:
+         cover_index = 0 
+         if self.__cr_book.FrontCoverPageIndex > 0:
+            cover_index = self.__cr_book.FrontCoverPageIndex
+         cover_image = \
+            scraper.comicrack.App.GetComicPage( self.__cr_book, cover_index )
+         cover_image = utils.strip_back_cover(cover_image)
+      return cover_image
+   
+         
+   #==========================================================================
+   def __unique_series_s(self):
+      '''
+      Gets the unique series name for this ComicBook.   This is a special 
+      string that will be identical for (and only for) any comic books that 
+      "appear" to be from the same series.
       
       The unique series name is meant to be used internally (i.e. the key for
       a map, or for grouping ComicBooks), not for displaying to users.
+      
+      This value is NOT the same as the series_s property.
       '''
       
       sname = '' if not self.series_s else self.series_s
@@ -77,36 +148,18 @@ class ComicBook(object):
          # other unnamed comics! 
          sname = self.uuid_s
       return sname + svolume
-        
-      
-   #==========================================================================
-   def get_cover_image(self):
-      ''' 
-      Retrieves an COPY (a .NET Image object) of the cover page for this 
-      ComicBook.  Returns null if one could not be obtained for any reason.
-      '''
-      
-      book_name = self.filename_ext_s
-      fileless = False if book_name else True
-      cover_image = None
-      if fileless:
-         cover_image = None
-      else:
-         cover_index = 0 
-         if self.__cr_book.FrontCoverPageIndex > 0:
-            cover_index = self.__cr_book.FrontCoverPageIndex
-         cover_image = \
-            self.__comicrack.App.GetComicPage( self.__cr_book, cover_index )
-         cover_image = utils.strip_back_cover(cover_image)
-      return cover_image
-   
+
    
    #==============================================================================
    def save_issue(self, issue, scraper):
       '''
       Copies all data in the given issue into this ComicBook object, respecting 
       all of the overwrite/ignore rules defined in the given Configuration 
-      object.
+      object.  
+      
+      Note that these changes get pushed down right into the backing 
+      ComicRack comic book object, so this method makes real modifications that 
+      the user will actually see in the comics in ComicRack. 
       
       As a side-effect, some detailed debug log information about the new values
       is also produced.
