@@ -42,24 +42,23 @@ def install(comicrack):
    """
    
    global __i18n
-   if __i18n is not None:
-      raise Exception("don't install '" + __name__ + "' module twice!")
-   __i18n = __I18n(comicrack)
+   if __i18n is None:
+      __i18n = __I18n(comicrack)
    
-   # the MessageBoxManager is a helpful little DLL that I downloaded from here:
-   #    http://www.codeproject.com/KB/miscctrl/Localizing_MessageBox.aspx
-   #
-   # it allows me to define localized strings for the different button types in
-   # a MessageBox.  it MUST be uninstalled afterwards, to change things back!
-   MessageBoxManager.Register()
-   MessageBoxManager.OK = get("MessageBoxOk")
-   MessageBoxManager.Cancel = get("MessageBoxCancel");
-   MessageBoxManager.Retry = get("MessageBoxRetry")
-   MessageBoxManager.Ignore = get("MessageBoxIgnore");
-   MessageBoxManager.Abort = get("MessageBoxAbort");
-   MessageBoxManager.Yes = get("MessageBoxYes");
-   MessageBoxManager.No = get("MessageBoxNo");
-   
+      # the MessageBoxManager is a helpful little DLL that I downloaded from here:
+      #    http://www.codeproject.com/KB/miscctrl/Localizing_MessageBox.aspx
+      #
+      # it allows me to define localized strings for the different button types in
+      # a MessageBox.  it MUST be uninstalled afterwards, to change things back!
+      MessageBoxManager.Register()
+      MessageBoxManager.OK = get("MessageBoxOk")
+      MessageBoxManager.Cancel = get("MessageBoxCancel");
+      MessageBoxManager.Retry = get("MessageBoxRetry")
+      MessageBoxManager.Ignore = get("MessageBoxIgnore");
+      MessageBoxManager.Abort = get("MessageBoxAbort");
+      MessageBoxManager.Yes = get("MessageBoxYes");
+      MessageBoxManager.No = get("MessageBoxNo");
+      
    
 #==============================================================================
 def uninstall(): 
