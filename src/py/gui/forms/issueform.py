@@ -3,7 +3,7 @@ This module is home to the IssuesForm and IssuesFormResult classes.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection
@@ -20,6 +20,7 @@ from buttondgv import ButtonDataGridView
 from cvform import CVForm
 from issuecoverpanel import IssueCoverPanel
 from utils import sstr
+import i18n
 
 
 #==============================================================================
@@ -92,7 +93,7 @@ class IssueForm(CVForm):
       # 2. --- configure this form, and add all the gui components to it      
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(730, 395)
-      self.Text = 'Choose a Comic Book Issue'
+      self.Text = i18n.get("IssueFormTitle")
       self.FormClosed += self.__form_closed_fired
       
       self.Controls.Add (self.__label)
@@ -147,13 +148,13 @@ class IssueForm(CVForm):
          
       # 2. --- build columns
       table.ColumnCount = 4
-      table.Columns[0].Name = "Series"
+      table.Columns[0].Name = i18n.get("IssueFormSeriesCol")
       table.Columns[0].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleLeft
       table.Columns[0].AutoSizeMode = \
          DataGridViewAutoSizeColumnMode.Fill
       
-      table.Columns[1].Name = "Issue"
+      table.Columns[1].Name = i18n.get("IssueFormIssueCol")
       table.Columns[1].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleCenter
       table.Columns[1].AutoSizeMode = \
@@ -212,7 +213,7 @@ class IssueForm(CVForm):
       button.DialogResult = DialogResult.OK
       button.Location = Point(223, 362)
       button.Size = Size(80, 24)
-      button.Text = '&Ok'
+      button.Text = i18n.get("IssueFormOK")
       return button
 
 
@@ -224,7 +225,7 @@ class IssueForm(CVForm):
       button.DialogResult = DialogResult.Ignore
       button.Location = Point(308, 362)
       button.Size = Size(80, 24)
-      button.Text = '&Skip'
+      button.Text = i18n.get("IssueFormSkip")
       return button
       
    
@@ -236,7 +237,7 @@ class IssueForm(CVForm):
       button.DialogResult = DialogResult.Retry
       button.Location = Point(628, 362)
       button.Size = Size(90, 24)
-      button.Text = 'Go &Back'
+      button.Text = i18n.get("IssueFormGoBack")
       return button
 
 
@@ -246,11 +247,9 @@ class IssueForm(CVForm):
    
       label = Label()
       label.AutoSize = True
-      label.Text =\
-         "Please choose the correct issue from the following list."\
-         if self.__found_issue_in_table else\
-         "Could not automatically identify the issue for this comic.\n"\
-         "Please choose the correct issue from the following list."
+      label.Text = i18n.get("IssueFormChooseText") \
+         if self.__found_issue_in_table else \
+         i18n.get("IssueFormChooseUnknownText")
          
       if self.__config.show_covers_b:
          label.Location = Point(218, 20)
