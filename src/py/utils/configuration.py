@@ -1,8 +1,9 @@
 '''
+This module contoins the Configuration object.
+
 @author: Cory Banack
 '''
-# corylow: comment and cleanup this file
-# coryhigh: externalize
+
 import clr
 import resources
 from utils import persist_map, load_map
@@ -10,7 +11,12 @@ from utils import persist_map, load_map
 clr.AddReference('System')
 from System.IO import File
 
+#==============================================================================
 class Configuration(object):
+   '''
+   This class contains the configuration details for the scraper, including
+   methods for reading and writing those details to the filesystem.
+   '''
       
    __UPDATE_SERIES = 'updateSeries'
    __UPDATE_NUMBER = 'updateNumber'
@@ -46,54 +52,63 @@ class Configuration(object):
    __RESCRAPE_NOTES = 'updateNotes'
    __RESCRAPE_TAGS = 'updateTags'
    __SUMMARY_DIALOG = 'summaryDialog'
-   
+  
+  
+   #=========================================================================== 
    def __init__(self):
-      self.ow_existing_b = True
-      self.ignore_blanks_b = False
-      self.convert_imprints_b = True
-      self.specify_series_b = False
-      self.show_covers_b = True
-      self.download_thumbs_b = True
-      self.preserve_thumbs_b = False
-      self.scrape_in_groups_b = True
-      self.fast_rescrape_b = True
-      self.rescrape_notes_b = True
-      self.rescrape_tags_b = True
-      self.summary_dialog_b = True
-
-      self.update_series_b = True
-      self.update_number_b = True
-      self.update_month_b = True
-      self.update_title_b = True
-      self.update_alt_series_b = True
-      self.update_writer_b = True
-      self.update_penciller_b = True
-      self.update_inker_b = True
-      self.update_cover_artist_b = True
-      self.update_colorist_b = True
-      self.update_letterer_b = True
-      self.update_editor_b = True
-      self.update_summary_b = True
-      self.update_imprint_b = True
-      self.update_year_b = True
-      self.update_publisher_b = True
-      self.update_volume_b = True
-      self.update_characters_b = True
-      self.update_teams_b = True
-      self.update_locations_b = True
-      self.update_webpage_b = True
-      self.update_rating_b = True
+      ''' Initializes a new Configuration object with default settings '''
       
-      # this is a general purpose map that is easily available to every part
-      # of the application, and lasts only as long as the current scraping 
-      # session.  it is an place for one part of the app to save ad-hoc,
-      # session-based data for other parts of the program in a highly 
-      # flexible, unstructured fashion.
+      self.ow_existing_b = True # scraper should overwrite existing metadata?
+      self.ignore_blanks_b = False  # ...unless the new metada is blank?
+      self.convert_imprints_b = True # convert imprints to parent publishers
+      self.specify_series_b = False # user specify series search terms
+      self.show_covers_b = True # show cover images when possible
+      self.download_thumbs_b = True # download thumbnails for fileless comics
+      self.preserve_thumbs_b = False # ...except when they already have thumbs
+      self.scrape_in_groups_b = True # group comics by series when scraping
+      self.fast_rescrape_b = True # use previous scrape choice when available
+      self.rescrape_notes_b = True # store prev scrape choice in notes field
+      self.rescrape_tags_b = True # store prev scrape choice in tags field
+      self.summary_dialog_b = True # show summary dialog after scrape finishes
+
+      self.update_series_b = True # scrape comic's series metadata
+      self.update_number_b = True # scrape comic's issue number metadata
+      self.update_month_b = True # scrape comic's publication month metadata
+      self.update_year_b = True # scrape comic's publication year metadata
+      self.update_title_b = True # scrape comic's issue title metadata
+      self.update_alt_series_b = True # scrape comic's alternate series metadata
+      self.update_writer_b = True # scrape comic's writer metadata
+      self.update_penciller_b = True # scrape comic's penciller metadata
+      self.update_inker_b = True # scrape comic's inker metadata
+      self.update_cover_artist_b = True # scrape comic's cover artist metadata
+      self.update_colorist_b = True # scrape comic's colorist metadata
+      self.update_letterer_b = True # scrape comic's letterer metadata
+      self.update_editor_b = True # scrape comic's editor metadata
+      self.update_summary_b = True # scrape comic's summary metadata
+      self.update_publisher_b = True # scrape comic's publisher metadata
+      self.update_imprint_b = True # scrape comic's imprint metadata
+      self.update_volume_b = True # scrape comic's volume (year) metadata
+      self.update_characters_b = True # scrape comic's characters metadata
+      self.update_teams_b = True # scrape comic's teams metadata
+      self.update_locations_b = True # scrape comic's location metadata
+      self.update_webpage_b = True # scrape comic's webpage metadata
+      self.update_rating_b = True # scrape comic's community rating metadata
+      
+      # this is a general purpose map for saving ad-hoc data in a highly 
+      # flexible, unstructured fashion.  this data only lasts as long as this
+      # Configuration object is around, and it DOES NOT get saved or reloaded.
       self.session_data_map = {}
       
       return self
    
+   
+   
+   #===========================================================================
    def load_defaults(self):
+      ''' 
+      Loads any settings that are saved in the user's settings file (if there 
+      is one) and stores them in this Configuration object.
+      '''
 
       # load the loaded dict out of the serialized file
       loaded = {}
@@ -203,8 +218,15 @@ class Configuration(object):
       if Configuration.__SUMMARY_DIALOG in loaded:
          self.summary_dialog_b = loaded[Configuration.__SUMMARY_DIALOG]
          
-   
+         
+         
+   #===========================================================================
    def save_defaults(self):
+      ''' 
+      Saves the settings in this Configuration object to the users settings 
+      file, replacing the current contents of that file (if there is one).
+      '''
+      
       defaults = {}
       defaults[Configuration.__UPDATE_SERIES] = self.update_series_b
       defaults[Configuration.__UPDATE_NUMBER] = self.update_number_b
@@ -244,10 +266,17 @@ class Configuration(object):
    
       persist_map(defaults, resources.SETTINGS_FILE)
    
-   def __ne__(self, other):
-      return not self.__eq__(other)
    
+   #===========================================================================
+   def __ne__(self, other):
+      ''' Implements "negative equality" for standard python objects. '''
+      
+      return not self.__eq__(other)
+
+   
+   #===========================================================================
    def __eq__(self, other):
+      ''' Implements "equality" for standard python objects. '''
       
       return \
       self.ow_existing_b == other.ow_existing_b and \
@@ -287,7 +316,9 @@ class Configuration(object):
       self.update_rating_b == other.update_rating_b
    
    
+   #===========================================================================
    def __str__(self):
+      ''' Implements "to string" functionality for standard python objects. '''
       
       def x(x):
          return 'X' if x else ' '
