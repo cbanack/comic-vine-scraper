@@ -1,12 +1,12 @@
 '''
-This module contains the Comic Vine implementations of the the functions 
+This module contains ComicVine=based implementations of the the functions 
 described in the db.py module.  That module can delegate its function calls to
 the functions in this module, but other than that, external modules should 
 NOT call these functions directly.
   
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 import resources
 import cvconnection
@@ -693,6 +693,7 @@ def __issue_parse_story_credits(issue, dom):
       if len(locations) > 0:
          locations = [re.sub(r',|;', '', x) for x in locations] # see Issue 47
          issue.locations_s = ', '.join(locations)
+
 
 #===========================================================================            
 def __issue_parse_summary(issue, dom):

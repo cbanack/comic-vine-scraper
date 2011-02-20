@@ -15,7 +15,7 @@ about it and add it to the internal tables.)
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 import log
 import re
@@ -28,9 +28,9 @@ from System.IO import StreamReader, StringWriter
 clr.AddReference('System.Net')
 from System.Net import WebException, WebRequest
 
-
 clr.AddReference('System.Web')
 from System.Web import HttpUtility
+
 
 # =============================================================================
 def find_parent_publisher(imprint_s):
@@ -38,9 +38,9 @@ def find_parent_publisher(imprint_s):
    This method takes a publisher string that might be an imprint of another 
    publisher.  If it is an imprint, the method returns a different publisher 
    string representing the parent publisher for that imprint.  If it is not 
-   an imprint, this method returns the string that was passed in.
+   an imprint, this method returns the original string that was passed in.
    
-   Both the passed in and returned strings for these methods should EXACTLY
+   Both the passed in and returned strings for these methods must EXACTLY
    match their corresponding values in the ComicVine database (i.e. case, 
    punctation, etc.)
    ''' 
