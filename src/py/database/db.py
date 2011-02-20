@@ -1,20 +1,24 @@
 '''
-This module contains is the gateway to whatever "database" this script uses to 
-obtain information about comic books.   The exact nature of this database is 
-intentionally vague in order to remain modular and interchangable.  In other
-words, the behaviour of this "comic book database" can be understood entirely  
-by knowing the contract described by the public functions in this module.  
+This module contains is the gateway to whatever database(s) this script uses to 
+obtain information about comic books.   The exact nature of the database is 
+intentionally vague in order for the implementation of this module to stay
+modular and completely encapsulated, thus making it easy to interchange/add 
+alternate databases.  One way to think of it is that the the behaviour of the
+"comic book database" that this module exposes should be understandable entirely  
+in terms of the contract described by the public functions in this module.  
 
-While no promises about the underlying implementation are made, you should 
-expect that this implementation accesses data from a remote source, and 
-therefore may be quite slow!
+While no guarantees about the underlying database implementation are made, you 
+should probably expect that the implementation accesses data from a remote 
+source, and therefore may be quite slow and occassionally unreliable.
 
 @author: Cory Banack
 '''
+
 import cvdb
 import utils
-# coryhigh: externalize
-# a cache for storing the results of series reference searches
+
+
+# a limited-size cache for storing the results of SeriesRef searches
 # maps 'search terms string' -> 'list of SeriesRefs objects'
 __series_ref_cache = {}
 
@@ -35,7 +39,7 @@ def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
         an integer: how many times the callback is expected to be called
         
    The function must also return a boolean indicating whether or not to CANCEL
-   the search.   If this returned value is ever true, this query should
+   the search.   If this returned value is ever true, this query will
    stop immediately and return an empty set of results.
    '''
    

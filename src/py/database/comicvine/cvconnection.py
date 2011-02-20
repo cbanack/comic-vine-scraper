@@ -5,7 +5,7 @@ related queries can be found at:  http://api.comicvine.com/documentation/
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 import log
 import xml2py
@@ -20,14 +20,14 @@ from System.IO import IOException, StreamReader
 
 # This is the api key needed to access the comicvine website.
 # This key belongs to Cory Banack.  If you fork this code to make your
-# own scraper, please obtain and use your own (free) API key from comicvine
-_API_KEY = '4192f8503ea33364a23035827f40d415d5dc5d18'
+# own scraper, please obtain and use your own (free) API key from ComicVine
+__API_KEY = '4192f8503ea33364a23035827f40d415d5dc5d18'
 
 # =============================================================================
 def _query_series_ids_dom(searchterm_s, skip_n=0):
    ''' 
    Performs a query that will obtain a dom containing all the comic book series
-   from Comic Vine that match a given search string.  You can also provide a 
+   from ComicVine that match a given search string.  You can also provide a 
    second argument that specifies the number of results to skip over (i.e. 3 
    means skip results 0, 1, and 2, so the first returned result is number 3.)  
    This is useful, because this query will not necessarily return all available
@@ -37,14 +37,14 @@ def _query_series_ids_dom(searchterm_s, skip_n=0):
    '''
    
    # {0} is the search string, {1} is the number of issues to skip over
-   _QUERY_URL_SERIES_ID = \
-      'http://api.comicvine.com/search/?api_key=' + _API_KEY + '&format=xml&' +\
-      'limit=20&resources=volume&field_list=name,start_year,publisher,id,'+\
-      'image,count_of_issues&query={0}&offset={1}'
+   QUERY = 'http://api.comicvine.com/search/?api_key=' + __API_KEY + \
+      '&format=xml&limit=20&resources=volume' + \
+      '&field_list=name,start_year,publisher,id,image,count_of_issues' + \
+      '&query={0}&offset={1}'
       
    if searchterm_s is None or searchterm_s == '' or skip_n < 0:
       raise ValueError('bad parameters')
-   return __get_dom( _QUERY_URL_SERIES_ID.format(searchterm_s, skip_n) )
+   return __get_dom( QUERY.format(searchterm_s, skip_n) )
 
 
 
@@ -58,14 +58,13 @@ def _query_series_details_dom(seriesid_s):
    '''
    
    # {0} is the series id, an integer.
-   _QUERY_URL_SERIES_DETAILS =\
-      'http://api.comicvine.com/volume/{0}/?api_key=' + _API_KEY + \
+   QUERY = 'http://api.comicvine.com/volume/{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=start_year,publisher'
       
    if seriesid_s is None or seriesid_s == '':
       raise ValueError('bad parameters')
-      pass 
-   return __get_dom( _QUERY_URL_SERIES_DETAILS.format(sstr(seriesid_s) ) )
+   return __get_dom( QUERY.format(sstr(seriesid_s) ) )
+
 
 
 # =============================================================================
@@ -77,8 +76,8 @@ def _query_issue_ids_dom_fast(seriesname_s, skip_n=0):
    specifies the number of results to skip over (i.e. 3 means skip results 0, 
    1, and 2, so the first returned result is number 3.) 
    
-   This method is called 'fast' because the returned dom contains issue 
-   numbers, so the caller can save a LOT of time by not having to query
+   This method is called 'fast' because the returned dom contains issue and 
+   serial numbers, so the caller can save a LOT of time by not having to query
    each issue id to find its issue number.  The downside is that many of the
    returned issues may not belong to the right series (they must be filtered
    out) and in some cases, the returned list of issues will be incomplete.
@@ -89,15 +88,14 @@ def _query_issue_ids_dom_fast(seriesname_s, skip_n=0):
    '''
    
    # {0} is the series name (a search string), and skip_n is an integer     
-   _QUERY_URL_ISSUE_ID =\
-      'http://api.comicvine.com/search/?api_key=' + _API_KEY + \
+   QUERY = 'http://api.comicvine.com/search/?api_key=' + __API_KEY + \
       '&format=xml&resources=issue&query={0}&offset={1}' + \
       '&field_list=volume,issue_number,id'
    
    if seriesname_s is None or seriesname_s == '' or skip_n < 0:
       raise ValueError('bad parameters')
    return __get_dom( 
-      _QUERY_URL_ISSUE_ID.format(sstr(seriesname_s), sstr(skip_n)))
+      QUERY.format(sstr(seriesname_s), sstr(skip_n)))
 
 
 # =============================================================================
@@ -107,7 +105,7 @@ def _query_issue_ids_dom_safe(seriesid_s):
    for the given series name. 
    
    This method is called 'safe' because the returned dom contains all issues ids
-   for the requested series id, and nothing else.  It is very slow, though,
+   for the requested series id, and nothing else.  It is called 'slow', though,
    because the caller must still query each issue id to find its issue number. 
       
    See _query_issue_id_dom_fast for a faster alternative.
@@ -116,13 +114,12 @@ def _query_issue_ids_dom_safe(seriesid_s):
    '''
    
    # {0} is the series ID, an integer     
-   _QUERY_URL_ISSUE_ID =\
-      'http://api.comicvine.com/volume/{0}/?api_key=' + _API_KEY + \
+   QUERY = 'http://api.comicvine.com/volume/{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=issues'
    
    if seriesid_s is None or seriesid_s == '':
       raise ValueError('bad parameters')
-   return __get_dom( _QUERY_URL_ISSUE_ID.format(sstr(seriesid_s) ) )
+   return __get_dom( QUERY.format(sstr(seriesid_s) ) )
 
 
 # =============================================================================
@@ -135,12 +132,12 @@ def _query_issue_details_dom(issueid_s):
    '''
    
    # {0} is the issue ID 
-   _QUERY_URL_ISSUE_DETAILS =\
-      'http://api.comicvine.com/issue/{0}/?api_key=' + _API_KEY + '&format=xml'
+   QUERY = 'http://api.comicvine.com/issue/{0}/?api_key=' \
+      + __API_KEY + '&format=xml'
       
    if issueid_s is None or issueid_s == '':
       raise ValueError('bad parameters')
-   url = _QUERY_URL_ISSUE_DETAILS.format(sstr(issueid_s) )
+   url = QUERY.format(sstr(issueid_s) )
    return __get_dom(url)
 
 
@@ -156,11 +153,11 @@ def _query_issue_details_page(issueid_s):
    '''
    
    # {0} is the issue ID 
-   _QUERY_URL_ISSUE_HTML = 'http://www.comicvine.com/issue/37-{0}/' 
+   QUERY = 'http://www.comicvine.com/issue/37-{0}/' 
       
    if issueid_s is None or issueid_s == '':
       return None
-   url = _QUERY_URL_ISSUE_HTML.format(sstr(issueid_s))
+   url = QUERY.format(sstr(issueid_s))
    retval = __get_page(url)
    if retval:
       return retval
@@ -180,13 +177,12 @@ def _query_issue_number_dom(issueid_s):
    '''
    
    # {0} is the issue ID
-   _QUERY_URL_ISSUE_NUMBER =\
-      'http://api.comicvine.com/issue/{0}/?api_key=' + _API_KEY + \
-      '&format=xml&field_list=issue_number,publish_month,publish_year'
+   QUERY = 'http://api.comicvine.com/issue/{0}/?api_key=' + __API_KEY + \
+      '&format=xml&field_list=issue_number'
    
    if issueid_s is None or issueid_s == '':
       raise ValueError('bad parameters')
-   return __get_dom( _QUERY_URL_ISSUE_NUMBER.format(sstr(issueid_s) ) )
+   return __get_dom( QUERY.format(sstr(issueid_s) ) )
 
 
 
@@ -198,13 +194,12 @@ def _query_issue_image_dom(issueid_s):
    '''
    
    # {0} is the issue ID
-   _QUERY_URL_ISSUE_IMAGE =\
-      'http://api.comicvine.com/issue/{0}/?api_key=' + _API_KEY + \
+   QUERY = 'http://api.comicvine.com/issue/{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=image'
    
    if issueid_s is None or issueid_s == '':
       raise ValueError('bad parameters')
-   return __get_dom( _QUERY_URL_ISSUE_IMAGE.format(sstr(issueid_s) ) )
+   return __get_dom( QUERY.format(sstr(issueid_s) ) )
 
 
 
@@ -290,7 +285,7 @@ def __get_page(url):
 def __strip_invalid_xml_chars(xml):
    '''
    Removes any invalid xml characters (unfortunately, Comic Vine DOES allow
-   them, see issue 51) from the given xml string.  Thanks:
+   them, see issue 51) from the given xml string.  Thanks to:
       http://cse-mjmcl.cse.bris.ac.uk/blog/2007/02/14/1171465494443.html
    '''
    

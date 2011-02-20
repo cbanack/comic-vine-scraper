@@ -3,7 +3,7 @@ This module contains the CVForm class.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 clr.AddReference('System.Windows.Forms')
 
@@ -13,7 +13,7 @@ from persistentform import PersistentForm
 #==============================================================================
 class CVForm(PersistentForm):
    '''
-   This class is the direct superclass of all Comic Vine Scraper Forms.
+   This class is the direct superclass of all Comic Vine Scraper forms.
    It contains functionality and default configuration that is common to
    all forms in this application.
    '''
@@ -22,7 +22,7 @@ class CVForm(PersistentForm):
    def __init__(self, owner, persist_loc_key_s = "", persist_size_key_s = "" ):
       ''' 
       Constructs a new CVForm.
-      Requires an owner parameter, which is the Form that will own this form.
+      Requires an owner parameter, which is the Form that will own this Form.
       The other two parameters are passed up to the PersistentForm superclass.
       '''
       super(CVForm, self).__init__( persist_loc_key_s, persist_size_key_s )
@@ -47,7 +47,8 @@ class CVForm(PersistentForm):
    def __exit__(self, type, value, traceback):
       ''' Called automatically if you use this form in a python "with" block.'''
       
-      # ensure that the form is closed and disposed in a timely manner
+      # ensure that the form is closed and disposed in a timely manner.
+      # this probably isn't strictly necessary, but it doesn't hurt.
       self.Close()
       self.Dispose()
 
