@@ -10,7 +10,7 @@ import clr
 import log
 import xml2py
 from utils import sstr
-from dbmodels import DatabaseConnectionError
+from dberrors import DatabaseConnectionError
 
 clr.AddReference('System')
 from System import Text

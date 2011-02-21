@@ -26,7 +26,7 @@ module while either of those two methods are running.
 #corylow: comment and cleanup this file (method cases?)
 import sys, clr
 import utils
-from dbmodels import DatabaseConnectionError
+from dberrors import DatabaseConnectionError
 
 clr.AddReference('System')
 from System.Threading import Mutex

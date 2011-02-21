@@ -48,6 +48,7 @@ class ComicBook(object):
       self.__repair_bad_filename_parsing()
 
    
+   #===========================================================================   
    # the series name of this comicbook as a string.  not None, maybe empty.
    series_s = property( lambda self : self.__series_s )
    
