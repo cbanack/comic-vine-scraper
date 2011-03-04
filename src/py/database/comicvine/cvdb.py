@@ -506,7 +506,7 @@ def _query_issue(issue_ref):
    method in the db.py module.
    '''
    
-   issue = Issue()
+   issue = Issue(issue_ref)
    
    dom = cvconnection._query_issue_details_dom(sstr(issue_ref.issue_key))
    __issue_parse_simple_stuff(issue, dom)
@@ -541,13 +541,13 @@ def __issue_parse_simple_stuff(issue, dom):
    if "publish_year" in dom.results.__dict__ and \
       is_string(dom.results.publish_year):
       try:
-         issue.year_s = sstr(int(dom.results.publish_year))
+         issue.year_n = int(dom.results.publish_year)
       except:
          pass # got an unrecognized "year" format...?
    if "publish_month" in dom.results.__dict__ and \
       is_string(dom.results.publish_month):
       try:
-         issue.month_s = sstr(int(dom.results.publish_month))
+         issue.month_n = int(dom.results.publish_month)
       except:
          pass # got an unrecognized "month" format...?
       
@@ -601,7 +601,7 @@ def __issue_parse_series_details(issue, dom):
    # hit comic vine for them again (at least not in this session)
    cache = __series_details_cache
    if series_id in cache:
-      start_year_s = cache[series_id][0]
+      start_year_n = cache[series_id][0]
       publisher_s = cache[series_id][1]
    else: 
       # contact comicvine to extract details for this comic book 
@@ -610,28 +610,29 @@ def __issue_parse_series_details(issue, dom):
          raise Exception("can't get details about series " + series_id)
 
       # start year
+      start_year_n = -1
       if "start_year" in series_dom.results.__dict__ and \
-         is_string(series_dom.results.start_year):
-         start_year_s = series_dom.results.start_year
-      else:
-         start_year_s = ''
+            is_string(series_dom.results.start_year):
+         try:
+            start_year_n = int(series_dom.results.start_year)
+         except:
+            pass # bad start year format...just keep going
       
       # publisher
+      publisher_s = ''
       if "publisher" in series_dom.results.__dict__ and \
          "name" in series_dom.results.publisher.__dict__ and \
          is_string(series_dom.results.publisher.name):
          publisher_s = series_dom.results.publisher.name
-      else:
-         publisher_s = ''
       
-      cache[series_id] = (start_year_s, publisher_s)
+      cache[series_id] = (start_year_n, publisher_s)
    
    # check if there's the current publisher really is the true publisher, or
    # if it's really an imprint of another publisher.
    issue.publisher_s = cvimprints.find_parent_publisher(publisher_s)
    if issue.publisher_s != publisher_s:
       issue.imprint_s = publisher_s
-   issue.start_year_s = start_year_s
+   issue.start_year_n = start_year_n
 
 
             
@@ -651,7 +652,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.story_arc_credits.story_arc.name):
          story_arcs.append(dom.results.story_arc_credits.story_arc.name)
       if len(story_arcs) > 0:
-         issue.alt_series_name_s = ', '.join(story_arcs)
+         issue.alt_series_names = story_arcs
 
    # corylow: SEPARATION OF CONCERNS: Issue 47 should be solved more generically
    
@@ -665,8 +666,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.character_credits.character.name):
          characters.append( dom.results.character_credits.character.name )
       if len(characters) > 0:
-         characters = [re.sub(r',|;', '', x) for x in characters] # see Issue 47
-         issue.characters_s = ', '.join(characters)
+         issue.characters = [re.sub(r',|;', '', x) for x in characters] 
          
    # get any team details that might exist
    teams = []
@@ -678,8 +678,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.team_credits.team.name):
          teams.append( dom.results.team_credits.team.name )
       if len(teams) > 0:
-         teams = [re.sub(r',|;', '', x) for x in teams] # see Issue 47
-         issue.teams_s = ', '.join(teams)
+         issue.teams = [re.sub(r',|;', '', x) for x in teams]
          
    # get any location details that might exist
    locations = []
@@ -691,8 +690,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.location_credits.location.name):
          locations.append( dom.results.location_credits.location.name )
       if len(locations) > 0:
-         locations = [re.sub(r',|;', '', x) for x in locations] # see Issue 47
-         issue.locations_s = ', '.join(locations)
+         issue.locations = [re.sub(r',|;', '', x) for x in locations] 
 
 
 #===========================================================================            
@@ -730,17 +728,17 @@ def __issue_parse_roles(issue, dom):
    # assign the associated values to.  so any comicvine person with the
    # 'coverr' role will, for example, be assigned to the issue.CoverArtist
    #  attribue.
-   ROLE_DICT = {'writer':['writer_s'], 'penciler':['penciller_s'], \
-      'artist':['penciller_s','inker_s'], 'inker':['inker_s'],\
-      'cover':['cover_artist_s'], 'editor':['editor_s'],\
-      'colorer':['colorist_s'], 'letterer':['letterer_s']} 
+   ROLE_DICT = {'writer':['writers'], 'penciler':['pencillers'], \
+      'artist':['pencillers','inkers'], 'inker':['inkers'],\
+      'cover':['cover_artists'], 'editor':['editors'],\
+      'colorer':['colorists'], 'letterer':['letterers']} 
    
    # a simple test to make sure that all the values in ROLE_DICT match up 
    # with members (symbols) in 'issue'.  this is to protect against renaming!
    test_symbols = [y for x in ROLE_DICT.values() for y in x]
    for symbol in test_symbols:
-      if not symbol in issue.__dict__:
-         raise Exception("missing symbol")
+      if not hasattr(issue, symbol):
+         raise Exception("missing symbol: " + symbol)
       
    
    # For creators, there are several different situations:
@@ -772,7 +770,7 @@ def __issue_parse_roles(issue, dom):
                   rolemap[cr_role].append(name) 
                    
    for role in rolemap:
-      setattr(issue, role, ', '.join(rolemap[role]) )
+      setattr(issue, role, rolemap[role] )
       
       
       
