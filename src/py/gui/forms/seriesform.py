@@ -200,8 +200,8 @@ class SeriesForm(CVForm):
          table.Rows.Add()
          ref = series_refs[i] 
          table.Rows[i].Cells[0].Value = ref.series_name_s
-         if ref.start_year_s:
-            table.Rows[i].Cells[1].Value = int(ref.start_year_s)
+         if ref.start_year_n >= 0:
+            table.Rows[i].Cells[1].Value = ref.start_year_n
          table.Rows[i].Cells[2].Value = ref.issue_count_n
          table.Rows[i].Cells[3].Value = ref.publisher_s
          table.Rows[i].Cells[4].Value = ref.series_key
@@ -381,9 +381,7 @@ class SeriesForm(CVForm):
       def valid_year_b(year_n):
          return year_n > 1900 and year_n <= current_year_n+1
       
-      try: series_year_n = int(series_ref.start_year_s)
-      except: series_year_n = 0
-
+      series_year_n = series_ref.start_year_n
       yearscore_n = 0
       if valid_year_b(book.year_n):
          if not valid_year_b(series_year_n):

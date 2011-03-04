@@ -189,9 +189,10 @@ class ComicBook(object):
       if ( value is not None ) :  book.Title = value
          
       # alternate series -----------
-      value = cb.__massage_new_string("Alt/Arc", issue.alt_series_name_s, \
-         book.AlternateSeries, config.update_alt_series_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Alt/Arc", \
+         ', '.join(issue.alt_series_names), book.AlternateSeries, \
+         config.update_alt_series_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.AlternateSeries = value
       
       # summary --------------------
@@ -201,7 +202,7 @@ class ComicBook(object):
       if ( value is not None ) :  book.Summary = value
       
       # year -----------------------
-      value = cb.__massage_new_number("Year", issue.year_s, \
+      value = cb.__massage_new_number("Year", issue.year_n, \
          book.Year, config.update_year_b, config.ow_existing_b, \
          True, -1, lambda x : x > 0 ) # note: we ALWAYS ignore blanks for 'year'
       if ( value is not None ) :  book.Year = value
@@ -223,13 +224,13 @@ class ComicBook(object):
             retval = remap[month]
          return retval
          
-      value = cb.__massage_new_number("Month", issue.month_s, book.Month, \
+      value = cb.__massage_new_number("Month", issue.month_n, book.Month, \
          config.update_month_b, config.ow_existing_b, True, -1, \
          lambda x : x>=1 and x <=12, remap ) # ALWAYS ignore blanks for 'month'
       if ( value is not None ) :  book.Month = value
       
       # volume --------------------
-      value = cb.__massage_new_number("Volume", issue.start_year_s, \
+      value = cb.__massage_new_number("Volume", issue.start_year_n, \
       book.Volume, config.update_volume_b, config.ow_existing_b, \
       config.ignore_blanks_b, -1, lambda x : x > 0 )
       if ( value is not None ) :  book.Volume = value
@@ -254,20 +255,22 @@ class ComicBook(object):
       if ( value is not None ) :  book.Publisher = value
       
       # characters ----------------
-      value = cb.__massage_new_string("Characters", issue.characters_s, \
-         book.Characters, config.update_characters_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Characters", \
+         ', '.join(issue.characters), book.Characters, \
+         config.update_characters_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.Characters = value
       
       # teams ----------------
-      value = cb.__massage_new_string("Teams", issue.teams_s, \
-         book.Teams, config.update_teams_b, \
+      value = cb.__massage_new_string("Teams", \
+         ', '.join(issue.teams), book.Teams, config.update_teams_b, \
          config.ow_existing_b, config.ignore_blanks_b )
       if ( value is not None ) :  book.Teams = value
       
       # locations ----------------
-      value = cb.__massage_new_string("Locations", issue.locations_s, \
-         book.Locations, config.update_locations_b, \
+      value = cb.__massage_new_string( \
+         "Locations", ', '.join(issue.locations), \
+         book.Locations, config.update_locations_b,\
          config.ow_existing_b, config.ignore_blanks_b )
       if ( value is not None ) :  book.Locations = value
       
@@ -285,45 +288,52 @@ class ComicBook(object):
       if ( value is not None ) :  book.CommunityRating = value
       
       # writer --------------------
-      value = cb.__massage_new_string("Writers", issue.writer_s, \
-         book.Writer, config.update_writer_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Writers", \
+         ', '.join(issue.writers), book.Writer, \
+         config.update_writer_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.Writer = value
          
       # penciller -----------------
-      value = cb.__massage_new_string("Pencillers", issue.penciller_s, \
-         book.Penciller, config.update_penciller_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Pencillers", \
+         ', '.join(issue.pencillers), book.Penciller, \
+         config.update_penciller_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.Penciller = value
       
       # inker ---------------------
-      value = cb.__massage_new_string("Inkers", issue.inker_s, \
-         book.Inker, config.update_inker_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Inkers", \
+         ', '.join(issue.inkers), book.Inker, \
+         config.update_inker_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.Inker = value
          
       # colorist -----------------
-      value = cb.__massage_new_string("Colorists", issue.colorist_s, \
-         book.Colorist, config.update_colorist_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Colorists", \
+         ', '.join(issue.colorists), book.Colorist, \
+         config.update_colorist_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.Colorist = value
          
       # letterer -----------------
-      value = cb.__massage_new_string("Letterers", issue.letterer_s, \
-         book.Letterer, config.update_letterer_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Letterers", \
+         ', '.join(issue.letterers), book.Letterer, \
+         config.update_letterer_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.Letterer = value
          
       # coverartist --------------
-      value = cb.__massage_new_string("CoverArtists", issue.cover_artist_s, \
-         book.CoverArtist, config.update_cover_artist_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("CoverArtists", \
+         ', '.join(issue.cover_artists), book.CoverArtist, \
+         config.update_cover_artist_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.CoverArtist = value
          
       # editor -------------------   
-      value = cb.__massage_new_string("Editors", issue.editor_s, \
-         book.Editor, config.update_editor_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
+      value = cb.__massage_new_string("Editors", \
+         ', '.join(issue.editors), book.Editor, \
+         config.update_editor_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
       if ( value is not None ) :  book.Editor = value
    
       # tag ----------------------
@@ -573,7 +583,7 @@ class ComicBook(object):
       else:
          log.debug("-->  ", label.ljust(15), ": --- skipped ---")
          
-      # last minute type checking, just to be sure the returned value type is good
+      # last minute type checking, just to be sure the returned value type is ok
       if retval != None:
          retval = float(retval) if type(old_value) == float else int(retval)
       return retval
