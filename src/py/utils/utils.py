@@ -3,7 +3,7 @@ This module contains a variety of generally useful utility methods.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 import log
 from time import strftime

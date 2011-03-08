@@ -3,7 +3,7 @@ This module is home to the Scheduler class.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 import log
 
