@@ -3,7 +3,7 @@ This module is home to the FinishForm class.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 import resources
 import i18n
@@ -53,7 +53,7 @@ class FinishForm(CVForm):
       # 2. --- configure this form, and add all the gui components to it
       self.AcceptButton = ok
       self.AutoScaleMode = AutoScaleMode.Font
-      self.Text = 'Comic Vine Scraper - v' + resources.SCRIPT_VERSION
+      self.Text = i18n.get("FinishFormTitle").format(resources.SCRIPT_VERSION)
       self.ClientSize = Size(300, 90)
    
       self.Controls.Add(scrape_label)
@@ -74,8 +74,8 @@ class FinishForm(CVForm):
       label.Location = Point(10, 10)
       label.Size = Size(280, 13)
       label.TextAlign = ContentAlignment.MiddleCenter
-      label.Text = "Scraped details for {0} comic book{1}."\
-         .format(scraped_n, "" if scraped_n==1 else "s") 
+      label.Text = i18n.get("FinishFormScrapedSingle") if scraped_n==1 else \
+         i18n.get("FinishFormScrapedPlural").format(scraped_n) 
       return label
 
    
@@ -90,8 +90,8 @@ class FinishForm(CVForm):
       label.Location = Point(10, 30) 
       label.Size = Size(280, 13)
       label.TextAlign = ContentAlignment.MiddleCenter
-      label.Text = "Skipped {0} comic book{1}."\
-         .format(skipped_n, "" if skipped_n==1 else "s") 
+      label.Text = i18n.get("FinishFormSkippedSingle") if skipped_n==1 else \
+         i18n.get("FinishFormSkippedPlural").format(skipped_n)
       return label
    
    # ==========================================================================

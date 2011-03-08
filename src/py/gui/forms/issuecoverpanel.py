@@ -3,12 +3,13 @@ This module is home to the IssueCoverPanel class.
  
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
 from dbpicturebox import DBPictureBox 
 from utils import sstr
 import db
 import utils
+import i18n
 from scheduler import Scheduler 
 
 clr.AddReference('System.Drawing')
@@ -208,8 +209,8 @@ class IssueCoverPanel(Panel):
       anything has changed that might require a change to the data displayed
       by one of this controls child controls.  
       
-      Note that this method call may initiate a background thread to update a newly created
-      _ButtonModel at some point in the future.
+      Note that this method call may initiate a background thread to update a 
+      newly created _ButtonModel at some point in the future.
       '''
       
       # 1. grab copies of all the member variables that we might want to use; 
@@ -274,17 +275,17 @@ class IssueCoverPanel(Panel):
          if bmodel.is_fully_updated():
             if issue_num_s:
                if len(bmodel) > 1:
-                  self.__label.Text = 'Issue ' + sstr(issue_num_s) + \
-                     '  -  Cover ' + sstr(bmodel.get_ref_id()+1) + ' of ' + \
-                     sstr(len(bmodel))
+                  self.__label.Text = i18n.get("IssueCoverPanelPlural").\
+                     format(sstr(issue_num_s), sstr(bmodel.get_ref_id()+1),\
+                     sstr(len(bmodel)))
                else:
-                  self.__label.Text = 'Issue ' + sstr(issue_num_s) + \
-                     '  -  Single Cover'
+                  self.__label.Text = i18n.get("IssueCoverPanelSingle").\
+                     format(sstr(issue_num_s))
 
             else:
                self.__label.Text = ""
          else:
-            self.__label.Text = "Searching for more covers..."
+            self.__label.Text = i18n.get("IssueCoverPanelSearching")
        
          
    # ==========================================================================
