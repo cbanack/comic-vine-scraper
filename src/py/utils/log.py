@@ -3,9 +3,9 @@ This module installs a GLOBAL logging system into an application.  Any
 information that is written out using the debug(), debug_exc(), or
 handle_error methods will get printed to stdout.
 
-All information that is written to stderr or stdout (by this class, or any other
-mechanism) is also saved in memory, so that it can be written out to a file in 
-its entirety at any time by the dump() method.
+Once installed, this module also logs all text that is written to stderr or 
+stdout (by this module, or any other mechanism).  This text can be written out 
+to a file in its entirety at any time by the dump() method.
 
 USAGE
 
@@ -16,16 +16,16 @@ all system resources are freed and returned to their original state!
 
 THREAD SAFETY
 
-This module is threadsafe while running, but is not when during install() and 
+This module is threadsafe while running, but is not during install() and 
 uninstall(), so care should be taken not to call any other method in this 
 module while either of those two methods are running.  
 
 @author: Cory Banack
 """
-# coryhigh: externalize
-#corylow: comment and cleanup this file (method cases?)
+
 import sys, clr
 import utils
+import i18n
 from dberrors import DatabaseConnectionError
 
 clr.AddReference('System')
@@ -38,30 +38,30 @@ from System.Windows.Forms import DialogResult, MessageBox, \
 from System.IO import StreamWriter
 from System.Text import UTF8Encoding 
 
-# a global variable, an instance of the Logger class that will only be
+# a module global variable; an instance of the Logger class that will only be
 # available when this module has been "installed" ( with install() )
-_logger = None
+__logger = None
 
-# a global variable, an instance of the main application window that we will
-# attach any messageboxes that we spit out to.
-_comicrack_window = None
+# a module global variable; an instance of the main application window that we 
+# will attach any messageboxes that we spit out to.
+__app_window = None
 
 #==============================================================================
-def install(comicrack_window):
+def install(app_window):
    """
    Installs this module. This must be called before any other method in 
    this module is called.  You must take steps to GUARANTEE that this module's
    uninstall() method is called once you have called this method.
    
-   Takes a single parameter, which is the ComicRack.MainWindow object for
-   the ComicRack object that we are running as part of.
+   Takes a single parameter, which is the Form/Window object that all error 
+   dialogs should be attached to.
    """
 
-   global _logger, _comicrack_window
-   if _logger is not None or _comicrack_window is not None:
+   global __logger, __app_window
+   if __logger is not None or __app_window is not None:
       raise Exception("don't install '" + __name__+ "' module twice!")
-   _comicrack_window = comicrack_window
-   _logger = _Logger(comicrack_window) 
+   __app_window = app_window
+   __logger = __Logger() 
 
 
 
@@ -70,16 +70,16 @@ def uninstall():
    """
    Uninstalls this module.
    
-   It is so important to make sure this method is called at the end of your 
-   script, you should probably use a try-finally section to ensure it.
+   It is important to make sure this method is called at the end of your 
+   script, so you should use a try-finally section to ensure it.
    """
    
-   global _logger, _comicrack_window
-   if _logger:
-      _logger.free()
-      _logger = None
-   if _comicrack_window:
-      _comicrack_window = None
+   global __logger, __app_window
+   if __logger:
+      __logger.free()
+      __logger = None
+   if __app_window:
+      __app_window = None
 
 
 
@@ -90,22 +90,22 @@ def debug(*messages):
    
    Arguments to this method (any number of them, including none) will be 
    converted to a string, then concatenated together, and finally a newline will
-   be appended on the end.   The result wil be written out to the debug log.
+   be appended on the end.   The result will be written out to the debug log.
    
    Arguments are usually strings or numbers, but can be anything with a working
    __str__ method, or even 'None'. 
    """
    
-   global _logger
-   if _logger:
-      _logger.debug(*messages)
+   global __logger
+   if __logger:
+      __logger.debug(*messages)
    
    
    
 #==============================================================================
 def debug_exc(message=''):
    """
-   Writes the current error stack trace (i.e. from the current thread) to the
+   Writes the python error stack trace (i.e. from the current thread) to the
    debug log.  This method should be only be called when that trace is current;
    i.e from within the 'except' section of a try-except block.
    
@@ -114,9 +114,9 @@ def debug_exc(message=''):
    currently caught exception out to the debug log.
    """
     
-   global _logger
-   if _logger:
-      _logger.debug_exc(message)
+   global __logger
+   if __logger:
+      __logger.debug_exc(message)
 
 
    
@@ -127,9 +127,9 @@ def dump(filename):
    called) to the given file.  This does not clear the log.
    """
    
-   global _logger
-   if _logger:
-      _logger.dump(filename)
+   global __logger
+   if __logger:
+      __logger.dump(filename)
 
 
 
@@ -138,16 +138,16 @@ def handle_error(error):
    '''
    Handles the given error object (a python or .net exception) by formatting it
    nicely and then printing it to the debug log.   Then an "unexpected error"
-   message is displayed for the user in a modal dialog (owned by the main
-   comicrack app window that was passed into the log.install() method. )
+   message is displayed for the user in a modal dialog (owned by the
+   app window that was passed into the log.install() method. )
    
-   This method should be the application's normal way to handle unexpected
+   This method should be an application's normal way to handle unexpected
    errors and exceptions.
    '''
    
     
-   global _logger, _comicrack_window
-   if not _logger or not _comicrack_window:
+   global __logger, __app_window
+   if not __logger or not __app_window:
       return
    
    # if none, do current python exception.  else sstr() the given exception
@@ -162,61 +162,47 @@ def handle_error(error):
       # if this is a DatabaseConnectionError, then it is a semi-expected 
       # error that usually occurs when the database website goes down.  
       # Thus, it gets a special error message.
-      MessageBox.Show(_comicrack_window,
-         'The ' + error.db_name_s() + ' website could not be reached.  It is\n'+
-         'possible that the website is not responding, or that\n' +
-         'you are not connected to the internet.\n\n' +
-         'Please try again later.', "Cannot Access Comic Database",
-         MessageBoxButtons.OK, MessageBoxIcon.Warning)
+      MessageBox.Show(__app_window, 
+         i18n.get("LogDBErrorText").format(error.db_name_s()), 
+         i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
+         MessageBoxIcon.Warning)
       
    else:
       # all other errors are considered "unexpected", and handled generically
-      result = MessageBox.Show(_comicrack_window, 
-         'An unexpected error occurred.  Would you like to save\n' +
-         'a log file with more details about this problem?', 
-         "Unexpected Error",  MessageBoxButtons.YesNo, MessageBoxIcon.Error)
+      result = MessageBox.Show(__app_window, i18n.get("LogErrorText"),
+         i18n.get("LogErrorTitle"),  MessageBoxButtons.YesNo, 
+         MessageBoxIcon.Error)
    
       if result == DialogResult.Yes:
          dialog = SaveFileDialog()
-         dialog.Title = 'Save Log File'
-         dialog.Filter = 'All Files (*.*)|*.*'
+         dialog.Title = i18n.get("LogSaveTitle")
+         dialog.Filter = i18n.get("LogSaveFilter")+'|*.*'
    
          try:
             if dialog.ShowDialog() == DialogResult.OK:
                dump(dialog.FileName)
-               MessageBox.Show(_comicrack_window,\
-              'A log file for this error has been saved.  Please consider\n'+
-              "reporting this incident (and submitting the log) to the\n" + 
-              "issue tracker on the main Comic Vine Scraper website.",
-              'Saved Log File',\
-              MessageBoxButtons.OK, MessageBoxIcon.Information)
+               MessageBox.Show(__app_window, i18n.get("LogSavedText"),
+               i18n.get("LogSavedTitle"), MessageBoxButtons.OK, 
+               MessageBoxIcon.Information )
          except:
             debug_exc()
-            MessageBox.Show(_comicrack_window, "Error saving debug log.")
+            MessageBox.Show( __app_window, i18n.get("LogSaveFailedText") )
 
 
 
 #==============================================================================
-class _Logger(object):
+class __Logger(object):
    """ A hidden class that implements the public api of this module. """ 
 
 
    #==========================================================================
-   def __init__(self, comicrack_window):
+   def __init__(self):
       """ 
       Initializes this class.  Only one may be initialized at a time!
-      
-      comicrack_window => All writing to stdout will occur on the comicrack
-         windows event pump thread (i.e. invoked via a delegate).
-         This is needed because comicrack has a gui implementation of stdout
-         that we want to be properly in sync with.   
       """ 
    
       if ( sys.stdout != sys.__stdout__ or sys.stderr != sys.__stderr__):
          raise "do not instantiate two instances of this class!!"
-      
-      # the comicrack window whose gui stdout we will write debug messages to
-      self._comicrack_window = comicrack_window
       
       # the log of all debugged output that this class creates
       self._logLines = []
@@ -224,6 +210,7 @@ class _Logger(object):
       # a mutex that protects all access to the logLines (above)
       self._mutex = Mutex()
       
+      # co-op stdout and stderr so we can intercept everything going to them
       sys.stdout = self 
       sys.stderr = self
       
@@ -238,8 +225,9 @@ class _Logger(object):
       self._mutex.WaitOne(-1)
       try:
          self._logLines = None
-         self._comicrack_window = None
+         self.__app_window = None
       
+         # return stdout and stderr to their original state
          sys.stdout = sys.__stdout__
          sys.stderr = sys.__stderr__
       finally:
@@ -257,18 +245,40 @@ class _Logger(object):
       
       strings = map(utils.sstr,messages)
       strings.append('\n')
-      self._debugRaw( ''.join(strings) )
-   
+      self.__debug_raw( ''.join(strings) )
+ 
+ 
+   #==========================================================================
+   def debug_exc(self, message):
+      """ Implements the module-level debug_exc() method. """
+      
+      if not (message is None) and len(message.strip()) > 0:
+         self.debug(message)
+         
+      try:
+         self.debug(''.join(['Caught ', sys.exc_info()[0].__name__, ': ',
+            utils.sstr(sys.exc_info()[1])]))
+      except:
+         self.debug(": Exception name couldn't be formatted :")
+      
+      try:
+         self.debug("Traceback (most recent call last):")
+         for line in self.__get_trace():
+            self.debug(self.__format_trace_line(line))
+      except:
+         self.debug(": Traceback couldn't be formatted :")
+
+  
    
    #==========================================================================
-   def _debugRaw(self, message=''):
-      """ Records the given message, and writes it out to the -real- stdout. """
+   def __debug_raw(self, message=''):
+      """ Records the given message, and writes it out to the 'real' stdout. """
          
       # protect access to the logLines with a mutex (for multiple threads)
       self._mutex.WaitOne(-1)
       try:
          if self._logLines == None:
-            raise Exception("you must install the _Logger before using it")
+            raise Exception("you must install the __Logger before using it")
          
          try:
             output_line = utils.sstr(message)
@@ -282,32 +292,12 @@ class _Logger(object):
          self._mutex.ReleaseMutex()
 
 
-    
-   #==========================================================================
-   def debug_exc(self, message):
-      if not (message is None) and len(message.strip()) > 0:
-         self.debug(message)
-         
-      """ Implements the module-level debug_exc() method. """
-      try:
-         self.debug(''.join(['Caught ', sys.exc_info()[0].__name__, ': ',
-            utils.sstr(sys.exc_info()[1])]))
-      except:
-         self.debug(": Exception name couldn't be formatted :")
-      
-      try:
-         self.debug("Traceback (most recent call last):")
-         for line in self._getCurrentStackTrace():
-            self.debug(self._formatTraceLine(line))
-      except:
-         self.debug(": Traceback couldn't be formatted :")
-
 
    #==========================================================================
-   def _getCurrentStackTrace(self):
+   def __get_trace(self):
       """ 
-      Retrieves the current stacktrace, as a list of triples: 
-         (filename, lineno, codename) 
+      Retrieves the current thread's python stacktrace, as a list of triples: 
+                (filename, lineno, codename) 
       """
       
       traceback = sys.exc_info()[2]
@@ -325,8 +315,10 @@ class _Logger(object):
 
 
    #==========================================================================
-   def _formatTraceLine(self, lineInfo):
-      """ Formats the triples from _getCurrentStackTrace() into a nice line. """  
+   def __format_trace_line(self, lineInfo):
+      """
+      Formats the triples from __get_trace() into a nice line. 
+      """  
       fileName, lineNo, name = lineInfo
       line = '  File "%s", line %s, in %s' % (fileName, lineNo, name)
       return line
@@ -341,7 +333,7 @@ class _Logger(object):
       self._mutex.WaitOne(-1)
       try:
          if self._logLines == None:
-            raise Exception("you must install the _Logger before using it")
+            raise Exception("you must install the __Logger before using it")
          
          try:
             writer = StreamWriter(filename, False, UTF8Encoding())
@@ -361,4 +353,4 @@ class _Logger(object):
       object, which can be used to directly co-opt stdout and stderr.
       """
       
-      self._debugRaw(obj)
+      self.__debug_raw(obj)
