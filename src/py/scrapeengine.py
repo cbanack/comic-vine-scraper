@@ -4,9 +4,9 @@ This module is home to the ScrapeEngine class.
 '''
 import clr
 
-import resources 
 import log
 from utils import sstr
+from resources import Resources 
 from configuration import Configuration
 from comicform import ComicForm
 from seriesform import SeriesForm, SeriesFormResult
@@ -111,10 +111,10 @@ class ScrapeEngine(object):
          # a litte bit of logging to help make our debug logs more useful
          log.debug()
          log.debug("-"*80)
-         log.debug("CV Scraper Version:  ", resources.SCRIPT_VERSION)
+         log.debug("CV Scraper Version:  ", Resources.SCRIPT_VERSION)
          log.debug("Comic Rack Version:  ", self.comicrack.App.ProductVersion)
-         log.debug("Cache Directory:     ", resources.LOCAL_CACHE_DIRECTORY)
-         log.debug("Settings File:       ", resources.SETTINGS_FILE)
+         log.debug("Cache Directory:     ", Resources.LOCAL_CACHE_DIRECTORY)
+         log.debug("Settings File:       ", Resources.SETTINGS_FILE)
          log.debug("-"*80)
          log.debug()
 

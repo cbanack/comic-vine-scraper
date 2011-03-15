@@ -7,7 +7,7 @@ This module contains the PersistentForm class.
 import clr
 import log
 from utils import sstr, load_map, persist_map
-import resources
+from resources import Resources
 
 clr.AddReference('System')
 from System.Threading import Thread, ThreadStart
@@ -114,7 +114,7 @@ class PersistentForm(Form):
       
       do_default_loc = True
       if self.__persist_size_key_s or self.__persist_loc_key_s:
-         prefs = load_map(resources.GEOMETRY_FILE)
+         prefs = load_map(Resources.GEOMETRY_FILE)
          
          # grab the stored size value, if any, and apply it
          if self.__persist_size_key_s and self.__persist_size_key_s in prefs:
@@ -153,14 +153,14 @@ class PersistentForm(Form):
       
       def delegate():
          if self.__persist_size_key_s or self.__persist_loc_key_s:
-            prefs = load_map(resources.GEOMETRY_FILE)
+            prefs = load_map(Resources.GEOMETRY_FILE)
             if self.__persist_loc_key_s:
                prefs[self.__persist_loc_key_s] =\
                   sstr(self.Location.X) + "," + sstr(self.Location.Y)
             if self.__persist_size_key_s:
                prefs[self.__persist_size_key_s] =\
                   sstr(self.Width) + "," + sstr(self.Height)
-            persist_map(prefs, resources.GEOMETRY_FILE)
+            persist_map(prefs, Resources.GEOMETRY_FILE)
       Thread(ThreadStart(delegate)).Start()
       
       

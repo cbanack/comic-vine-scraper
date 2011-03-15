@@ -11,7 +11,7 @@ To add new keystrings, edit the en.zip file.
 @author: Cory Banack
 '''
 import clr
-import resources
+from resources import Resources
 
 clr.AddReference("System")
 from System.IO import StreamReader
@@ -142,8 +142,8 @@ class __I18n(object):
       # </TR>
            
       default_strings = {}
-      zip = resources.I18N_DEFAULTS_FILE
-      xml = resources.I18N_XML_ENTRY 
+      zip = Resources.I18N_DEFAULTS_FILE
+      xml = Resources.I18N_XML_ENTRY 
       
       # grab the default (i.e. english) zip file, unzip it, and grab the
       # xml file from inside.  parse that to obtain default i18n strings.

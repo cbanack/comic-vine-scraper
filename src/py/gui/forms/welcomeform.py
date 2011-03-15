@@ -5,7 +5,7 @@ This module is home to the WelcomeForm class.
 '''
 # coryhigh: externalize
 import clr
-import resources
+from resources import Resources
 from cvform import CVForm 
 from configform import ConfigForm
 
@@ -53,7 +53,7 @@ class WelcomeForm(CVForm):
       self.AcceptButton = ok
       self.CancelButton = cancel
       self.AutoScaleMode = AutoScaleMode.Font
-      self.Text = resources.SCRIPT_FULLNAME
+      self.Text = Resources.SCRIPT_FULLNAME
       self.ClientSize = Size(396, 100)
    
       self.Controls.Add(label)

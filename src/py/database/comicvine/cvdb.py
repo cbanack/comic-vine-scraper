@@ -8,11 +8,11 @@ NOT call these functions directly.
 '''
 
 import clr
-import resources
 import cvconnection
 import log
 import re
 import utils
+from resources import Resources
 from utils import is_string, is_number, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
 import cvimprints
@@ -451,7 +451,7 @@ def __get_cache_file_path(series_ref, extension = ''):
    '''
    
    series_id_n = int(series_ref.series_key)
-   cache_dir = resources.LOCAL_CACHE_DIRECTORY + 'comicvine/'
+   cache_dir = Resources.LOCAL_CACHE_DIRECTORY + 'comicvine/'
    
    cache_file = ''
    legacy_cache = cache_dir + sstr(series_id_n) + extension
