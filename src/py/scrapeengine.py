@@ -606,15 +606,15 @@ class ScrapeEngine(object):
       if not search_terms_s:
          raise Exception("cannot query for empty search terms")
       
-      with ProgressBarForm(self.comicrack.MainWindow, self, 1) as progbar:
+      with ProgressBarForm(self.comicrack.MainWindow, self) as progbar:
          # this function gets called each time an series_ref is obtained
          def callback(num_matches_n, expected_callbacks_n):
             if not self.__cancelled_b:
                if not progbar.Visible:
-                  progbar.prog.Maximum = expected_callbacks_n
+                  progbar.pb.Maximum = expected_callbacks_n
                   progbar.show_form()
                if progbar.Visible and not self.__cancelled_b:
-                  progbar.prog.PerformStep()
+                  progbar.pb.PerformStep()
                   progbar.Text = \
                      i18n.get("SearchProgbarText").format(sstr(num_matches_n))
             Application.DoEvents()
@@ -640,17 +640,17 @@ class ScrapeEngine(object):
       '''
       
       log.debug("finding all issues for '", series_ref, "'...")
-      with ProgressBarForm(self.comicrack.MainWindow, self, 1) as progform:
+      with ProgressBarForm(self.comicrack.MainWindow, self) as progform:
          # this function gets called each time another issue_ref is obtained
          def callback(complete_ratio_n):
             complete_ratio_n = max(0.0, min(1.0, complete_ratio_n))
             if complete_ratio_n < 1.0 and not progform.Visible\
                   and not self.__cancelled_b:
-               progform.prog.Maximum = 100
-               progform.prog.Value = complete_ratio_n * 100
+               progform.pb.Maximum = 100
+               progform.pb.Value = complete_ratio_n * 100
                progform.show_form()
             if progform.Visible and not self.__cancelled_b:
-               progform.prog.Value = complete_ratio_n * 100
+               progform.pb.Value = complete_ratio_n * 100
                progform.Text = i18n.get("IssuesProgbarText")\
                   .format(sstr((int)(complete_ratio_n * 100)))
             Application.DoEvents()
