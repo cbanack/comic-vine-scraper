@@ -5,7 +5,7 @@ This module contoins the Configuration object.
 '''
 
 import clr
-import resources
+from resources import Resources
 from utils import persist_map, load_map
 
 clr.AddReference('System')
@@ -112,8 +112,8 @@ class Configuration(object):
 
       # load the loaded dict out of the serialized file
       loaded = {}
-      if File.Exists(resources.SETTINGS_FILE):
-         loaded = load_map(resources.SETTINGS_FILE)
+      if File.Exists(Resources.SETTINGS_FILE):
+         loaded = load_map(Resources.SETTINGS_FILE)
          
       # any settings that the serialized dict happens to contain, u
       if Configuration.__UPDATE_SERIES in loaded:
@@ -264,7 +264,7 @@ class Configuration(object):
       defaults[Configuration.__RESCRAPE_TAGS] = self.rescrape_tags_b
       defaults[Configuration.__SUMMARY_DIALOG] = self.summary_dialog_b
    
-      persist_map(defaults, resources.SETTINGS_FILE)
+      persist_map(defaults, Resources.SETTINGS_FILE)
    
    
    #===========================================================================

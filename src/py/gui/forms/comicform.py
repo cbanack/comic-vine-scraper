@@ -6,9 +6,9 @@ The module is the home of the ComicForm class.
 
 import clr
 import log
-import resources
 import utils
 import i18n
+from resources import Resources
 from utils import sstr
 from cvform import CVForm
 
@@ -76,7 +76,7 @@ class ComicForm(CVForm):
       self.__cancel_button = self.__build_cancelbutton()
          
       # 2. -- configure this form, and add all the gui components to it
-      self.Text = self.Text = resources.SCRIPT_FULLNAME
+      self.Text = self.Text = Resources.SCRIPT_FULLNAME
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(346, 604)  
       self.MinimumSize = Size(166,275)
@@ -335,7 +335,7 @@ class _PictureBoxPanel(Panel):
       '''
       
       if not image:
-         image = resources.createComicVineLogo()
+         image = Resources.createComicVineLogo()
       
       self._ratio = 0;
       if image and float(image.Height):

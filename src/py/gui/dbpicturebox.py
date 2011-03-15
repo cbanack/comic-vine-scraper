@@ -6,9 +6,9 @@ remotely loaded images using an asyncrhonous off-loading thread manner.
 '''
 
 import clr
-import resources
 import utils
 import db
+from resources import Resources
 from scheduler import Scheduler
 
 clr.AddReference('System.Drawing')
@@ -57,7 +57,7 @@ class DBPictureBox(PictureBox):
       self.__image_cache = {}
       
       # the image that gets displayed if we have nothing else to display
-      self.__unknown_image = resources.createComicVineLogo()
+      self.__unknown_image = Resources.createComicVineLogo()
       
       # the image that gets displayed while we are loading another image
       self.__loading_image = self.__copy_transparent(self.__unknown_image)

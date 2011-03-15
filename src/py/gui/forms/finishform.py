@@ -5,8 +5,8 @@ This module is home to the FinishForm class.
 '''
 
 import clr
-import resources
 import i18n
+from resources import Resources
 from cvform import CVForm 
 
 clr.AddReference('System.Windows.Forms')
@@ -53,7 +53,7 @@ class FinishForm(CVForm):
       # 2. --- configure this form, and add all the gui components to it
       self.AcceptButton = ok
       self.AutoScaleMode = AutoScaleMode.Font
-      self.Text = i18n.get("FinishFormTitle").format(resources.SCRIPT_VERSION)
+      self.Text = i18n.get("FinishFormTitle").format(Resources.SCRIPT_VERSION)
       self.ClientSize = Size(300, 90)
    
       self.Controls.Add(scrape_label)
