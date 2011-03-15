@@ -1,10 +1,9 @@
 '''
 This module's purpose is to launch the ComicVineScraper plugin from within the 
-Eclipse IDE.  To do this, it must emulate the 'real' comicrack environment in a
-number of important ways.
+Eclipse IDE.  To do this, it must emulate the 'real' comicrack environment.
 
 This module is a development tool; it is NOT part of the regular 
-ComicVineScraper distributable.
+ComicVineScraper distributable and will not be run by regular users.
 '''
 
 import sys
