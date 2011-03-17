@@ -3,8 +3,9 @@ This module is home to the WelcomeForm class.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
+import i18n
 from resources import Resources
 from cvform import CVForm 
 from configform import ConfigForm
@@ -75,16 +76,14 @@ class WelcomeForm(CVForm):
       'books' -> a list of all the comic books being scraped. 
       '''
 
-      plural = len(books) > 1
+      plural = len(books) != 1
       
       label = Label()
       label.AutoSize = True
       label.Location = Point(9, 10)
       label.Size = Size(299, 13)
-      label.Text = ("You are about to download and store details "+\
-         'for {0} comic book{1}.\n\n'+\
-         "Click 'Start Scraping...' to begin.").format(len(books),  
-         "s" if plural else "") 
+      label.Text = i18n.get("WelcomeFormTextPlural").format(len(books)) \
+         if plural else i18n.get("WelcomeFormTextSingle")
       return label
    
    
@@ -96,7 +95,7 @@ class WelcomeForm(CVForm):
       button.Click += self.__show_configform
       button.Location = Point(10, 68)
       button.Size = Size(80, 23)
-      button.Text = 'Settings...'
+      button.Text = i18n.get("WelcomeFormSettings")
       button.UseVisualStyleBackColor = True
       return button
 
@@ -109,7 +108,7 @@ class WelcomeForm(CVForm):
       button.DialogResult = DialogResult.Cancel
       button.Location = Point(309, 68)
       button.Size = Size(75, 23)
-      button.Text = 'Cancel'
+      button.Text = i18n.get("WelcomeFormCancel")
       button.UseVisualStyleBackColor = True
       return button
 
@@ -122,7 +121,7 @@ class WelcomeForm(CVForm):
       button.DialogResult = DialogResult.OK
       button.Location = Point(208, 68)
       button.Size = Size(95, 23)
-      button.Text = 'Start Scraping...'
+      button.Text = i18n.get("WelcomeFormStart")
       button.UseVisualStyleBackColor = True
       return button
 
