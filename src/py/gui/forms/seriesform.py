@@ -3,7 +3,7 @@ This module is home to the SeriesForm and SeriesFormResult classes.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import re
 import clr
 from buttondgv import ButtonDataGridView
@@ -11,6 +11,7 @@ from cvform import CVForm
 from dbpicturebox import DBPictureBox
 from utils import sstr
 import datetime
+import i18n
 
 clr.AddReference('System')
 from System.ComponentModel import ListSortDirection
@@ -96,7 +97,7 @@ class SeriesForm(CVForm):
       # 2. --- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(730, 395)
-      self.Text = 'Choose a Comic Book Series'
+      self.Text = i18n.get("SeriesFormTitle")
       self.FormClosed += self.__form_closed_fired
       
       self.Controls.Add (label)
@@ -150,25 +151,25 @@ class SeriesForm(CVForm):
       # 2. --- build columns
       table.ColumnCount = 7
       
-      table.Columns[0].Name = "Series"
+      table.Columns[0].Name = i18n.get("SeriesFormSeriesCol")
       table.Columns[0].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleLeft
       table.Columns[0].AutoSizeMode = \
          DataGridViewAutoSizeColumnMode.Fill
       
-      table.Columns[1].Name = "Year"
+      table.Columns[1].Name = i18n.get("SeriesFormYearCol")
       table.Columns[1].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleCenter
       table.Columns[1].AutoSizeMode =\
          DataGridViewAutoSizeColumnMode.AllCells
       
-      table.Columns[2].Name = "Issues"
+      table.Columns[2].Name = i18n.get("SeriesFormIssuesCol")
       table.Columns[2].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleCenter
       table.Columns[2].AutoSizeMode =\
          DataGridViewAutoSizeColumnMode.AllCells
          
-      table.Columns[3].Name = "Publisher"
+      table.Columns[3].Name = i18n.get("SeriesFormPublisherCol")
       table.Columns[3].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleLeft
       table.Columns[3].AutoSizeMode =\
@@ -222,7 +223,7 @@ class SeriesForm(CVForm):
       button.DialogResult = DialogResult.OK
       button.Location = Point(15, 362)
       button.Size = Size(80, 24)
-      button.Text = '&Ok'
+      button.Text = i18n.get("SeriesFormOK")
       return button
    
    
@@ -234,7 +235,7 @@ class SeriesForm(CVForm):
       button.DialogResult = DialogResult.Ignore
       button.Location = Point(100, 362)
       button.Size = Size(80, 24)
-      button.Text = '&Skip'
+      button.Text = i18n.get("SeriesFormSkip")
       return button
 
 
@@ -246,7 +247,7 @@ class SeriesForm(CVForm):
       button.DialogResult = DialogResult.Retry
       button.Location = Point(325, 362)
       button.Size = Size(90, 24)
-      button.Text = 'Search &Again'
+      button.Text = i18n.get("SeriesFormAgain")
       return button
    
    # ==========================================================================
@@ -257,7 +258,7 @@ class SeriesForm(CVForm):
       button.DialogResult = DialogResult.Yes
       button.Location = Point(420, 362)
       button.Size = Size(90, 24)
-      button.Text = 'Show &Issues...'
+      button.Text = i18n.get("SeriesFormIssues")
       return button
    
    
@@ -273,14 +274,10 @@ class SeriesForm(CVForm):
       label.AutoSize = True
       label.Location = Point(10, 20)
       if num_matches_n > 1:
-         label.Text = "Searched for '{0}' and found {1} matching series.\n"\
-            'Please choose one from the list below, '\
-            "or click 'Skip' to scrape this comic later.".format( 
-            search_terms_s, num_matches_n )
+         label.Text = i18n.get("SeriesFormChooseText")\
+            .format(search_terms_s, num_matches_n )
       else:
-         label.Text = "Searched for '{0}' and found one matching series.\n"\
-            "Click 'OK' to confirm that this is correct, "\
-            "or click 'Skip' to scrape this comic later.".format(search_terms_s)
+         label.Text = i18n.get("SeriesFormConfirmText").format(search_terms_s)
       return label
    
 
@@ -304,13 +301,12 @@ class SeriesForm(CVForm):
       '''
       
       checkbox = CheckBox()
-      checkbox.Name = 'seriesThumbs'
       checkbox.AutoSize = True
       checkbox.Checked = config.show_covers_b
       checkbox.FlatStyle = FlatStyle.System
       checkbox.Location = Point(580, 365)
       checkbox.Size = Size(100, 17)
-      checkbox.Text = 'Show Series Art'
+      checkbox.Text = i18n.get("SeriesFormShowArt")
       checkbox.UseVisualStyleBackColor = True
       checkbox.CheckedChanged += self.__toggle_checkbox_fired
       return checkbox
