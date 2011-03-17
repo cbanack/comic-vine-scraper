@@ -3,8 +3,9 @@ This module is home to the SearchForm class.
 
 @author: Cory Banack
 '''
-# coryhigh: externalize
+
 import clr
+import i18n
 from cvform import CVForm
 
 clr.AddReference('System.Windows.Forms')
@@ -66,7 +67,7 @@ class SearchForm(CVForm):
       # configure this form, and add all gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(405, 100)
-      self.Text = 'Search for a Comic Book'
+      self.Text = i18n.get("SearchFormTitle")
       self.Controls.Add(self.__label)
       self.Controls.Add(self.__textbox)
       self.Controls.Add(self.__search_button)
@@ -88,7 +89,7 @@ class SearchForm(CVForm):
       label = Label()
       label.Location = Point(10, 10)
       label.Size = Size(385, 20)
-      label.Text = "Search the comic book database for:"
+      label.Text = i18n.get("SearchFormText")
       return label
 
          
@@ -100,7 +101,7 @@ class SearchForm(CVForm):
       button.DialogResult = DialogResult.OK
       button.Location = Point(150, 70)
       button.Size = Size(75, 23)
-      button.Text = '&Search'
+      button.Text = i18n.get("SearchFormSearch")
       button.UseVisualStyleBackColor = True
       return button
    
@@ -113,7 +114,7 @@ class SearchForm(CVForm):
       button.DialogResult = DialogResult.Ignore
       button.Location = Point(235, 70)
       button.Size = Size(75, 23)
-      button.Text = '&Skip'
+      button.Text = i18n.get("SearchFormSkip")
       button.UseVisualStyleBackColor = True
       return button
    
@@ -126,7 +127,7 @@ class SearchForm(CVForm):
       button.DialogResult = DialogResult.Cancel
       button.Location = Point(320, 70)
       button.Size = Size(75, 23)
-      button.Text = '&Cancel'
+      button.Text = i18n.get("SearchFormCancel")
       button.UseVisualStyleBackColor = True
       return button
    
