@@ -246,15 +246,16 @@ class IssueForm(CVForm):
       ''' builds and returns the main text label for this form '''
    
       label = Label()
-      label.AutoSize = True
       label.Text = i18n.get("IssueFormChooseText") \
          if self.__found_issue_in_table else \
          i18n.get("IssueFormChooseUnknownText")
          
       if self.__config.show_covers_b:
          label.Location = Point(218, 20)
+         label.Size = Size(480, 40)
       else:
          label.Location = Point(10, 20)
+         label.Size = Size(680, 40)
       
       return label
    

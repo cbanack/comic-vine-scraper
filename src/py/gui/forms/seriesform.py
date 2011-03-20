@@ -271,8 +271,8 @@ class SeriesForm(CVForm):
       '''
       
       label = Label()
-      label.AutoSize = True
       label.Location = Point(10, 20)
+      label.Size = Size(480, 40)
       if num_matches_n > 1:
          label.Text = i18n.get("SeriesFormChooseText")\
             .format(search_terms_s, num_matches_n )
