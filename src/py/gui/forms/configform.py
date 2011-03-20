@@ -257,65 +257,65 @@ class ConfigForm(CVForm):
       
       # 1. -- build the 'use fast rescrape' checkbox
       self.__fast_rescrape_cb = CheckBox()
-      self.__fast_rescrape_cb.AutoSize = True
+      self.__fast_rescrape_cb.AutoSize = False
       self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
       self.__fast_rescrape_cb.Location = Point(52, 15)
-      self.__fast_rescrape_cb.Size = Size(218, 17)
+      self.__fast_rescrape_cb.Size = Size(300, 17)
       self.__fast_rescrape_cb.Text = i18n.get("ConfigFormRescrapeCB")
       self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
       
       # 2. -- build the 'add rescrape hints to tags' checkbox
       self.__rescrape_tags_cb = CheckBox()
-      self.__rescrape_tags_cb.AutoSize = True
+      self.__rescrape_tags_cb.AutoSize = False
       self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
       self.__rescrape_tags_cb.Location = Point(82, 40)
-      self.__rescrape_tags_cb.Size = Size(218, 17)
+      self.__rescrape_tags_cb.Size = Size(270, 17)
       self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
       self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
       
       # 3. -- build the 'add rescrape hints to notes' checkbox
       self.__rescrape_notes_cb = CheckBox()
-      self.__rescrape_notes_cb.AutoSize = True
+      self.__rescrape_notes_cb.AutoSize = False
       self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
       self.__rescrape_notes_cb.Location = Point(82, 65)
-      self.__rescrape_notes_cb.Size = Size(218, 17)
+      self.__rescrape_notes_cb.Size = Size(270, 17)
       self.__rescrape_notes_cb.Text = i18n.get("ConfigFormRescrapeNotesCB")
       self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
    
       # 4. --- build the 'scrape in groups'
       self.__scrape_in_groups_cb = CheckBox()
-      self.__scrape_in_groups_cb.AutoSize = True
+      self.__scrape_in_groups_cb.AutoSize = False
       self.__scrape_in_groups_cb.FlatStyle = FlatStyle.System
       self.__scrape_in_groups_cb.Location = Point(52, 95)
-      self.__scrape_in_groups_cb.Size = Size(250, 17)
+      self.__scrape_in_groups_cb.Size = Size(275, 34)
       self.__scrape_in_groups_cb.Text = i18n.get("ConfigFormGroupsCB")
       self.__scrape_in_groups_cb.CheckedChanged += self.__fired_update_gui
        
       # 5. --- build the 'specify series name' checkbox
       self.__specify_series_cb = CheckBox()
-      self.__specify_series_cb.AutoSize = True
+      self.__specify_series_cb.AutoSize = False
       self.__specify_series_cb.FlatStyle = FlatStyle.System
       self.__specify_series_cb.Location = Point(52, 140)
-      self.__specify_series_cb.Size = Size(250, 17)
+      self.__specify_series_cb.Size = Size(300, 17)
       self.__specify_series_cb.Text = i18n.get("ConfigFormSeriesCB")
       self.__specify_series_cb.CheckedChanged += self.__fired_update_gui
        
       
       # 6. --- build the 'display cover art' checkbox
       self.__show_covers_cb = CheckBox()
-      self.__show_covers_cb.AutoSize = True
+      self.__show_covers_cb.AutoSize = False
       self.__show_covers_cb.FlatStyle = FlatStyle.System
       self.__show_covers_cb.Location = Point(52, 173)
-      self.__show_covers_cb.Size = Size(250, 17)
+      self.__show_covers_cb.Size = Size(300, 17)
       self.__show_covers_cb.Text = i18n.get("ConfigFormCoversCB")
       self.__show_covers_cb.CheckedChanged += self.__fired_update_gui
       
       # 7. --- build the 'specify series name' checkbox
       self.__summary_dialog_cb = CheckBox()
-      self.__summary_dialog_cb.AutoSize = True
+      self.__summary_dialog_cb.AutoSize = False
       self.__summary_dialog_cb.FlatStyle = FlatStyle.System
       self.__summary_dialog_cb.Location = Point(52, 205)
-      self.__summary_dialog_cb.Size = Size(250, 17)
+      self.__summary_dialog_cb.Size = Size(300, 17)
       self.__summary_dialog_cb.Text = i18n.get("ConfigFormSummaryCB")
       self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
             
@@ -341,46 +341,46 @@ class ConfigForm(CVForm):
       
       # 1. --- build the 'convert imprints checkbox'
       self.__convert_imprints_cb = CheckBox()
-      self.__convert_imprints_cb.AutoSize = True
+      self.__convert_imprints_cb.AutoSize = False
       self.__convert_imprints_cb.FlatStyle = FlatStyle.System
       self.__convert_imprints_cb.Location = Point(52, 35)
-      self.__convert_imprints_cb.Size = Size(250, 17)
+      self.__convert_imprints_cb.Size = Size(300, 17)
       self.__convert_imprints_cb.Text = i18n.get("ConfigFormImprintsCB")
       self.__convert_imprints_cb.CheckedChanged += self.__fired_update_gui
        
       # 2. -- build the 'overwrite existing' checkbox
       self.__ow_existing_cb = CheckBox()
-      self.__ow_existing_cb.AutoSize = True
+      self.__ow_existing_cb.AutoSize = False
       self.__ow_existing_cb.FlatStyle = FlatStyle.System
       self.__ow_existing_cb.Location = Point(52, 85)
-      self.__ow_existing_cb.Size = Size(218, 17)
+      self.__ow_existing_cb.Size = Size(300, 17)
       self.__ow_existing_cb.Text = i18n.get("ConfigFormOverwriteCB")
       self.__ow_existing_cb.CheckedChanged += self.__fired_update_gui 
    
       # 3. --- build the 'ignore blanks' checkbox
       self.__ignore_blanks_cb = CheckBox()                                          
-      self.__ignore_blanks_cb.AutoSize = True                                       
+      self.__ignore_blanks_cb.AutoSize = False                                       
       self.__ignore_blanks_cb.FlatStyle = FlatStyle.System                          
       self.__ignore_blanks_cb.Location = Point(82, 110)                             
-      self.__ignore_blanks_cb.Size = Size(250, 17)                                  
+      self.__ignore_blanks_cb.Size = Size(270, 17)                                  
       self.__ignore_blanks_cb.Text = i18n.get("ConfigFormOverwriteEmptyCB")                            
       self.__ignore_blanks_cb.CheckedChanged += self.__fired_update_gui 
    
       # 4. --- build the 'download thumbnails' checkbox
       self.__download_thumbs_cb = CheckBox()
-      self.__download_thumbs_cb.AutoSize = True
+      self.__download_thumbs_cb.AutoSize = False
       self.__download_thumbs_cb.FlatStyle = FlatStyle.System
       self.__download_thumbs_cb.Location = Point(52, 160)
-      self.__download_thumbs_cb.Size = Size(250, 17)
+      self.__download_thumbs_cb.Size = Size(300, 17)
       self.__download_thumbs_cb.Text = i18n.get("ConfigFormFilelessCB")
       self.__download_thumbs_cb.CheckedChanged += self.__fired_update_gui
       
       # 5. --- build the 'preserve thumbnails' checkbox
       self.__preserve_thumbs_cb = CheckBox()
-      self.__preserve_thumbs_cb.AutoSize = True
+      self.__preserve_thumbs_cb.AutoSize = False
       self.__preserve_thumbs_cb.FlatStyle = FlatStyle.System
       self.__preserve_thumbs_cb.Location = Point(82, 185)
-      self.__preserve_thumbs_cb.Size = Size(250, 17)
+      self.__preserve_thumbs_cb.Size = Size(270, 17)
       self.__preserve_thumbs_cb.Text = i18n.get("ConfigFormFilelessOverwriteCB")
       self.__preserve_thumbs_cb.CheckedChanged += self.__fired_update_gui
             
