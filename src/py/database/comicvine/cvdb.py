@@ -31,13 +31,29 @@ from System.Drawing import Image
 __series_details_cache = {}
 
 
+
+# =============================================================================
+def _get_db_name_s():
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   return "ComicVine";
+
+
+# =============================================================================
+def _create_key_tag_s(issue_key):
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   return None # coryhigh: START HERE IMPLEMENT ME
+
+
+# =============================================================================
+def _parse_key_tag(text_s):
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   return None # coryhigh: START HERE IMPLEMENT ME
+
+
 # =============================================================================
 def _query_series_refs(search_terms_s, callback_function):
-   '''
-   This method is the Comic Vine implementation of the identically named 
-   method in the db.py module.
-   '''
-   
+   ''' ComicVine implementation of the identically named method in the db.py '''
+      
    # clean up the search terms (to make them more palatable to comicvine
    # databases) before searching.  if no results are found, clean them up more 
    # aggressively and try one more time.
@@ -165,10 +181,7 @@ def __cleanup_search_terms(search_terms_s, alt_b):
       
 # =============================================================================
 def _query_issue_refs(series_ref, callback_function=lambda x : False):
-   '''
-   This method is the Comic Vine implementation of the identically named 
-   method in the db.py module.
-   '''
+   ''' ComicVine implementation of the identically named method in the db.py '''
    
    # do a 'fast' query, and then a 'safe' query to catch anything the fast one
    # might have missed, and remove any obsolete values in the fast query cache.
@@ -465,10 +478,7 @@ def __get_cache_file_path(series_ref, extension = ''):
 
 # =============================================================================
 def _query_image(ref):
-   '''
-   This method is the Comic Vine implementation of the identically named 
-   method in the db.py module.
-   '''
+   ''' ComicVine implementation of the identically named method in the db.py '''
    
    retval = None # the Image object that we will return
 
@@ -501,10 +511,7 @@ def _query_image(ref):
 
 # =============================================================================
 def _query_issue(issue_ref):
-   '''
-   This method is the Comic Vine implementation of the identically named 
-   method in the db.py module.
-   '''
+   ''' ComicVine implementation of the identically named method in the db.py '''
    
    issue = Issue(issue_ref)
    
@@ -655,6 +662,7 @@ def __issue_parse_story_credits(issue, dom):
          issue.alt_series_names = story_arcs
 
    # corylow: SEPARATION OF CONCERNS: Issue 47 should be solved more generically
+   # i.e. the issue object should handle converting , and ; to spaces.
    
    # get any character details that might exist
    characters = []

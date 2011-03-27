@@ -22,6 +22,47 @@ import utils
 # maps 'search terms string' -> 'list of SeriesRefs objects'
 __series_ref_cache = {}
 
+
+
+# =============================================================================
+def get_db_name_s():
+   ''' 
+   Returns the name (a unique string) describing the current backing database 
+   implementation.  i.e. "ComicVine" or "AnimeVice", etc.  Will not be empty.
+   
+   This method does not perform any database reads or writes, i.e. it's fast.
+   '''
+   return cvdb._get_db_name_s();
+
+
+# =============================================================================
+def create_key_tag_s(issue_key):
+   '''
+   Creates a "key tag" out of the given issue_key object.  
+   
+   This method returns the key tag (a string) or None if key tags are not 
+   supported by the underlying database implementation.  
+   
+   This method does not perform any database reads or writes, i.e. it's fast.
+   '''
+   return cvdb._create_key_tag_s(issue_key) if issue_key else None;
+
+
+# =============================================================================
+def parse_key_tag(text_s):
+   '''
+   Atempts to parse the given key tag string into the original issue_key object 
+   that was passed into create_key_tag.
+   
+   This function will return the found issue_key, or None if the given string 
+   contains no key tag or if the underlying database implementation does not 
+   support key tags.  
+   
+   This method does not perform any database reads or writes, i.e. it's fast.
+   '''
+   return cvdb._parse_key_tag(text_s) if text_s else None  
+
+
 # =============================================================================
 def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
    '''
@@ -101,3 +142,5 @@ def query_image(ref):
    to prevent memory leaks.
    '''
    return utils.strip_back_cover( cvdb._query_image(ref) )
+
+
