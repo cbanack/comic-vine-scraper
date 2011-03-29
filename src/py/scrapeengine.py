@@ -15,7 +15,6 @@ from progressbarform import ProgressBarForm
 from searchform import SearchForm, SearchFormResult
 import utils
 import db
-import bookutils
 from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
@@ -298,9 +297,9 @@ class ScrapeEngine(object):
 
       # 1. if this book is being 'rescraped', sometimes it already knows the 
       #    correct issue_ref from a previous scrape. METHOD EXIT: if that 
-      #    rescrape issue_ref is available, we use it immediately and exit. if 
-      #    the issue_ref is the string "skip", we skip this book.
-      issue_ref = bookutils.extract_issue_ref(book)
+      #    rescrape issue_ref is available, we use it immediately and exit. and 
+      #    if the issue_ref is the string "skip", we skip this book.
+      issue_ref = book.get_issue_ref()
       if issue_ref == 'skip': 
          log.debug("found SKIP tag, so skipping the scrape for this book.")
          return self._BookStatus.SKIPPED
@@ -454,7 +453,7 @@ class ScrapeEngine(object):
             result = pad(num1).CompareTo(pad(num2))
          return result
 
-      # divide the books up into the ones that will scrape quickly (cause they
+      # divide the books up into the ones that will scrape quickly ('cause they
       # are rescrapes) and ones that have never been scraped before.  sort each
       # group separately, and append the sorted lists together so the fast ones 
       # will come first.   (the idea is to save the user interaction until
@@ -463,7 +462,7 @@ class ScrapeEngine(object):
       fast_scrape_books = []
       if self.config.fast_rescrape_b:
          for book in books:
-            if bookutils.extract_issue_ref(book):
+            if book.get_issue_ref():
                fast_scrape_books.append(book)
             else:
                slow_scrape_books.append(book)

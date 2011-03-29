@@ -10,6 +10,7 @@ from time import strftime
 from utils import sstr
 import db
 import utils
+from dbmodels import IssueRef
 
 #==============================================================================
 class ComicBook(object):
@@ -94,6 +95,38 @@ class ComicBook(object):
    # books that appear to be from the same series will have the same id string,
    # which will be different for each series. will not be null or None.
    unique_series_s = property( lambda self : self.__unique_series_s() )  
+
+
+   # =============================================================================
+   def get_issue_ref(self): 
+      '''
+      This method looks in the tags and notes fields of the this book for 
+      evidence that the it has been scraped before.   If possible, it will 
+      construct an IssueRef based on that evidence, and return it. If not, 
+      it will return None, or the string "skip" (see below).   
+      
+      If the user has manually added the magic "CVDBSKIP" flag to the tags or 
+      notes for this book, then this method will return the string "skip", 
+      which should be interpreted as "never scrape this book".
+      '''
+      
+      # check for the magic skip tag
+      skip_found = re.search(r'(?i)CVDBSKIP', self.tags_s)
+      if not skip_found:
+         skip_found = re.search(r'(?i)CVDBSKIP', self.notes_s)
+      retval = "skip" if skip_found else None
+   
+      if retval is None:   
+         # if no skip tag, see if there's a key tag in the tags or notes
+         issue_key = db.parse_key_tag(self.tags_s)
+         if issue_key != None:
+            issue_key = db.parse_key_tag(self.notes_s)
+      
+         if issue_key != None:
+            # found a key tag! convert to an IssueRef
+            retval = IssueRef(self.issue_num_s, issue_key)
+   
+      return retval
 
 
    #==========================================================================
