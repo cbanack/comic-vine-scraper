@@ -41,13 +41,21 @@ def _get_db_name_s():
 # =============================================================================
 def _create_key_tag_s(issue_key):
    ''' ComicVine implementation of the identically named method in the db.py '''
-   return None # coryhigh: START HERE IMPLEMENT ME
+   try:
+      return "CVDB" + utils.sstr(int(issue_key))
+   except:
+      log.debug_exc("Couldn't create key tag out of: " + sstr(issue_key))
+      return None
 
 
 # =============================================================================
 def _parse_key_tag(text_s):
    ''' ComicVine implementation of the identically named method in the db.py '''
-   return None # coryhigh: START HERE IMPLEMENT ME
+   
+   tag_found = re.search(r'(?i)CVDB(\d{1,})', text_s)
+   if not tag_found:
+      tag_found = re.search(r'(?i)ComicVine.?\[(\d{1,})'); # very old format!
+   return int(tag_found.group(1).lower()) if tag_found else None
 
 
 # =============================================================================
