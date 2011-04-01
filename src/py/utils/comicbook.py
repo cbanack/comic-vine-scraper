@@ -12,12 +12,18 @@ import db
 import utils
 from dbmodels import IssueRef
 
+
 #==============================================================================
 class ComicBook(object):
    '''
    This class is a wrapper for the ComicRack ComicBook object, which adds 
    additional, scraper-oriented functionality to the object, and provides 
    read-only access to some of its data.
+   '''
+   
+   '''
+   This is the magic string we use to denote comics that should be skipped
+   instead of scraped.  Despite the CV in the name, it is database independent.
    '''
 
    #===========================================================================   
@@ -110,7 +116,7 @@ class ComicBook(object):
       which should be interpreted as "never scrape this book".
       '''
       
-      # check for the magic skip tag
+      # check for the magic "CVDBSKIP" skip tag
       skip_found = re.search(r'(?i)CVDBSKIP', self.tags_s)
       if not skip_found:
          skip_found = re.search(r'(?i)CVDBSKIP', self.notes_s)
@@ -119,7 +125,9 @@ class ComicBook(object):
       if retval is None:   
          # if no skip tag, see if there's a key tag in the tags or notes
          issue_key = db.parse_key_tag(self.tags_s)
-         if issue_key != None:
+         issue_key = db.parse_key_tag("CVDB000003")
+         
+         if issue_key == None:
             issue_key = db.parse_key_tag(self.notes_s)
       
          if issue_key != None:
@@ -132,8 +140,8 @@ class ComicBook(object):
    #==========================================================================
    def create_cover_image(self, scraper):
       ''' 
-      Retrieves an COPY of the cover page (a .NET Image object from ComicRack's)
-      database for this ComicBook.  Returns None if one could not be obtained.
+      Retrieves an COPY of the cover page (a .NET Image object from ComicRack's
+      database) for this ComicBook.  Returns None if one could not be obtained.
       
       scraper --> the ScraperEngine object that is currently running 
       '''
@@ -188,15 +196,15 @@ class ComicBook(object):
    def save_issue(self, issue, scraper):
       '''
       Copies all data in the given issue into this ComicBook object, respecting 
-      all of the overwrite/ignore rules defined in the given Configuration 
-      object.  
+      all of the overwrite/ignore rules defined in the given scraper's
+      Configuration object.  
       
       Note that these changes get pushed down right into the backing 
       ComicRack comic book object, so this method makes real modifications that 
       the user will actually see in the comics in ComicRack. 
       
       As a side-effect, some detailed debug log information about the new values
-      is also produced.
+      is also emitted.
       '''
       
       log.debug("setting values for this comic book ('*' = changed):")
@@ -369,66 +377,130 @@ class ComicBook(object):
          config.ignore_blanks_b )
       if ( value is not None ) :  book.Editor = value
    
-      # tag ----------------------
-      # ===== corylow: SEPARATION OF CONCERNS: this assumes CV! ==================
-      # add in our own special tag that can be parsed back in when the user
-      # rescrapes this book.  we assume any other existing tags were either 1)
-      # added by the user (so instead of replacing them, we append to them) or
-      # 2) added by this script (so we replace the part we added with our new 
-      # tag, instead of appending.)
-      new_tag = 'CVDB' + sstr(issue.issue_key)
-      if book.Tags:
-         book.Tags = book.Tags.strip()
-         regexp = re.compile(r"(?i)CVDB(\d+|SKIP)")
-         matches = regexp.search(book.Tags)
-         if matches:
-            new_tag = re.sub(regexp, new_tag, book.Tags)
-         else:
-            if book.Tags[-1] == ",":
-               book.Tags = book.Tags[:-1]
-            new_tag = book.Tags +", " + new_tag
-            
-      value = cb.__massage_new_string("Tags", new_tag, \
+      # tags ----------------------
+      new_tags = self.__update_tags_s(book.Tags, issue.issue_key)
+      value = cb.__massage_new_string("Tags", new_tags, \
          book.Tags, config.rescrape_tags_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if ( value is not None ) :  book.Tags = value
       
       # notes --------------------
-      # ===== corylow: SEPARATION OF CONCERNS: this assumes CV! ==================
-      # add in our own special sentence that can be parsed back in when the user
-      # rescrapes this book.  we assume any other existing characters were 
-      # either 1) added by the user (so instead of replacing them, we append 
-      # to them) or 2) added by this script (so we replace the part we added 
-      # with our new sentence, instead of appending.)
-      new_notes = 'Scraped metadata from ComicVine [%s] on %s.' % \
-         ('CVDB' + sstr(issue.issue_key), strftime(r'%Y.%m.%d %X'))
-      if book.Notes:
-         book.Notes = book.Notes.strip()
-         regexp = re.compile(
-            r"(?i)Scraped.*?CVDB(\d+|SKIP).*?[\d\.]{8,} [\d:]{6,}\.")
-         matches = regexp.search(book.Notes)
-         if matches:
-            # found the 'standard' embedded CVDB tag; update it
-            new_notes = re.sub(regexp, new_notes, book.Notes)
-         else:
-            regexp = re.compile(r"(?i)CVDB(\d+|SKIP)")
-            matches = regexp.search(book.Notes)
-            if matches:
-               # found a custom embedded CVDB tag; update it
-               new_notes = 'CVDB' + sstr(issue.issue_key)
-               new_notes = re.sub(regexp, new_notes, book.Notes)
-            else:
-               # found no embedded CVDB tag; add it
-               new_notes = book.Notes + "\n\n" + new_notes
-            
+      new_notes = self.__update_notes_s(book.Notes, issue.issue_key)
       value = cb.__massage_new_string("Notes", new_notes, \
          book.Notes, config.rescrape_notes_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if ( value is not None ) :  book.Notes = value
+      
       del value
       book.WriteProposedValues(False)
    
       self.__maybe_download_thumbnail(issue, scraper) 
+   
+   
+   #===========================================================================
+   def __update_tags_s(self, tagstring_s, issue_key):
+      # coryhigh: start here: TEST THESE!!!
+      '''
+      Returns the given comma separated tag string, but with a "key tag" for 
+      the given issue_key added in (iff key tags are supported by the current 
+      database implementation.)  If the given string already contains a valid 
+      key tag, the tag will be REPLACED with the new one, otherwise the new key 
+      tag will be appended to the end of the string.
+      
+      This method never returns None. 
+      '''
+      updated_tagstring_s = None   # our return value
+      
+      # 1. clean up whitespace and None in our tagstring parameter
+      tagstring_s = tagstring_s.strip() if tagstring_s else ''
+      
+      key_tag_s = db.create_key_tag_s(issue_key) 
+      if key_tag_s and tagstring_s:
+         # 2. we have both a new key tag AND a non-empty tagstring; find and 
+         #    replace the existing tag (if it exists in the tagtring) 
+         #    with the new one. 
+         matches = False
+         prev_issue_key = db.parse_key_tag(tagstring_s)
+         if prev_issue_key:
+            prev_key_tag_s = db.create_key_tag_s(prev_issue_key)
+            if prev_key_tag_s:
+               regexp = re.compile(r"(?i)" + prev_key_tag_s)
+               matches = regexp.search(tagstring_s)
+         if matches:
+            # 2a. yup, found an existing key tag--replace it with the new one
+            updated_tagstring_s = re.sub(regexp, key_tag_s, tagstring_s)
+         else:
+            # 2b. nope, no previous key tag found--just append the new key tag
+            if tagstring_s[-1] == ",":
+               tagstring_s = tagstring_s[:-1]
+            updated_tagstring_s = tagstring_s +", " + key_tag_s
+      elif key_tag_s:
+         # 3. no previous tagstring, so the key tag *becomes* the new tagstring
+         updated_tagstring_s = key_tag_s
+      else:
+         # 4. there's no key tag available, so don't change the tagstring.
+         updated_tagstring_s = tagstring_s
+   
+      return updated_tagstring_s
+   
+   
+   #===========================================================================
+   def __update_notes_s(self, notestring_s, issue_key):
+      '''
+      Returns a copy of the given comic book note string, but with a "key tag" 
+      for the given issue_key appended onto the end (iff key tags are
+      supported by the current database implementation.)  If the given 
+      notes string already contains a valid key tag, the existing tag will be 
+      REPLACED with the new one.
+      
+      This method never returns None. 
+      '''
+      updated_notestring_s = None # our return value
+      
+      # 1. clean up whitespace and None in our notestring parameter
+      notestring_s = notestring_s.strip() if notestring_s else ''
+      
+      key_tag_s = db.create_key_tag_s(issue_key)
+      key_note_s = 'Scraped metadata from {0} [{1}] on {2}.'.format(
+         "ComicVine", key_tag_s, strftime(r'%Y.%m.%d %X')) if key_tag_s else ''
+         
+      if key_note_s and notestring_s:
+         # 2. we have both a new key-note (based on the key tag), AND a 
+         #    non-empty notestring; find and replace the existing key-note (if 
+         #    it exists in the notestring) with the new one. 
+         matches = False
+         prev_issue_key = db.parse_key_tag(notestring_s)
+         if prev_issue_key:
+            prev_key_tag = db.create_key_tag_s(prev_issue_key)
+            if prev_key_tag:
+               regexp = re.compile(
+                  r"(?i)Scraped.*?"+prev_key_tag+".*?[\d\.]{8,} [\d:]{6,}\.")                                   
+               matches = regexp.search(notestring_s) 
+         if matches:
+            # 2a. yup, found an existing key-note--replace it with the new one
+            updated_notestring_s = re.sub(regexp, key_note_s, notestring_s)
+         else:
+            # 2b. nope, no previous key-note found.  try looking for the key
+            #     tag on it's own (i.e. if the user added it by hand)
+            if prev_issue_key:
+               prev_key_tag = db.create_key_tag_s(prev_issue_key)
+               if prev_key_tag:
+                  regexp = re.compile(r"(?i)" + prev_key_tag)
+                  matches = regexp.search(notestring_s)
+            if matches:
+               # 2c. yup, found a key tag--replace it with the new one
+               updated_notestring_s = re.sub(regexp, key_tag_s, notestring_s)
+            else:
+               # 2b. nope, no previous key found--just append the new key-note
+               updated_notestring_s = notestring_s + "\n\n" + key_note_s 
+      elif key_note_s:  
+         # 3. no previous notestring, so the key-note *becomes* the new string
+         updated_notestring_s = key_note_s
+      else:
+         # 4. there's no key tag available, so don't change the tagstring.
+         updated_notestring_s = notestring_s
+   
+      return updated_notestring_s
    
    
    #===========================================================================

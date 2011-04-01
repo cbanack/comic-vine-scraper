@@ -54,7 +54,7 @@ def _parse_key_tag(text_s):
    
    tag_found = re.search(r'(?i)CVDB(\d{1,})', text_s)
    if not tag_found:
-      tag_found = re.search(r'(?i)ComicVine.?\[(\d{1,})'); # very old format!
+      tag_found = re.search(r'(?i)ComicVine.?\[(\d{1,})', text_s); # old format!
    return int(tag_found.group(1).lower()) if tag_found else None
 
 
