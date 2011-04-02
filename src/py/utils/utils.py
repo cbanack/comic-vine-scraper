@@ -11,7 +11,8 @@ import re
 import sys
 
 clr.AddReference('System')
-from System.IO import File
+from System.IO import File, StreamReader, StreamWriter
+from System.Text import Encoding
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Graphics, Bitmap
@@ -170,10 +171,9 @@ def persist_map(map, file):
    given file will be destroyed. 
    """
    
-   # corylow: switch this to use .NET and utf8 (during load, too)
    try:
-      with open(file, 'w') as f:
-         f.write(":: This file was generated on "\
+      with StreamWriter(file, False, Encoding.UTF8) as sw:
+         sw.Write(":: This file was generated on "\
             + strftime(r'%Y.%m.%d %X') + "\n\n")
          keys = map.keys()
          keys.sort()
@@ -184,7 +184,7 @@ def persist_map(map, file):
                log.debug("WARNING: can't write map entry containing ':'; ",
                          key, " -> ", value)
             else:
-               f.write(key + ' : ' + value + "\n")
+               sw.Write(key + ' : ' + value + "\n")
    except:
       log.debug_exc("problem saving mapfile: " + sstr(file)) 
          
@@ -201,9 +201,10 @@ def load_map(file):
    retval = {}
    try:
       if File.Exists(file): 
-         with open(file, 'r') as f:
-            lines = f.readlines() 
-            for pair in [x.strip().split(':') for x in lines]: 
+         with StreamReader(file, Encoding.UTF8, False) as sr:
+            line = sr.ReadLine()
+            while line is not None:
+               pair = line.strip().split(':') 
                if len(pair) == 2:
                   key = pair[0].strip()
                   value = pair[1].strip()
@@ -218,6 +219,7 @@ def load_map(file):
                      except:
                         pass
                   retval[key] = value
+               line = sr.ReadLine()
    except:
       log.debug_exc("problem loading mapfile " + sstr(file))
       retval = {}
