@@ -669,9 +669,6 @@ def __issue_parse_story_credits(issue, dom):
       if len(story_arcs) > 0:
          issue.alt_series_names = story_arcs
 
-   # corylow: SEPARATION OF CONCERNS: Issue 47 should be solved more generically
-   # i.e. the issue object should handle converting , and ; to spaces.
-   
    # get any character details that might exist
    characters = []
    if ("character_credits" in dom.results.__dict__) and \
@@ -682,7 +679,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.character_credits.character.name):
          characters.append( dom.results.character_credits.character.name )
       if len(characters) > 0:
-         issue.characters = [re.sub(r',|;', '', x) for x in characters] 
+         issue.characters = characters
          
    # get any team details that might exist
    teams = []
@@ -694,7 +691,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.team_credits.team.name):
          teams.append( dom.results.team_credits.team.name )
       if len(teams) > 0:
-         issue.teams = [re.sub(r',|;', '', x) for x in teams]
+         issue.teams = teams
          
    # get any location details that might exist
    locations = []
@@ -706,7 +703,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.location_credits.location.name):
          locations.append( dom.results.location_credits.location.name )
       if len(locations) > 0:
-         issue.locations = [re.sub(r',|;', '', x) for x in locations] 
+         issue.locations = locations 
 
 
 #===========================================================================            
@@ -779,11 +776,8 @@ def __issue_parse_roles(issue, dom):
                roles = [person.roles] # a string
          for role in roles:
             if role in ROLE_DICT:
-               # corylow: SEPARATION OF CONCERNS: Issue 47 
-               #          should be solved more generically:
-               name = re.sub(r',|;', '', person.name) # see issue 47
                for cr_role in ROLE_DICT[role]:
-                  rolemap[cr_role].append(name) 
+                  rolemap[cr_role].append(person.name) 
                    
    for role in rolemap:
       setattr(issue, role, rolemap[role] )
