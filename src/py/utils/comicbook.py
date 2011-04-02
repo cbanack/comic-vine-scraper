@@ -125,7 +125,6 @@ class ComicBook(object):
       if retval is None:   
          # if no skip tag, see if there's a key tag in the tags or notes
          issue_key = db.parse_key_tag(self.tags_s)
-         issue_key = db.parse_key_tag("CVDB000003")
          
          if issue_key == None:
             issue_key = db.parse_key_tag(self.notes_s)
@@ -399,7 +398,6 @@ class ComicBook(object):
    
    #===========================================================================
    def __update_tags_s(self, tagstring_s, issue_key):
-      # coryhigh: start here: TEST THESE!!!
       '''
       Returns the given comma separated tag string, but with a "key tag" for 
       the given issue_key added in (iff key tags are supported by the current 

@@ -7,6 +7,7 @@ methods.
 '''
 
 from utils import sstr
+import re
 
 #==============================================================================
 class IssueRef(object):
@@ -383,8 +384,8 @@ class Issue(object):
    def __set_characters(self, characters):
       ''' called when you assign a value to 'self.characters' '''
       try:
-         self.__characters = \
-            [ sstr(x) for x in characters if x and len(sstr(x).strip())>0 ]
+         self.__characters =  [ re.sub(r',|;', '', sstr(x))
+            for x in characters if x and len(sstr(x).strip())>0 ]
       except:
          self.__characters = []
    characters = property(lambda self: self.__characters, __set_characters)
@@ -395,8 +396,8 @@ class Issue(object):
    def __set_teams(self, teams):
       ''' called when you assign a value to 'self.teams' '''
       try:
-         self.__teams = \
-            [ sstr(x) for x in teams if x and len(sstr(x).strip())>0 ]
+         self.__teams =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in teams if x and len(sstr(x).strip())>0 ]
       except:
          self.__teams = []
    teams = property(lambda self: self.__teams, __set_teams)
@@ -407,8 +408,8 @@ class Issue(object):
    def __set_locations(self, locations):
       ''' called when you assign a value to 'self.locations' '''
       try:
-         self.__locations = \
-            [ sstr(x) for x in locations if x and len(sstr(x).strip())>0 ]
+         self.__locations =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in locations if x and len(sstr(x).strip())>0 ]
       except:
          self.__locations = []
    locations = property(lambda self: self.__locations, __set_locations)
@@ -419,8 +420,8 @@ class Issue(object):
    def __set_writers(self, writers):
       ''' called when you assign a value to 'self.writers' '''
       try:
-         self.__writers = \
-            [ sstr(x) for x in writers if x and len(sstr(x).strip())>0 ]
+         self.__writers =  [ re.sub(r',|;', '', sstr(x))
+             for x in writers if x and len(sstr(x).strip())>0 ]
       except:
          self.__writers = []
    writers = property(lambda self: self.__writers, __set_writers)
@@ -431,8 +432,8 @@ class Issue(object):
    def __set_pencillers(self, pencillers):
       ''' called when you assign a value to 'self.pencillers' '''
       try:
-         self.__pencillers = \
-            [ sstr(x) for x in pencillers if x and len(sstr(x).strip())>0 ]
+         self.__pencillers =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in pencillers if x and len(sstr(x).strip())>0 ]
       except:
          self.__pencillers = []
    pencillers = property(lambda self: self.__pencillers, __set_pencillers)
@@ -443,8 +444,8 @@ class Issue(object):
    def __set_inkers(self, inkers):
       ''' called when you assign a value to 'self.inkers' '''
       try:
-         self.__inkers = \
-            [ sstr(x) for x in inkers if x and len(sstr(x).strip())>0 ]
+         self.__inkers =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in inkers if x and len(sstr(x).strip())>0 ]
       except:
          self.__inkers = []
    inkers = property(lambda self: self.__inkers, __set_inkers)
@@ -457,8 +458,8 @@ class Issue(object):
       cover_artists.append("   ")
       cover_artists.append("")
       try:
-         self.__cover_artists = \
-            [ sstr(x) for x in cover_artists if x and len(sstr(x).strip())>0 ]
+         self.__cover_artists =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in cover_artists if x and len(sstr(x).strip())>0 ]
       except:
          self.__cover_artists = []
    cover_artists = property(lambda self: self.__cover_artists, 
@@ -470,8 +471,8 @@ class Issue(object):
    def __set_editors(self, editors):
       ''' called when you assign a value to 'self.editors' '''
       try:
-         self.__editors = \
-            [ sstr(x) for x in editors if x and len(sstr(x).strip())>0 ]
+         self.__editors =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in editors if x and len(sstr(x).strip())>0 ]
       except:
          self.__editors = []
    editors = property(lambda self: self.__editors, __set_editors)
@@ -482,8 +483,8 @@ class Issue(object):
    def __set_colorists(self, colorists):
       ''' called when you assign a value to 'self.colorists' '''
       try:
-         self.__colorists = \
-            [ sstr(x) for x in colorists if x and len(sstr(x).strip())>0 ]
+         self.__colorists =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in colorists if x and len(sstr(x).strip())>0 ]
       except:
          self.__colorists = []
    colorists = property(lambda self: self.__colorists, __set_colorists)
@@ -494,8 +495,8 @@ class Issue(object):
    def __set_letterers(self, letterers):
       ''' called when you assign a value to 'self.letterers' '''
       try:
-         self.__letterers =\
-            [ sstr(x) for x in letterers if x and len(sstr(x).strip())>0 ]
+         self.__letterers = [ re.sub(r',|;', '', sstr(x)) 
+            for x in letterers if x and len(sstr(x).strip())>0 ]
       except:
          self.__letterers = []
    letterers = property(lambda self: self.__letterers, __set_letterers)
