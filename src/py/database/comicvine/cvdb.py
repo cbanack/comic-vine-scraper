@@ -416,7 +416,8 @@ def __query_issue_refs_safe( \
             issue_page = cvconnection._query_issue_number_dom(issue.id)
             issue_num_s = issue_page.results.issue_number
             if not is_string(issue_num_s): issue_num_s = ''
-            issue_num_s = issue_num_s.replace('.00', '')
+            # strip ".00" from the end of issue numbers
+            issue_num_s = re.sub( r'\.0*\s*$', '', issue_num_s)
             issue_refs.add(IssueRef(issue_num_s, issue.id))
             cancelled_b[0] =\
                callback_function(float(len(issue_refs))/total_to_load_n)
@@ -546,8 +547,9 @@ def __issue_parse_simple_stuff(issue, dom):
       issue.title_s = dom.results.name.strip()
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
-   if is_string(dom.results.issue_number): 
-      issue.issue_num_s = dom.results.issue_number.replace('.00', '')
+   if is_string(dom.results.issue_number):
+      # strip ".00" from the end of issue numbers
+      issue.issue_num_s = re.sub( r'\.0*\s*$', '', dom.results.issue_number )
    if is_string(dom.results.site_detail_url) and \
          dom.results.site_detail_url.startswith("http"):
       issue.webpage_s = dom.results.site_detail_url 

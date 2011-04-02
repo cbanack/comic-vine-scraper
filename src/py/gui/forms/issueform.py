@@ -178,13 +178,12 @@ class IssueForm(CVForm):
       for i in range(len(issue_refs)):
          name = series_name_s
          key = issue_refs[i].issue_key
-         # corylow: move this 'replace' into the IssueModel object
-         issue_num_s = issue_refs[i].issue_num_s.replace('.00', '')
+         issue_num_s = issue_refs[i].issue_num_s   
          
          table.Rows.Add()
          table.Rows[i].Cells[0].Value = name
          if issue_num_s:
-            table.Rows[i].Cells[1].Value = float(issue_num_s)
+            table.Rows[i].Cells[1].Value = issue_num_s
          table.Rows[i].Cells[2].Value = key
          table.Rows[i].Cells[3].Value = i
 
