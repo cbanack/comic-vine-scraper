@@ -11,11 +11,11 @@ import log
 import xml2py
 from utils import sstr
 from dberrors import DatabaseConnectionError
+import utils
 
 clr.AddReference('System')
-from System import Text
-from System.Net import WebException, WebRequest
-from System.IO import IOException, StreamReader
+from System.Net import WebException
+from System.IO import IOException
 
 
 # This is the api key needed to access the comicvine website.
@@ -260,11 +260,7 @@ def __get_page(url):
    '''
    
    try:
-      request = WebRequest.Create(url.replace(' ', '%20'))
-      response = request.GetResponse()
-      responseStream = response.GetResponseStream()
-      reader = StreamReader(responseStream, Text.Encoding.UTF8)
-      page = reader.ReadToEnd()
+      return utils.get_html_string(url)
    except (WebException, IOException) as wex:
       # this type of exception almost certainly means that the user's internet
       # is broken or the comicvine website is down.  so wrap it in a nice, 
@@ -272,13 +268,6 @@ def __get_page(url):
       # recognize it and handle it differently than other, more unexpected 
       # exceptions.
       raise DatabaseConnectionError("Comic Vine", url, wex)
-   
-   finally:
-      if 'reader' in vars(): reader.Close()
-      if 'responseStream' in vars(): responseStream.Close()
-      if 'response' in vars(): response.Close()
- 
-   return page
 
 
 # =============================================================================
