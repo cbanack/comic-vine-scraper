@@ -209,7 +209,7 @@ class ComicBook(object):
       log.debug("setting values for this comic book ('*' = changed):")
       config = scraper.config
       cb = ComicBook
-      book = self.__cr_book # coryhigh: fix this
+      book = self.__cr_book
       
       # series ---------------------
       value = cb.__massage_new_string("Series", issue.series_name_s, \

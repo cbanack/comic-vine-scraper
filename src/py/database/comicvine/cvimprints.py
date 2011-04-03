@@ -16,21 +16,10 @@ about it and add it to the internal tables.)
 @author: Cory Banack
 '''
 
-import clr
 import log
 import re
 from utils import sstr
-
-clr.AddReference('System')
-from System import Text
-from System.IO import StreamReader, StringWriter
-
-clr.AddReference('System.Net')
-from System.Net import WebException, WebRequest
-
-clr.AddReference('System.Web')
-from System.Web import HttpUtility
-
+import utils
 
 # =============================================================================
 def find_parent_publisher(imprint_s):
@@ -1452,31 +1441,18 @@ if __name__ == '__main__':
    page = 0
    while not done:
       page += 1
-      html = ""
       try:
-         request = WebRequest.Create(
+         html = utils.get_html_string(
             'http://www.comicvine.com/publishers/?page='
             + sstr(page) + '&sort=alphabetical')
-         response = request.GetResponse()
-         responseStream = response.GetResponseStream()
-         reader = StreamReader(responseStream, Text.Encoding.UTF8)
-         html = reader.ReadToEnd()
-      except WebException, wex:
-         print("unexpected web exception: " + str(wex)) 
-      finally:
-         if 'reader' in vars(): reader.Close()
-         if 'responseStream' in vars(): responseStream.Close()
-         if 'response' in vars(): response.Close()
-         
-      writer = StringWriter() # coryhigh: make this into a utility method
-      HttpUtility.HtmlDecode(html, writer)
-      html = writer.ToString()
-      matches =set( [m.strip() for m in 
-         re.findall("(?m)<td[^>]*>\s*<a[^>]*>([^<]*)</a>\s*</td>",html) ] )
-      done = matches <= scraped_publishers # stop when we are repeating results
-      if not done:
-         scraped_publishers.update( matches )
-         print"Page " + sstr(page) + ", " + sstr(len(matches))+" publishers..."
+         matches =set( [m.strip() for m in 
+            re.findall("(?m)<td[^>]*>\s*<a[^>]*>([^<]*)</a>\s*</td>",html) ] )
+         done = matches <= scraped_publishers # stop if we are repeating results
+         if not done:
+            scraped_publishers.update( matches )
+            print"Page " + sstr(page)+", "+sstr(len(matches))+" publishers..."
+      except Exception, ex:
+         print("unexpected exception: " + str(ex)) 
    
    # 2. now that we've got all the publishers on ComicVine, go through our 
    #    know publishers, and report a) if we have one that isn't in ComicVine

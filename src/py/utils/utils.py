@@ -11,11 +11,15 @@ import re
 import sys
 
 clr.AddReference('System')
-from System.IO import File, StreamReader, StreamWriter
+from System.IO import File, StreamReader, StreamWriter, StringWriter
 from System.Text import Encoding
+from System.Net import WebRequest
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Graphics, Bitmap
+
+clr.AddReference('System.Web')
+from System.Web import HttpUtility
 
 clr.AddReference('IronPython')
 from IronPython.Compiler import CallTarget0 
@@ -252,3 +256,29 @@ def strip_back_cover(image):
          image = new_image
           
    return image
+
+
+#==============================================================================
+def get_html_string(url):
+   '''
+   This method takes a url (string) of a webpage, and connects to the URL,
+   then downloads, htmldecodes, and returns the contents of that page as 
+   an html string.
+   
+   This method will throw an exception if anything goes wrong.
+   '''
+   
+   try:
+      request = WebRequest.Create(url) 
+      response = request.GetResponse()
+      responseStream = response.GetResponseStream()
+      reader = StreamReader(responseStream, Encoding.UTF8)
+      page = reader.ReadToEnd()
+      with StringWriter() as writer: 
+         HttpUtility.HtmlDecode(page, writer)
+         page = writer.ToString()
+      return page
+   finally:
+      if 'reader' in vars(): reader.Close()
+      if 'responseStream' in vars(): responseStream.Close()
+      if 'response' in vars(): response.Close()
