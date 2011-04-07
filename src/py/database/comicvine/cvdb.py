@@ -171,6 +171,15 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = re.sub(r"directors", r"director's", search_terms_s)
    search_terms_s = re.sub(r"\bvolume\b", r"\bvol\b", search_terms_s)
    search_terms_s = re.sub(r"\bvol\.\b", r"\bvol\b", search_terms_s)
+   
+   # see issue 169.  search words with digits embedded between letters will
+   # fail unless we escape the first digit with \.  so, for example,
+   # se7en should be se\7en, revv3d should be rev\3d, etc.
+   search_terms_s = \
+      re.sub(r"(\b[a-z]+)(\d+)([a-z]+\b)", r"\1\\\2\3", search_terms_s)
+   
+#   if re.match(r"\w+\d+\w+"):
+#      pass
 
    # of the alternate search terms is requested, try to expand single number
    # words, and if that fails, try to contract them.
@@ -413,8 +422,8 @@ def __query_issue_refs_safe( \
       def _grab_issue(issue):
          expected_issue_keys.add(issue.id)
          if issue.id not in issue_keys:
-            issue_page = cvconnection._query_issue_number_dom(issue.id)
-            issue_num_s = issue_page.results.issue_number
+            issue_dom = cvconnection._query_issue_number_dom(issue.id)
+            issue_num_s = issue_dom.results.issue_number
             if not is_string(issue_num_s): issue_num_s = ''
             # strip ".00" from the end of issue numbers
             issue_num_s = re.sub( r'\.0*\s*$', '', issue_num_s)
