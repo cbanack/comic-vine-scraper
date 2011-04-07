@@ -28,6 +28,7 @@ import log
 import i18n
 import re
 from scrapeengine import ScrapeEngine
+from configform import ConfigForm
 from utils import sstr
 from comicbook import ComicBook
 
@@ -44,18 +45,47 @@ if False:
 
 
 # ============================================================================      
-# Don't change this comment; it's needed to integrate us into ComicRack!
-#
+# The is a plugin hook to attach this method to ComicRack.  Don't change!
+#@Key    comic-vine-scraper
+#@Hook   ConfigScript
+# ============================================================================      
+def cvs_config():
+   # create and launch a delegate that runs the configuration dialog
+   def delgate():
+      with ConfigForm(ComicRack.MainWindow) as config_form:
+         config_form.show_form() # blocks
+   __launch(delegate)
+
+
+# ============================================================================      
+# The is a plugin hook to attach this method to ComicRack.  Don't change!
 #@Name   Comic Vine Scraper...
 #@Image  comicvinescraper.png
-#@Key    comic-vine-scraper-cbanack
+#@Key    comic-vine-scraper
 #@Hook   Books, Editor
 # ============================================================================      
-def ComicVineScraper(books):
+def cvs_scrape(books):
+   # create a launch a delegate that scrapes the given books
+   def delegate():
+      if books:
+         engine = ScrapeEngine(ComicRack)
+         comic_books = [ ComicBook(book) for book in books ]
+         engine.scrape(comic_books)
+   __launch(delegate)
+
+
+
+# =============================================================================
+def __launch(delegate):
+   ''' 
+   Runs the given (no-argument) delegate method in a 'safe' script environment.
+   This environment will take care of all error handling, logging/debug stream,
+   and other standard initialization behaviour before delegate() is called, and
+   it will take care of cleaning everything up afterwards.
+   ''' 
    try:
       # fire up the debug logging system
       log.install(ComicRack.MainWindow)
-      
       
       # install a handler to catch uncaught Winforms exceptions
       def exception_handler(sender, event):
@@ -66,16 +96,9 @@ def ComicVineScraper(books):
       # fire up the localization/internationalization system
       i18n.install(ComicRack)
 
-      # uncomment this to create a pickled load file for my pydev launcher
-      #with open("k:/sample.pickled", "w") as f:
-         #cPickle.dump(books, f);
-      
       # see if we're in a valid environment
-      if __validate_environment() and books:
-         # create a Scraping Engine and use it to scrape the given books.
-         engine = ScrapeEngine(ComicRack)
-         comic_books = [ ComicBook(book) for book in books ]
-         engine.scrape(comic_books)
+      if __validate_environment():
+         delegate()
          
    except Exception, ex:
       log.handle_error(ex)
@@ -91,8 +114,8 @@ def ComicVineScraper(books):
          
       # shut down the logging system
       log.uninstall()
-      
-      
+
+
       
 # ============================================================================      
 def __validate_environment():

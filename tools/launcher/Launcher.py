@@ -63,7 +63,7 @@ if len(sys.argv) == 2:
       # than US-ASCII 
       f = open(sys.argv[1], "r")
       books = cPickle.load(f)
-      ComicVineScraper.ComicVineScraper(books)  
+      ComicVineScraper.cvs_scrape(books)  
 else:
       print "Usage: this script takes a single file as an argument."
       
