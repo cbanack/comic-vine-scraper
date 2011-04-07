@@ -60,6 +60,7 @@ def _query_series_details_dom(seriesid_s):
    # {0} is the series id, an integer.
    QUERY = 'http://api.comicvine.com/volume/{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=start_year,publisher'
+      # parsing relies on 'field_list' specifying 2 or more elements!!
       
    if seriesid_s is None or seriesid_s == '':
       raise ValueError('bad parameters')
@@ -178,7 +179,8 @@ def _query_issue_number_dom(issueid_s):
    
    # {0} is the issue ID
    QUERY = 'http://api.comicvine.com/issue/{0}/?api_key=' + __API_KEY + \
-      '&format=xml&field_list=issue_number'
+      '&format=xml&field_list=issue_number,id' 
+      # parsing relies on 'field_list' specifying 2 or more elements!!
    
    if issueid_s is None or issueid_s == '':
       raise ValueError('bad parameters')
