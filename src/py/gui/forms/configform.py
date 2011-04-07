@@ -288,7 +288,7 @@ class ConfigForm(CVForm):
       self.__scrape_in_groups_cb.FlatStyle = FlatStyle.System
       self.__scrape_in_groups_cb.Location = Point(52, 95)
       self.__scrape_in_groups_cb.Size = Size(275, 34)
-      self.__scrape_in_groups_cb.Text = i18n.get("ConfigFormGroupsCB")
+      self.__scrape_in_groups_cb.Text = i18n.get("ConfigFormAskGroupsCB")
       self.__scrape_in_groups_cb.CheckedChanged += self.__fired_update_gui
        
       # 5. --- build the 'specify series name' checkbox
@@ -297,7 +297,7 @@ class ConfigForm(CVForm):
       self.__specify_series_cb.FlatStyle = FlatStyle.System
       self.__specify_series_cb.Location = Point(52, 140)
       self.__specify_series_cb.Size = Size(300, 17)
-      self.__specify_series_cb.Text = i18n.get("ConfigFormSeriesCB")
+      self.__specify_series_cb.Text = i18n.get("ConfigFormConfirmSeriesCB")
       self.__specify_series_cb.CheckedChanged += self.__fired_update_gui
        
       
@@ -307,7 +307,7 @@ class ConfigForm(CVForm):
       self.__show_covers_cb.FlatStyle = FlatStyle.System
       self.__show_covers_cb.Location = Point(52, 173)
       self.__show_covers_cb.Size = Size(300, 17)
-      self.__show_covers_cb.Text = i18n.get("ConfigFormCoversCB")
+      self.__show_covers_cb.Text = i18n.get("ConfigFormDisplayCoversCB")
       self.__show_covers_cb.CheckedChanged += self.__fired_update_gui
       
       # 7. --- build the 'specify series name' checkbox
@@ -316,7 +316,7 @@ class ConfigForm(CVForm):
       self.__summary_dialog_cb.FlatStyle = FlatStyle.System
       self.__summary_dialog_cb.Location = Point(52, 205)
       self.__summary_dialog_cb.Size = Size(300, 17)
-      self.__summary_dialog_cb.Text = i18n.get("ConfigFormSummaryCB")
+      self.__summary_dialog_cb.Text = i18n.get("ConfigFormShowSummaryCB")
       self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
             
       # 8. --- add 'em all to the tabpage 
