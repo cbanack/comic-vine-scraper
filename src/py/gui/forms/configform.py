@@ -74,6 +74,7 @@ class ConfigForm(CVForm):
       self.__specify_series_cb = None
       self.__convert_imprints_cb = None
       self.__show_covers_cb = None
+      self.__welcome_dialog_cb = None
       self.__summary_dialog_cb = None
       self.__download_thumbs_cb = None
       self.__preserve_thumbs_cb = None
@@ -103,7 +104,7 @@ class ConfigForm(CVForm):
          
       # 2. -- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
-      self.ClientSize = Size(396, 335)
+      self.ClientSize = Size(396, 372)
       self.Text = i18n.get("ConfigFormTitle")
    
       self.Controls.Add(self.__ok_button)                                     
@@ -127,7 +128,7 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.OK
-      button.Location = Point(228, 300)
+      button.Location = Point(228, 337)
       button.Size = Size(75, 23)
       button.Text = i18n.get("ConfigFormOK")
       return button
@@ -140,7 +141,7 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.Click += self.__fired_restore_defaults
-      button.Location = Point(10, 300)
+      button.Location = Point(10, 337)
       button.Size = Size(150, 23)
       button.Text = i18n.get("ConfigFormRestore")
       return button
@@ -153,7 +154,7 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Cancel
-      button.Location = Point(309, 300)
+      button.Location = Point(309, 337)
       button.Size = Size(75, 23)
       button.Text = i18n.get("ConfigFormCancel")
       return button
@@ -166,7 +167,7 @@ class ConfigForm(CVForm):
       
       tabcontrol = TabControl()
       tabcontrol.Location = Point(10, 15)
-      tabcontrol.Size = Size(375, 265)
+      tabcontrol.Size = Size(375, 302)
       
       tabcontrol.Controls.Add( self.__build_detailstab() )
       tabcontrol.Controls.Add( self.__build_behaviourtab() )
@@ -212,7 +213,7 @@ class ConfigForm(CVForm):
       self.__update_checklist.Location = Point(15, 45)
       self.__update_checklist.MultiColumn = True
       self.__update_checklist.SelectionMode = SelectionMode.One
-      self.__update_checklist.Size = Size(250, 180)
+      self.__update_checklist.Size = Size(250, 200)
       self.__update_checklist.ItemCheck += self.__fired_update_gui
       
       self.__update_checklist.Items.Add(ConfigForm.__SERIES_CB)
@@ -311,10 +312,19 @@ class ConfigForm(CVForm):
       self.__show_covers_cb.CheckedChanged += self.__fired_update_gui
       
       # 7. --- build the 'specify series name' checkbox
+      self.__welcome_dialog_cb = CheckBox()
+      self.__welcome_dialog_cb.AutoSize = False
+      self.__welcome_dialog_cb.FlatStyle = FlatStyle.System
+      self.__welcome_dialog_cb.Location = Point(52, 205)
+      self.__welcome_dialog_cb.Size = Size(300, 17)
+      self.__welcome_dialog_cb.Text = i18n.get("ConfigFormShowWelcomeCB")
+      self.__welcome_dialog_cb.CheckedChanged += self.__fired_update_gui
+       
+      # 8. --- build the 'specify series name' checkbox
       self.__summary_dialog_cb = CheckBox()
       self.__summary_dialog_cb.AutoSize = False
       self.__summary_dialog_cb.FlatStyle = FlatStyle.System
-      self.__summary_dialog_cb.Location = Point(52, 205)
+      self.__summary_dialog_cb.Location = Point(52, 237)
       self.__summary_dialog_cb.Size = Size(300, 17)
       self.__summary_dialog_cb.Text = i18n.get("ConfigFormShowSummaryCB")
       self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
@@ -325,6 +335,7 @@ class ConfigForm(CVForm):
       tabpage.Controls.Add(self.__rescrape_tags_cb)
       tabpage.Controls.Add(self.__rescrape_notes_cb)
       tabpage.Controls.Add(self.__specify_series_cb)
+      tabpage.Controls.Add(self.__welcome_dialog_cb)
       tabpage.Controls.Add(self.__summary_dialog_cb)
       tabpage.Controls.Add(self.__show_covers_cb)
       
@@ -343,7 +354,7 @@ class ConfigForm(CVForm):
       self.__convert_imprints_cb = CheckBox()
       self.__convert_imprints_cb.AutoSize = False
       self.__convert_imprints_cb.FlatStyle = FlatStyle.System
-      self.__convert_imprints_cb.Location = Point(52, 35)
+      self.__convert_imprints_cb.Location = Point(52, 53)
       self.__convert_imprints_cb.Size = Size(300, 17)
       self.__convert_imprints_cb.Text = i18n.get("ConfigFormImprintsCB")
       self.__convert_imprints_cb.CheckedChanged += self.__fired_update_gui
@@ -352,7 +363,7 @@ class ConfigForm(CVForm):
       self.__ow_existing_cb = CheckBox()
       self.__ow_existing_cb.AutoSize = False
       self.__ow_existing_cb.FlatStyle = FlatStyle.System
-      self.__ow_existing_cb.Location = Point(52, 85)
+      self.__ow_existing_cb.Location = Point(52, 103)
       self.__ow_existing_cb.Size = Size(300, 17)
       self.__ow_existing_cb.Text = i18n.get("ConfigFormOverwriteCB")
       self.__ow_existing_cb.CheckedChanged += self.__fired_update_gui 
@@ -361,7 +372,7 @@ class ConfigForm(CVForm):
       self.__ignore_blanks_cb = CheckBox()                                          
       self.__ignore_blanks_cb.AutoSize = False                                       
       self.__ignore_blanks_cb.FlatStyle = FlatStyle.System                          
-      self.__ignore_blanks_cb.Location = Point(82, 110)                             
+      self.__ignore_blanks_cb.Location = Point(82, 128)                             
       self.__ignore_blanks_cb.Size = Size(270, 17)                                  
       self.__ignore_blanks_cb.Text = i18n.get("ConfigFormOverwriteEmptyCB")                            
       self.__ignore_blanks_cb.CheckedChanged += self.__fired_update_gui 
@@ -370,7 +381,7 @@ class ConfigForm(CVForm):
       self.__download_thumbs_cb = CheckBox()
       self.__download_thumbs_cb.AutoSize = False
       self.__download_thumbs_cb.FlatStyle = FlatStyle.System
-      self.__download_thumbs_cb.Location = Point(52, 160)
+      self.__download_thumbs_cb.Location = Point(52, 178)
       self.__download_thumbs_cb.Size = Size(300, 17)
       self.__download_thumbs_cb.Text = i18n.get("ConfigFormFilelessCB")
       self.__download_thumbs_cb.CheckedChanged += self.__fired_update_gui
@@ -379,7 +390,7 @@ class ConfigForm(CVForm):
       self.__preserve_thumbs_cb = CheckBox()
       self.__preserve_thumbs_cb.AutoSize = False
       self.__preserve_thumbs_cb.FlatStyle = FlatStyle.System
-      self.__preserve_thumbs_cb.Location = Point(82, 185)
+      self.__preserve_thumbs_cb.Location = Point(82, 203)
       self.__preserve_thumbs_cb.Size = Size(270, 17)
       self.__preserve_thumbs_cb.Text = i18n.get("ConfigFormFilelessOverwriteCB")
       self.__preserve_thumbs_cb.CheckedChanged += self.__fired_update_gui
@@ -473,6 +484,7 @@ class ConfigForm(CVForm):
       config.scrape_in_groups_b = self.__scrape_in_groups_cb.Checked
       config.rescrape_notes_b = self.__rescrape_notes_cb.Checked
       config.rescrape_tags_b = self.__rescrape_tags_cb.Checked
+      config.welcome_dialog_b = self.__welcome_dialog_cb.Checked
       config.summary_dialog_b = self.__summary_dialog_cb.Checked
       return config
  
@@ -525,6 +537,7 @@ class ConfigForm(CVForm):
       self.__scrape_in_groups_cb.Checked = config.scrape_in_groups_b
       self.__rescrape_notes_cb.Checked = config.rescrape_notes_b
       self.__rescrape_tags_cb.Checked = config.rescrape_tags_b
+      self.__welcome_dialog_cb.Checked = config.welcome_dialog_b
       self.__summary_dialog_cb.Checked = config.summary_dialog_b
       
       self.__fired_update_gui()

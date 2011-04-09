@@ -154,25 +154,30 @@ class ScrapeEngine(object):
       # scrape, even if an error occurs.)
       self.__status = [0, len(books)];
       
-      # 1. show the welcome form. in addition to being a friendly summary of 
-      #    what's about to happen, it loads (and allows the user to tweak)
-      #    the Configuration that we'll use for the remainder of this operation.
-      with WelcomeForm(self, books) as welcome_form:
-         self.__cancelled_b = not welcome_form.show_form()
+      # 1. load the currently saved configuration settings from disk
+      self.config = Configuration()
+      self.config.load_defaults()
+      
+      # 2. show the welcome form. in addition to being a friendly summary of 
+      #    what's about to happen, it allows the user to tweak the 
+      #    Configuration settings.
+      if self.config.welcome_dialog_b:
+         with WelcomeForm(self, books) as welcome_form:
+            self.__cancelled_b = not welcome_form.show_form()
          self.config = Configuration()
          self.config.load_defaults()
          if self.__cancelled_b:
-            # 2a. user cancelled the scrape
-            return
-         else:
-            # 2b. print the entire configuration to the debug stream
-            log.debug(self.config)
-            log.debug()
-      # 2. sort the ComicBooks in the order that we're gonna loop them in
+            return # user cancelled the scrape
+
+      # 3. print the entire configuration to the debug stream
+      log.debug(self.config)
+      log.debug()
+      
+      # 4. sort the ComicBooks in the order that we're gonna loop them in
       #    (sort AFTER config is loaded cause config affects the sort!)
       books = self.__sort_books(books) 
 
-      # 3. display the ComicForm dialog.  it is a special dialog that stays 
+      # 5. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
       comic_form = ComicForm.show_threadsafe(self)
       
@@ -180,7 +185,7 @@ class ScrapeEngine(object):
          # this caches the scraped data we've accumulated as we loop
          scrape_cache = {}
          
-         # 4. start the "Main Processing Loop". 
+         # 6. start the "Main Processing Loop". 
          #    notice the list of books can get longer while we're looping,
          #    if we choose to delay processing a book until the end.
          i = 0;
@@ -189,13 +194,13 @@ class ScrapeEngine(object):
             if self.__cancelled_b: break
             book = books[i]
 
-            # 4a. notify 'start_scrape_listeners' that we're scraping a new book
+            # 6a. notify 'start_scrape_listeners' that we're scraping a new book
             log.debug("======> scraping next comic book: '",book.filename_s,"'")
             num_remaining = len(books) - i
             for start_scrape in self.start_scrape_listeners:
                start_scrape(book, num_remaining)
 
-            # 4b. ...keep trying to scrape that book until either it is scraped,
+            # 6b. ...keep trying to scrape that book until either it is scraped,
             #     the user chooses to skip it, or the user cancels altogether.
             manual_search_b = self.config.specify_series_b
             fast_rescrape_b = self.config.fast_rescrape_b and i < orig_length
