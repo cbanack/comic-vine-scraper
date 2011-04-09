@@ -51,6 +51,7 @@ class Configuration(object):
    __FAST_RESCRAPE = 'fastRescrape'
    __RESCRAPE_NOTES = 'updateNotes'
    __RESCRAPE_TAGS = 'updateTags'
+   __WELCOME_DIALOG = 'welcomeDialog'
    __SUMMARY_DIALOG = 'summaryDialog'
   
   
@@ -69,6 +70,7 @@ class Configuration(object):
       self.fast_rescrape_b = True # use previous scrape choice when available
       self.rescrape_notes_b = True # store prev scrape choice in notes field
       self.rescrape_tags_b = True # store prev scrape choice in tags field
+      self.welcome_dialog_b = True # show the welcome dialog before scraping
       self.summary_dialog_b = True # show summary dialog after scrape finishes
 
       self.update_series_b = True # scrape comic's series metadata
@@ -215,6 +217,9 @@ class Configuration(object):
       if Configuration.__RESCRAPE_TAGS in loaded:
          self.rescrape_tags_b = loaded[Configuration.__RESCRAPE_TAGS]
          
+      if Configuration.__WELCOME_DIALOG in loaded:
+         self.welcome_dialog_b = loaded[Configuration.__WELCOME_DIALOG]
+         
       if Configuration.__SUMMARY_DIALOG in loaded:
          self.summary_dialog_b = loaded[Configuration.__SUMMARY_DIALOG]
          
@@ -262,6 +267,7 @@ class Configuration(object):
       defaults[Configuration.__FAST_RESCRAPE] = self.fast_rescrape_b
       defaults[Configuration.__RESCRAPE_NOTES] = self.rescrape_notes_b
       defaults[Configuration.__RESCRAPE_TAGS] = self.rescrape_tags_b
+      defaults[Configuration.__WELCOME_DIALOG] = self.welcome_dialog_b
       defaults[Configuration.__SUMMARY_DIALOG] = self.summary_dialog_b
    
       persist_map(defaults, Resources.SETTINGS_FILE)
@@ -290,6 +296,7 @@ class Configuration(object):
       self.fast_rescrape_b == other.fast_rescrape_b and \
       self.rescrape_notes_b == other.rescrape_notes_b and \
       self.rescrape_tags_b == other.rescrape_tags_b and \
+      self.welcome_dialog_b == other.welcome_dialog_b and \
       self.summary_dialog_b == other.summary_dialog_b and \
                                                         \
       self.update_series_b == other.update_series_b and \
@@ -371,7 +378,9 @@ class Configuration(object):
       "[{0}] Fast Rescrape".format(x(self.fast_rescrape_b)).ljust(30)+\
       "[{0}] Rescraping: Tags".format(x(self.rescrape_tags_b)).ljust(30) +\
       "\n" + \
-      "[{0}] Show Covers".format(x(self.show_covers_b)).ljust(30)+\
+      "[{0}] Welcome Dialog".format(x(self.welcome_dialog_b)).ljust(30)+\
       "[{0}] Summary Dialog".format(x(self.summary_dialog_b)).ljust(30)+\
+      "\n" + \
+      "[{0}] Show Covers".format(x(self.show_covers_b)).ljust(30)+\
       "\n" + \
       "-------------------------------------------------------------------"
