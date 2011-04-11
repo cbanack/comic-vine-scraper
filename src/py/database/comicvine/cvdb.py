@@ -433,8 +433,9 @@ def __query_issue_refs_safe( \
             return 1
          else:
             return 0
-
-      if total_to_load_n == 1:
+      if total_to_load_n == 0:
+         pass # do nothing, see bug 174
+      elif total_to_load_n == 1:
          loaded_from_web_n += _grab_issue(dom.results.issues.issue)
       else:
          # 5a. pre sort the issues in the results by issue id, as a proxy
