@@ -51,7 +51,7 @@ if False:
 # ============================================================================      
 def cvs_config():
    # create and launch a delegate that runs the configuration dialog
-   def delgate():
+   def delegate():
       with ConfigForm(ComicRack.MainWindow) as config_form:
          config_form.show_form() # blocks
    __launch(delegate)
