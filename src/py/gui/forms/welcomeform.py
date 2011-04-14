@@ -93,7 +93,7 @@ class WelcomeForm(CVForm):
      
       button = Button()
       button.Click += self.__show_configform
-      button.Location = Point(10, 68)
+      button.Location = Point(223, 68)
       button.Size = Size(80, 23)
       button.Text = i18n.get("WelcomeFormSettings")
       button.UseVisualStyleBackColor = True
@@ -119,7 +119,7 @@ class WelcomeForm(CVForm):
 
       button = Button()
       button.DialogResult = DialogResult.OK
-      button.Location = Point(208, 68)
+      button.Location = Point(10, 68)
       button.Size = Size(95, 23)
       button.Text = i18n.get("WelcomeFormStart")
       button.UseVisualStyleBackColor = True
