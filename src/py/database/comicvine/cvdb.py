@@ -195,6 +195,15 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    
    return search_terms_s
      
+# =============================================================================
+def __cleanup_trailing_zeroes(number_s):
+   # deal with things like 1.00 -> 1 and 1.50 -> 1.5
+   number_s = number_s.strip()
+   if '.' in number_s:
+      number_s = number_s.rstrip('0')
+      number_s = number_s.rstrip('.')
+   number_s = number_s.lstrip('0')
+   return number_s
       
 # =============================================================================
 def _query_issue_refs(series_ref, callback_function=lambda x : False):
@@ -292,8 +301,7 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
          is_string(issue_dom.issue_number) else ""
       if not issue_key_s or not vol_key_s:
          raise Exception("bad dom results from comicvine")
-      # strip ".00" from the end of issue numbers
-      issue_number_s = re.sub( r'\.0*\s*$', '', issue_number_s)
+      issue_number_s = __cleanup_trailing_zeroes(issue_number_s)
       if not issues_to_tuples.has_key(issue_key_s): 
          issues_to_tuples[issue_key_s]=(issue_number_s, issue_key_s, vol_key_s)         
          return 1
@@ -425,8 +433,7 @@ def __query_issue_refs_safe( \
             issue_dom = cvconnection._query_issue_number_dom(issue.id)
             issue_num_s = issue_dom.results.issue_number
             if not is_string(issue_num_s): issue_num_s = ''
-            # strip ".00" from the end of issue numbers
-            issue_num_s = re.sub( r'\.0*\s*$', '', issue_num_s)
+            issue_num_s = __cleanup_trailing_zeroes(issue_num_s) 
             issue_refs.add(IssueRef(issue_num_s, issue.id))
             cancelled_b[0] =\
                callback_function(float(len(issue_refs))/total_to_load_n)
@@ -558,8 +565,7 @@ def __issue_parse_simple_stuff(issue, dom):
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
    if is_string(dom.results.issue_number):
-      # strip ".00" from the end of issue numbers
-      issue.issue_num_s = re.sub( r'\.0*\s*$', '', dom.results.issue_number )
+      issue.issue_num_s = __cleanup_trailing_zeroes( dom.results.issue_number )
    if is_string(dom.results.site_detail_url) and \
          dom.results.site_detail_url.startswith("http"):
       issue.webpage_s = dom.results.site_detail_url 
