@@ -4,7 +4,13 @@ This module is home to the IssuesForm and IssuesFormResult classes.
 @author: Cory Banack
 '''
 
+from utils import sstr, is_number
 import clr
+import i18n
+from buttondgv import ButtonDataGridView
+from issuecoverpanel import IssueCoverPanel
+from cvform import CVForm
+
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection
 
@@ -15,12 +21,8 @@ clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
    DataGridViewAutoSizeColumnMode, DataGridViewContentAlignment, \
    DataGridViewSelectionMode, DialogResult, Label
+from System import String
 
-from buttondgv import ButtonDataGridView
-from cvform import CVForm
-from issuecoverpanel import IssueCoverPanel
-from utils import sstr
-import i18n
 
 
 #==============================================================================
@@ -129,6 +131,7 @@ class IssueForm(CVForm):
       
       # 1. --- configure the table itself
       table = ButtonDataGridView(enter_button)
+      table.SortCompare += self.__sort_compare_fired
       table.AllowUserToOrderColumns = True
       table.SelectionMode = DataGridViewSelectionMode.FullRowSelect
       table.MultiSelect = False
@@ -182,8 +185,7 @@ class IssueForm(CVForm):
          
          table.Rows.Add()
          table.Rows[i].Cells[0].Value = name
-         if issue_num_s:
-            table.Rows[i].Cells[1].Value = issue_num_s
+         table.Rows[i].Cells[1].Value = issue_num_s if issue_num_s else ''
          table.Rows[i].Cells[2].Value = key
          table.Rows[i].Cells[3].Value = i
 
@@ -328,6 +330,32 @@ class IssueForm(CVForm):
       # don't let the user click 'ok' if no row is selected!
       self.__ok_button.Enabled = selected_rows.Count == 1
       
+   # ==========================================================================
+   def __sort_compare_fired(self, sender, args):
+      ''' this method is called whenever the table is resorted '''
+      
+      # without this listener, issue number column would sort like this:
+      #    1, 10, 12, 12, 2 ,3 ,4, 5, 6, 7, 8, 9
+      # instead of this:
+      #    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+      
+      if args.Column.Index == 1: 
+         a = args.CellValue1 # string NOT number
+         b = args.CellValue2 # string NOT number
+         a_isnum = is_number(a);
+         b_isnum = is_number(b);
+         
+         args.SortResult = 0
+         if a_isnum and b_isnum: 
+            args.SortResult = -1 if float(a) < float(b) else 1 \
+               if float(a) > float(b) else 0
+         elif a_isnum and not b_isnum:
+            args.SortResult = 1;
+         elif not a_isnum and b_isnum:
+            args.SortResult = -1;
+         else:
+            args.SortResult = String.Compare(a,b)
+         args.Handled = True
       
 #==============================================================================      
 class IssueFormResult(object):
