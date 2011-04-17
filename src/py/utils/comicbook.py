@@ -702,13 +702,27 @@ class ComicBook(object):
       method instead.
       '''
       
-      # fix parsing for filenames like:  "2000AD 1234 (1-1-11).cbz"
-      match = re.match(r"2000\s*a[\s\.]*d[\s\.](\d+).*", self.filename_s, re.I)
-      if match:
-         self.__series_s = "2000AD"
-         self.__issue_num_s = match.group(1)
-       
       # comicrack doesn't recognize the "TPB" (trade paperback) format marker
       # on the end of the series name, so it doesn't strip it off properly.  
       if self.series_s.lower().endswith(" tpb"):
-         self.__series_s = self.series_s[:-4] 
+         self.__series_s = self.series_s[:-4]
+      
+      # if the filename contains comicrack's series name, go ahead and try to
+      # parse our own series name and issue number out of the filename 
+      if self.filename_s.find(self.__series_s) >= 0:
+         first_bracket_idx = self.filename_s.find('(')
+         if first_bracket_idx > 0: 
+            s = self.filename_s[0:first_bracket_idx]
+            match = re.match(r"^(.*?)#?\s*(-?[0-9]+[.0-9]*)\s*$", s)
+            if match:
+               series_s = match.group(1).strip()
+               issue_num_s = float(match.group(2).strip()) \
+                   if '.' in match.group(2) else int(match.group(2).strip())
+               issue_num_s = sstr(issue_num_s) 
+                        
+               if self.__issue_num_s != issue_num_s or len(self.__series_s)<=1:
+                  # if our parsed issue number doesn't match comicracks, then
+                  # there was probably a parsing error in comicrack, so use our
+                  # parsed series name and issue number for this book.
+                  self.__series_s = series_s
+                  self.__issue_num_s = issue_num_s
