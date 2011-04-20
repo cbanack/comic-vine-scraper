@@ -391,7 +391,6 @@ class ComicBook(object):
       if ( value is not None ) :  book.Notes = value
       
       del value
-      book.WriteProposedValues(False)
    
       self.__maybe_download_thumbnail(issue, scraper) 
    
