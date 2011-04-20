@@ -167,8 +167,8 @@ class ComicForm(CVForm):
       '''
 
       # 1. obtain a nice filename string to put into out Label    
-      book_name = book.filename_ext_s
-      fileless = False if book_name else True
+      book_name = book.filename_ext_s.strip() # filename is never None
+      fileless = book_name == ""
       if fileless:
          # 1a. this is a fileless book, so build up a nice, detailed name
          book_name = book.series_s 
