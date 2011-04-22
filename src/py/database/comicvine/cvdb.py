@@ -162,8 +162,9 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = search_terms_s.replace('.', '')
    search_terms_s = search_terms_s.replace('_', ' ')
    search_terms_s = search_terms_s.replace('-', ' ')
-   search_terms_s = re.sub(r'\b(vs\.?|versus|and|or|the|an|of|a|is)\b',
-      '', search_terms_s)
+   search_terms_s = re.sub(r'\b(c2c|noads+)\b', '', search_terms_s)
+   search_terms_s =\
+         re.sub(r'\b(vs\.?|versus|and|or|the|an|of|a|is)\b', '', search_terms_s)
    search_terms_s = re.sub(r'giantsize', r'giant size', search_terms_s)
    search_terms_s = re.sub(r'giant[- ]*sized', r'giant size', search_terms_s)
    search_terms_s = re.sub(r'kingsize', r'king size', search_terms_s)
@@ -178,9 +179,6 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = \
       re.sub(r"(\b[a-z]+)(\d+)([a-z]+\b)", r"\1\\\2\3", search_terms_s)
    
-#   if re.match(r"\w+\d+\w+"):
-#      pass
-
    # of the alternate search terms is requested, try to expand single number
    # words, and if that fails, try to contract them.
    orig_search_terms_s = search_terms_s
@@ -193,6 +191,8 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    word = re.compile(r'[\w]{1,}')
    search_terms_s = ' '.join(word.findall(search_terms_s))
    
+   # coryhigh: remove
+   log.debug("cleaned up search terms to: " + search_terms_s)
    return search_terms_s
      
 # =============================================================================
