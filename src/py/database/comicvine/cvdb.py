@@ -191,8 +191,6 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    word = re.compile(r'[\w]{1,}')
    search_terms_s = ' '.join(word.findall(search_terms_s))
    
-   # coryhigh: remove
-   log.debug("cleaned up search terms to: " + search_terms_s)
    return search_terms_s
      
 # =============================================================================

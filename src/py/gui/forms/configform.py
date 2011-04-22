@@ -11,11 +11,11 @@ import i18n
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
-    CheckedListBox, DialogResult, FlatStyle, Label, SelectionMode, \
-    TabControl, TabPage
+    CheckedListBox, DialogResult, FlatStyle, Label, \
+    SelectionMode, TabControl, TabPage
 
 clr.AddReference('System.Drawing')
-from System.Drawing import Point, Size
+from System.Drawing import Point, Size, ContentAlignment
 
 # =============================================================================
 class ConfigForm(CVForm):
@@ -104,7 +104,7 @@ class ConfigForm(CVForm):
          
       # 2. -- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
-      self.ClientSize = Size(396, 372)
+      self.ClientSize = Size(416, 375)
       self.Text = i18n.get("ConfigFormTitle")
    
       self.Controls.Add(self.__ok_button)                                     
@@ -128,7 +128,7 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.OK
-      button.Location = Point(228, 337)
+      button.Location = Point(248, 343)
       button.Size = Size(75, 23)
       button.Text = i18n.get("ConfigFormOK")
       return button
@@ -141,7 +141,7 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.Click += self.__fired_restore_defaults
-      button.Location = Point(10, 337)
+      button.Location = Point(10, 343)
       button.Size = Size(150, 23)
       button.Text = i18n.get("ConfigFormRestore")
       return button
@@ -154,7 +154,7 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Cancel
-      button.Location = Point(309, 337)
+      button.Location = Point(330, 343)
       button.Size = Size(75, 23)
       button.Text = i18n.get("ConfigFormCancel")
       return button
@@ -167,11 +167,12 @@ class ConfigForm(CVForm):
       
       tabcontrol = TabControl()
       tabcontrol.Location = Point(10, 15)
-      tabcontrol.Size = Size(375, 302)
+      tabcontrol.Size = Size(395, 302)
       
       tabcontrol.Controls.Add( self.__build_detailstab() )
       tabcontrol.Controls.Add( self.__build_behaviourtab() )
       tabcontrol.Controls.Add( self.__build_datatab() )
+      tabcontrol.Controls.Add( self.__build_rescrapetab() )
       
       return tabcontrol
 
@@ -187,33 +188,33 @@ class ConfigForm(CVForm):
       # 1. --- a description label for this tabpage
       label = Label()
       label.AutoSize = True
-      label.Location = Point(9, 20)
-      label.Size = Size(299, 13)
+      label.Location = Point(9, 25)
+      label.Size = Size(299, 17)
       label.Text = i18n.get("ConfigFormDetailsText")
       
       # 2. --- the 'select all' button
       checkall_button = Button()
       checkall_button.Click += self.__fired_checkall
-      checkall_button.Location = Point(275, 97)
-      checkall_button.Size = Size(80, 23)
+      checkall_button.Location = Point(280, 107)
+      checkall_button.Size = Size(100, 23)
       checkall_button.Text = i18n.get("ConfigFormDetailsAll")
       
       # 3. --- the 'deselect all' button
       uncheckall_button = Button()
       uncheckall_button.Click += self.__fired_uncheckall
-      uncheckall_button.Location = Point(275, 128)
-      uncheckall_button.Size = Size(80, 23)
+      uncheckall_button.Location = Point(280, 138)
+      uncheckall_button.Size = Size(100, 23)
       uncheckall_button.Text = i18n.get("ConfigFormDetailsNone")
       
       # 4. --- build the update checklist (contains all the 'data' checkboxes)
       self.__update_checklist = CheckedListBox()
       self.__update_checklist.CheckOnClick = True
-      self.__update_checklist.ColumnWidth = 120
+      self.__update_checklist.ColumnWidth = 125
       self.__update_checklist.ThreeDCheckBoxes = True
-      self.__update_checklist.Location = Point(15, 45)
+      self.__update_checklist.Location = Point(15, 50)
       self.__update_checklist.MultiColumn = True
       self.__update_checklist.SelectionMode = SelectionMode.One
-      self.__update_checklist.Size = Size(250, 200)
+      self.__update_checklist.Size = Size(260, 200)
       self.__update_checklist.ItemCheck += self.__fired_update_gui
       
       self.__update_checklist.Items.Add(ConfigForm.__SERIES_CB)
@@ -256,84 +257,53 @@ class ConfigForm(CVForm):
       tabpage = TabPage()
       tabpage.Text = i18n.get("ConfigFormBehaviourTab")
       
-      # 1. -- build the 'use fast rescrape' checkbox
-      self.__fast_rescrape_cb = CheckBox()
-      self.__fast_rescrape_cb.AutoSize = False
-      self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
-      self.__fast_rescrape_cb.Location = Point(52, 15)
-      self.__fast_rescrape_cb.Size = Size(300, 17)
-      self.__fast_rescrape_cb.Text = i18n.get("ConfigFormRescrapeCB")
-      self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
-      
-      # 2. -- build the 'add rescrape hints to tags' checkbox
-      self.__rescrape_tags_cb = CheckBox()
-      self.__rescrape_tags_cb.AutoSize = False
-      self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_tags_cb.Location = Point(82, 40)
-      self.__rescrape_tags_cb.Size = Size(270, 17)
-      self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
-      self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
-      
-      # 3. -- build the 'add rescrape hints to notes' checkbox
-      self.__rescrape_notes_cb = CheckBox()
-      self.__rescrape_notes_cb.AutoSize = False
-      self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_notes_cb.Location = Point(82, 65)
-      self.__rescrape_notes_cb.Size = Size(270, 17)
-      self.__rescrape_notes_cb.Text = i18n.get("ConfigFormRescrapeNotesCB")
-      self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
-   
-      # 4. --- build the 'scrape in groups'
+      # 1. --- build the 'scrape in groups'
       self.__scrape_in_groups_cb = CheckBox()
       self.__scrape_in_groups_cb.AutoSize = False
       self.__scrape_in_groups_cb.FlatStyle = FlatStyle.System
-      self.__scrape_in_groups_cb.Location = Point(52, 95)
-      self.__scrape_in_groups_cb.Size = Size(275, 34)
+      self.__scrape_in_groups_cb.Location = Point(52, 20)
+      self.__scrape_in_groups_cb.Size = Size(275, 51)
       self.__scrape_in_groups_cb.Text = i18n.get("ConfigFormAskGroupsCB")
       self.__scrape_in_groups_cb.CheckedChanged += self.__fired_update_gui
        
-      # 5. --- build the 'specify series name' checkbox
+      # 2. --- build the 'specify series name' checkbox
       self.__specify_series_cb = CheckBox()
       self.__specify_series_cb.AutoSize = False
       self.__specify_series_cb.FlatStyle = FlatStyle.System
-      self.__specify_series_cb.Location = Point(52, 140)
-      self.__specify_series_cb.Size = Size(300, 17)
+      self.__specify_series_cb.Location = Point(52, 81)
+      self.__specify_series_cb.Size = Size(300, 34)
       self.__specify_series_cb.Text = i18n.get("ConfigFormConfirmSeriesCB")
       self.__specify_series_cb.CheckedChanged += self.__fired_update_gui
-       
       
-      # 6. --- build the 'display cover art' checkbox
+      # 3. --- build the 'display cover art' checkbox
       self.__show_covers_cb = CheckBox()
       self.__show_covers_cb.AutoSize = False
       self.__show_covers_cb.FlatStyle = FlatStyle.System
-      self.__show_covers_cb.Location = Point(52, 173)
-      self.__show_covers_cb.Size = Size(300, 17)
+      self.__show_covers_cb.Location = Point(52, 126)
+      self.__show_covers_cb.Size = Size(300, 34)
       self.__show_covers_cb.Text = i18n.get("ConfigFormDisplayCoversCB")
       self.__show_covers_cb.CheckedChanged += self.__fired_update_gui
       
-      # 7. --- build the 'specify series name' checkbox
+      # 4. --- build the 'specify series name' checkbox
       self.__welcome_dialog_cb = CheckBox()
       self.__welcome_dialog_cb.AutoSize = False
       self.__welcome_dialog_cb.FlatStyle = FlatStyle.System
-      self.__welcome_dialog_cb.Location = Point(52, 205)
-      self.__welcome_dialog_cb.Size = Size(300, 17)
-      self.__welcome_dialog_cb.Text = i18n.get("ConfigFormShowWelcomeCB")
+      self.__welcome_dialog_cb.Location = Point(52, 171)
+      self.__welcome_dialog_cb.Size = Size(300, 34)
+      self.__welcome_dialog_cb.Text = i18n.get("ConfigFormShowWelcomeCB");
       self.__welcome_dialog_cb.CheckedChanged += self.__fired_update_gui
        
-      # 8. --- build the 'specify series name' checkbox
+      # 5. --- build the 'specify series name' checkbox
       self.__summary_dialog_cb = CheckBox()
       self.__summary_dialog_cb.AutoSize = False
       self.__summary_dialog_cb.FlatStyle = FlatStyle.System
-      self.__summary_dialog_cb.Location = Point(52, 237)
-      self.__summary_dialog_cb.Size = Size(300, 17)
+      self.__summary_dialog_cb.Location = Point(52, 216)
+      self.__summary_dialog_cb.Size = Size(300, 34)
       self.__summary_dialog_cb.Text = i18n.get("ConfigFormShowSummaryCB")
       self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
             
-      # 8. --- add 'em all to the tabpage 
+      # 6. --- add 'em all to the tabpage 
       tabpage.Controls.Add(self.__scrape_in_groups_cb)
-      tabpage.Controls.Add(self.__fast_rescrape_cb)
-      tabpage.Controls.Add(self.__rescrape_tags_cb)
-      tabpage.Controls.Add(self.__rescrape_notes_cb)
       tabpage.Controls.Add(self.__specify_series_cb)
       tabpage.Controls.Add(self.__welcome_dialog_cb)
       tabpage.Controls.Add(self.__summary_dialog_cb)
@@ -354,8 +324,8 @@ class ConfigForm(CVForm):
       self.__convert_imprints_cb = CheckBox()
       self.__convert_imprints_cb.AutoSize = False
       self.__convert_imprints_cb.FlatStyle = FlatStyle.System
-      self.__convert_imprints_cb.Location = Point(52, 53)
-      self.__convert_imprints_cb.Size = Size(300, 17)
+      self.__convert_imprints_cb.Location = Point(52, 35)
+      self.__convert_imprints_cb.Size = Size(300, 34)
       self.__convert_imprints_cb.Text = i18n.get("ConfigFormImprintsCB")
       self.__convert_imprints_cb.CheckedChanged += self.__fired_update_gui
        
@@ -363,8 +333,8 @@ class ConfigForm(CVForm):
       self.__ow_existing_cb = CheckBox()
       self.__ow_existing_cb.AutoSize = False
       self.__ow_existing_cb.FlatStyle = FlatStyle.System
-      self.__ow_existing_cb.Location = Point(52, 103)
-      self.__ow_existing_cb.Size = Size(300, 17)
+      self.__ow_existing_cb.Location = Point(52, 85)
+      self.__ow_existing_cb.Size = Size(300, 34)
       self.__ow_existing_cb.Text = i18n.get("ConfigFormOverwriteCB")
       self.__ow_existing_cb.CheckedChanged += self.__fired_update_gui 
    
@@ -372,17 +342,18 @@ class ConfigForm(CVForm):
       self.__ignore_blanks_cb = CheckBox()                                          
       self.__ignore_blanks_cb.AutoSize = False                                       
       self.__ignore_blanks_cb.FlatStyle = FlatStyle.System                          
-      self.__ignore_blanks_cb.Location = Point(82, 128)                             
-      self.__ignore_blanks_cb.Size = Size(270, 17)                                  
-      self.__ignore_blanks_cb.Text = i18n.get("ConfigFormOverwriteEmptyCB")                            
+      self.__ignore_blanks_cb.Location = Point(82, 125)                             
+      self.__ignore_blanks_cb.Size = Size(270, 34)                                  
+      self.__ignore_blanks_cb.TextAlign = ContentAlignment.TopLeft                                  
+      self.__ignore_blanks_cb.Text = i18n.get("ConfigFormOverwriteEmptyCB")                  
       self.__ignore_blanks_cb.CheckedChanged += self.__fired_update_gui 
    
       # 4. --- build the 'download thumbnails' checkbox
       self.__download_thumbs_cb = CheckBox()
       self.__download_thumbs_cb.AutoSize = False
       self.__download_thumbs_cb.FlatStyle = FlatStyle.System
-      self.__download_thumbs_cb.Location = Point(52, 178)
-      self.__download_thumbs_cb.Size = Size(300, 17)
+      self.__download_thumbs_cb.Location = Point(52, 165)
+      self.__download_thumbs_cb.Size = Size(300, 34)
       self.__download_thumbs_cb.Text = i18n.get("ConfigFormFilelessCB")
       self.__download_thumbs_cb.CheckedChanged += self.__fired_update_gui
       
@@ -390,8 +361,9 @@ class ConfigForm(CVForm):
       self.__preserve_thumbs_cb = CheckBox()
       self.__preserve_thumbs_cb.AutoSize = False
       self.__preserve_thumbs_cb.FlatStyle = FlatStyle.System
-      self.__preserve_thumbs_cb.Location = Point(82, 203)
-      self.__preserve_thumbs_cb.Size = Size(270, 17)
+      self.__preserve_thumbs_cb.Location = Point(82, 205)
+      self.__preserve_thumbs_cb.Size = Size(270, 34)
+      self.__preserve_thumbs_cb.TextAlign = ContentAlignment.TopLeft
       self.__preserve_thumbs_cb.Text = i18n.get("ConfigFormFilelessOverwriteCB")
       self.__preserve_thumbs_cb.CheckedChanged += self.__fired_update_gui
             
@@ -404,7 +376,46 @@ class ConfigForm(CVForm):
       
       return tabpage
   
-         
+   # ==========================================================================
+   def __build_rescrapetab(self):
+      ''' builds and returns the "Behaviour" Tab for the TabControl '''
+      
+      tabpage = TabPage()
+      tabpage.Text = i18n.get("ConfigFormRescrapeTab")
+      
+      # 1. -- build the 'use fast rescrape' checkbox
+      self.__fast_rescrape_cb = CheckBox()
+      self.__fast_rescrape_cb.AutoSize = False
+      self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
+      self.__fast_rescrape_cb.Location = Point(52, 80)
+      self.__fast_rescrape_cb.Size = Size(300, 34)
+      self.__fast_rescrape_cb.Text = i18n.get("ConfigFormRescrapeCB")
+      self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
+      
+      # 2. -- build the 'add rescrape hints to tags' checkbox
+      self.__rescrape_tags_cb = CheckBox()
+      self.__rescrape_tags_cb.AutoSize = False
+      self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
+      self.__rescrape_tags_cb.Location = Point(82, 125)
+      self.__rescrape_tags_cb.Size = Size(270, 17)
+      self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
+      self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
+      
+      # 3. -- build the 'add rescrape hints to notes' checkbox
+      self.__rescrape_notes_cb = CheckBox()
+      self.__rescrape_notes_cb.AutoSize = False
+      self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
+      self.__rescrape_notes_cb.Location = Point(82, 155)
+      self.__rescrape_notes_cb.Size = Size(270, 17)
+      self.__rescrape_notes_cb.Text = i18n.get("ConfigFormRescrapeNotesCB")
+      self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
+   
+      # 4. --- add 'em all to the tabpage 
+      tabpage.Controls.Add(self.__fast_rescrape_cb)
+      tabpage.Controls.Add(self.__rescrape_tags_cb)
+      tabpage.Controls.Add(self.__rescrape_notes_cb)
+      
+      return tabpage
          
    # ==========================================================================
    def show_form(self):
