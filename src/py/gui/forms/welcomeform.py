@@ -55,7 +55,7 @@ class WelcomeForm(CVForm):
       self.CancelButton = cancel
       self.AutoScaleMode = AutoScaleMode.Font
       self.Text = Resources.SCRIPT_FULLNAME
-      self.ClientSize = Size(396, 100)
+      self.ClientSize = Size(416, 100)
    
       self.Controls.Add(label)
       self.Controls.Add(ok)
@@ -81,7 +81,7 @@ class WelcomeForm(CVForm):
       label = Label()
       label.AutoSize = True
       label.Location = Point(9, 10)
-      label.Size = Size(299, 13)
+      label.Size = Size(319, 13)
       label.Text = i18n.get("WelcomeFormTextPlural").format(len(books)) \
          if plural else i18n.get("WelcomeFormTextSingle")
       return label
@@ -106,7 +106,7 @@ class WelcomeForm(CVForm):
      
       button = Button()
       button.Click += self.__show_configform
-      button.Location = Point(188, 68)
+      button.Location = Point(208, 68)
       button.Size = Size(100, 23)
       button.Text = i18n.get("WelcomeFormSettings")
       button.UseVisualStyleBackColor = True
@@ -119,7 +119,7 @@ class WelcomeForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Cancel
-      button.Location = Point(294, 68)
+      button.Location = Point(314, 68)
       button.Size = Size(90, 23)
       button.Text = i18n.get("WelcomeFormCancel")
       button.UseVisualStyleBackColor = True
