@@ -334,7 +334,7 @@ class ConfigForm(CVForm):
       self.__ow_existing_cb.AutoSize = False
       self.__ow_existing_cb.FlatStyle = FlatStyle.System
       self.__ow_existing_cb.Location = Point(52, 85)
-      self.__ow_existing_cb.Size = Size(300, 34)
+      self.__ow_existing_cb.Size = Size(310, 34)
       self.__ow_existing_cb.Text = i18n.get("ConfigFormOverwriteCB")
       self.__ow_existing_cb.CheckedChanged += self.__fired_update_gui 
    
