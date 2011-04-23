@@ -85,6 +85,19 @@ class WelcomeForm(CVForm):
       label.Text = i18n.get("WelcomeFormTextPlural").format(len(books)) \
          if plural else i18n.get("WelcomeFormTextSingle")
       return label
+
+   
+   # ==========================================================================
+   def __build_okbutton(self):
+      ''' Builds and returns the ok button for this form. '''
+
+      button = Button()
+      button.DialogResult = DialogResult.OK
+      button.Location = Point(10, 68)
+      button.Size = Size(145, 23)
+      button.Text = i18n.get("WelcomeFormStart")
+      button.UseVisualStyleBackColor = True
+      return button
    
    
    # ==========================================================================
@@ -93,8 +106,8 @@ class WelcomeForm(CVForm):
      
       button = Button()
       button.Click += self.__show_configform
-      button.Location = Point(223, 68)
-      button.Size = Size(80, 23)
+      button.Location = Point(188, 68)
+      button.Size = Size(100, 23)
       button.Text = i18n.get("WelcomeFormSettings")
       button.UseVisualStyleBackColor = True
       return button
@@ -106,22 +119,9 @@ class WelcomeForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Cancel
-      button.Location = Point(309, 68)
-      button.Size = Size(75, 23)
+      button.Location = Point(294, 68)
+      button.Size = Size(90, 23)
       button.Text = i18n.get("WelcomeFormCancel")
-      button.UseVisualStyleBackColor = True
-      return button
-
-   
-   # ==========================================================================
-   def __build_okbutton(self):
-      ''' Builds and returns the ok button for this form. '''
-
-      button = Button()
-      button.DialogResult = DialogResult.OK
-      button.Location = Point(10, 68)
-      button.Size = Size(95, 23)
-      button.Text = i18n.get("WelcomeFormStart")
       button.UseVisualStyleBackColor = True
       return button
 

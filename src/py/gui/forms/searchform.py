@@ -99,8 +99,8 @@ class SearchForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.OK
-      button.Location = Point(150, 70)
-      button.Size = Size(75, 23)
+      button.Location = Point(95, 70)
+      button.Size = Size(100, 23)
       button.Text = i18n.get("SearchFormSearch")
       button.UseVisualStyleBackColor = True
       return button
@@ -112,8 +112,8 @@ class SearchForm(CVForm):
 
       button = Button()
       button.DialogResult = DialogResult.Ignore
-      button.Location = Point(235, 70)
-      button.Size = Size(75, 23)
+      button.Location = Point(205, 70)
+      button.Size = Size(90, 23)
       button.Text = i18n.get("SearchFormSkip")
       button.UseVisualStyleBackColor = True
       return button
@@ -125,8 +125,8 @@ class SearchForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Cancel
-      button.Location = Point(320, 70)
-      button.Size = Size(75, 23)
+      button.Location = Point(305, 70)
+      button.Size = Size(90, 23)
       button.Text = i18n.get("SearchFormCancel")
       button.UseVisualStyleBackColor = True
       return button

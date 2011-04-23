@@ -128,8 +128,8 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.OK
-      button.Location = Point(248, 343)
-      button.Size = Size(75, 23)
+      button.Location = Point(228, 343)
+      button.Size = Size(80, 23)
       button.Text = i18n.get("ConfigFormOK")
       return button
 
@@ -142,7 +142,7 @@ class ConfigForm(CVForm):
       button = Button()
       button.Click += self.__fired_restore_defaults
       button.Location = Point(10, 343)
-      button.Size = Size(150, 23)
+      button.Size = Size(170, 23)
       button.Text = i18n.get("ConfigFormRestore")
       return button
 
@@ -154,8 +154,8 @@ class ConfigForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Cancel
-      button.Location = Point(330, 343)
-      button.Size = Size(75, 23)
+      button.Location = Point(315, 343)
+      button.Size = Size(90, 23)
       button.Text = i18n.get("ConfigFormCancel")
       return button
 
