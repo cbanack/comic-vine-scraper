@@ -59,10 +59,10 @@ def cvs_config():
 
 # ============================================================================      
 # The is a plugin hook to attach this method to ComicRack.  Don't change!
-#@Name   Comic Vine Scraper...
-#@Image  comicvinescraper.png
-#@Key    comic-vine-scraper
-#@Hook   Books, Editor
+#@Name     Comic Vine Scraper...
+#@Image    comicvinescraper.png
+#@Key      comic-vine-scraper
+#@Hook     Books, Editor
 # ============================================================================      
 def cvs_scrape(books):
    # create a launch a delegate that scrapes the given books
