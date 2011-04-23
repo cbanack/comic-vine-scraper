@@ -119,8 +119,8 @@ class IssueCoverPanel(Panel):
       
       label = Label()
       label.Visible = self.__config.show_covers_b
-      label.Location = Point(23, 326)
-      label.Size = Size(149,36)
+      label.Location = Point(18, 326)
+      label.Size = Size(155,36)
       label.TextAlign = ContentAlignment.MiddleCenter
 
       return label

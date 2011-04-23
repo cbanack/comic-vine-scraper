@@ -149,8 +149,8 @@ class ComicForm(CVForm):
          button.Enabled = False
          self.Close()
       button.Click+=cancel
-      button.Location = Point(98, 572)
-      button.Size = Size(150, 23)
+      button.Location = Point(78, 572)
+      button.Size = Size(190, 23)
       button.Anchor = AnchorStyles.Bottom
       return button
    

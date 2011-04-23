@@ -222,7 +222,7 @@ class SeriesForm(CVForm):
       button = Button()
       button.DialogResult = DialogResult.OK
       button.Location = Point(15, 362)
-      button.Size = Size(80, 24)
+      button.Size = Size(90, 24)
       button.Text = i18n.get("SeriesFormOK")
       return button
    
@@ -233,8 +233,8 @@ class SeriesForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Ignore
-      button.Location = Point(100, 362)
-      button.Size = Size(80, 24)
+      button.Location = Point(110, 362)
+      button.Size = Size(90, 24)
       button.Text = i18n.get("SeriesFormSkip")
       return button
 
@@ -245,8 +245,8 @@ class SeriesForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Retry
-      button.Location = Point(325, 362)
-      button.Size = Size(90, 24)
+      button.Location = Point(275, 362)
+      button.Size = Size(115, 24)
       button.Text = i18n.get("SeriesFormAgain")
       return button
    
@@ -256,8 +256,8 @@ class SeriesForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Yes
-      button.Location = Point(420, 362)
-      button.Size = Size(90, 24)
+      button.Location = Point(395, 362)
+      button.Size = Size(115, 24)
       button.Text = i18n.get("SeriesFormIssues")
       return button
    

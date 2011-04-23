@@ -100,8 +100,8 @@ class FinishForm(CVForm):
 
       button = Button()
       button.DialogResult = DialogResult.OK
-      button.Location = Point(120, 58)
-      button.Size = Size(60, 23)
+      button.Location = Point(105, 58)
+      button.Size = Size(90, 23)
       button.Text = i18n.get("MessageBoxOk")
       button.UseVisualStyleBackColor = True
       return button

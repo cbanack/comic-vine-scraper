@@ -213,7 +213,7 @@ class IssueForm(CVForm):
       button = Button() 
       button.DialogResult = DialogResult.OK
       button.Location = Point(223, 362)
-      button.Size = Size(80, 24)
+      button.Size = Size(90, 24)
       button.Text = i18n.get("IssueFormOK")
       return button
 
@@ -224,8 +224,8 @@ class IssueForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Ignore
-      button.Location = Point(308, 362)
-      button.Size = Size(80, 24)
+      button.Location = Point(318, 362)
+      button.Size = Size(90, 24)
       button.Text = i18n.get("IssueFormSkip")
       return button
       
@@ -236,8 +236,8 @@ class IssueForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Retry
-      button.Location = Point(628, 362)
-      button.Size = Size(90, 24)
+      button.Location = Point(598, 362)
+      button.Size = Size(125, 24)
       button.Text = i18n.get("IssueFormGoBack")
       return button
 
