@@ -200,7 +200,8 @@ def __cleanup_trailing_zeroes(number_s):
    if '.' in number_s:
       number_s = number_s.rstrip('0')
       number_s = number_s.rstrip('.')
-   number_s = number_s.lstrip('0')
+   elif number_s.strip() != '0':
+      number_s = number_s.lstrip('0') # leave '0.5' and '0' alone (issue 183)
    return number_s
       
 # =============================================================================
