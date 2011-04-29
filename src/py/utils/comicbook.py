@@ -39,10 +39,6 @@ class ComicBook(object):
       
       if self.__cr_book.Id is None:
          raise Exception("invalid unique id string")
-      if self.__cr_book.FileName is None :
-         raise Exception("invalid unique filenamne")
-      if self.__cr_book.FileNameWithExtension is None:
-         raise Exception("invalid unique filename + ext")
       
       # we keep our own copy of series name and issue number, because sometimes
       # we have to "repair" them.  these values are immutable after this point.   
@@ -89,11 +85,14 @@ class ComicBook(object):
    
    # the name of this comic book's backing file, NOT including its 
    # file extension.  will not be None, will be empty if book is fileless.
-   filename_s = property( lambda self : self.__cr_book.FileName )
+   filename_s = property( lambda self : "" if 
+      self.__cr_book.FileName is None else self.__cr_book.FileName)
    
    # the name of this comic book's backing file, including its file extension.
    # will not be None, will be empty if book is fileless.
-   filename_ext_s = property(lambda self : self.__cr_book.FileNameWithExtension)
+   filename_ext_s = property(lambda self : "" if 
+      self.__cr_book.FileNameWithExtension is None else 
+      self.__cr_book.FileNameWithExtension)
    
    # the unique id string associated with thie comic books series.  all comic
    # books that appear to be from the same series will have the same id string,
