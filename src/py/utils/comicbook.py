@@ -21,10 +21,11 @@ class ComicBook(object):
    read-only access to some of its data.
    '''
    
-   '''
-   This is the magic string we use to denote comics that should be skipped
-   instead of scraped.  Despite the CV in the name, it is database independent.
-   '''
+   # This is the magic 'tag' string we use (in the "Tags" or "Notes" fields of 
+   # this comic book) to denote that this comic should always be skipped 
+   # automatically, instead of scraped.  Despite the CV in the name, 
+   # this is a database independent magic value.
+   CVDBSKIP = 'CVDBSKIP'
 
    #===========================================================================   
    def __init__(self, cr_book):
@@ -108,15 +109,15 @@ class ComicBook(object):
       construct an IssueRef based on that evidence, and return it. If not, 
       it will return None, or the string "skip" (see below).   
       
-      If the user has manually added the magic "CVDBSKIP" flag to the tags or 
+      If the user has manually added the magic CVDBSKIP flag to the tags or 
       notes for this book, then this method will return the string "skip", 
       which should be interpreted as "never scrape this book".
       '''
       
-      # check for the magic "CVDBSKIP" skip tag
-      skip_found = re.search(r'(?i)CVDBSKIP', self.tags_s)
+      # check for the magic CVDBSKIP skip flag
+      skip_found = re.search(r'(?i)'+ComicBook.CVDBSKIP, self.tags_s)
       if not skip_found:
-         skip_found = re.search(r'(?i)CVDBSKIP', self.notes_s)
+         skip_found = re.search(r'(?i)'+ComicBook.CVDBSKIP, self.notes_s)
       retval = "skip" if skip_found else None
    
       if retval is None:   
@@ -186,8 +187,22 @@ class ComicBook(object):
          sname = self.uuid_s
       return sname + svolume
 
+
+   #===========================================================================
+   def skip_forever(self, scraper):
+      # tags ----------------------
+      if scraper.config.rescrape_tags_b:
+         self.__cr_book.Tags = self.__update_tags_s(self.__cr_book.Tags, None)
+         log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Tags'")
+      
+      # notes --------------------
+      if scraper.config.rescrape_notes_b:
+         self.__cr_book.Notes =self.__update_notes_s(self.__cr_book.Notes, None)
+         log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Notes'")
+         
+         
    
-   #==============================================================================
+   #===========================================================================
    def save_issue(self, issue, scraper):
       '''
       Copies all data in the given issue into this ComicBook object, respecting 
@@ -375,15 +390,13 @@ class ComicBook(object):
       # tags ----------------------
       new_tags = self.__update_tags_s(book.Tags, issue.issue_key)
       value = cb.__massage_new_string("Tags", new_tags, \
-         book.Tags, config.rescrape_tags_b, config.ow_existing_b, \
-         config.ignore_blanks_b )
+         book.Tags, config.rescrape_tags_b, True, False )
       if ( value is not None ) :  book.Tags = value
       
       # notes --------------------
       new_notes = self.__update_notes_s(book.Notes, issue.issue_key)
       value = cb.__massage_new_string("Notes", new_notes, \
-         book.Notes, config.rescrape_notes_b, config.ow_existing_b, \
-         config.ignore_blanks_b )
+         book.Notes, config.rescrape_notes_b, True, False )
       if ( value is not None ) :  book.Notes = value
       
       del value
@@ -400,6 +413,9 @@ class ComicBook(object):
       key tag, the tag will be REPLACED with the new one, otherwise the new key 
       tag will be appended to the end of the string.
       
+      If the given issue_key is None, the tag string will be updated with the
+      magic CVDBSKIP tag instead of a regular key tag.
+      
       This method never returns None. 
       '''
       updated_tagstring_s = None   # our return value
@@ -407,7 +423,8 @@ class ComicBook(object):
       # 1. clean up whitespace and None in our tagstring parameter
       tagstring_s = tagstring_s.strip() if tagstring_s else ''
       
-      key_tag_s = db.create_key_tag_s(issue_key) 
+      key_tag_s = db.create_key_tag_s(issue_key) \
+         if issue_key != None else ComicBook.CVDBSKIP 
       if key_tag_s and tagstring_s:
          # 2. we have both a new key tag AND a non-empty tagstring; find and 
          #    replace the existing tag (if it exists in the tagtring) 
@@ -446,6 +463,9 @@ class ComicBook(object):
       notes string already contains a valid key tag, the existing tag will be 
       REPLACED with the new one.
       
+      If the given issue_key is None, the note string will be updated with the
+      magic CVDBSKIP tag instead of a regular key tag.
+      
       This method never returns None. 
       '''
       updated_notestring_s = None # our return value
@@ -453,7 +473,8 @@ class ComicBook(object):
       # 1. clean up whitespace and None in our notestring parameter
       notestring_s = notestring_s.strip() if notestring_s else ''
       
-      key_tag_s = db.create_key_tag_s(issue_key)
+      key_tag_s = db.create_key_tag_s(issue_key) \
+         if issue_key != None else ComicBook.CVDBSKIP
       key_note_s = 'Scraped metadata from {0} [{1}] on {2}.'.format(
          "ComicVine", key_tag_s, strftime(r'%Y.%m.%d %X')) if key_tag_s else ''
          
@@ -563,7 +584,7 @@ class ComicBook(object):
       update - if false, this method always returns None
       overwrite - whether it's acceptable to overwrite the old value with the
                   new value when the old value is non-blank.
-      ignoreblanks - if true, we'll never overwrite with an old non-blank value
+      ignoreblanks - if true, we'll never overwrite an old non-blank value
                      with a new, blank value..
       ''' 
       

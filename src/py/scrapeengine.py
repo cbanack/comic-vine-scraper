@@ -375,6 +375,9 @@ class ScrapeEngine(object):
                return self._BookStatus.SKIPPED # user says 'cancel'
             elif SeriesFormResult.SKIP == result.get_name():
                return self._BookStatus.SKIPPED # user says 'skip this book'
+            elif SeriesFormResult.PERMSKIP == result.get_name():
+               book.skip_forever(self)
+               return self._BookStatus.SKIPPED # user says 'skip book always'
             elif SeriesFormResult.SEARCH == result.get_name(): 
                return self._BookStatus.UNSCRAPED # user says 'search again'
             elif SeriesFormResult.SHOW == result.get_name() or \
@@ -412,11 +415,14 @@ class ScrapeEngine(object):
          if result.get_name() == IssueFormResult.CANCEL or self.__cancelled_b:
             self.__cancelled_b = True
             return self._BookStatus.SKIPPED
-         elif result.get_name() == IssueFormResult.SKIP:
+         elif result.get_name() == IssueFormResult.SKIP or \
+               result.get_name() == IssueFormResult.PERMSKIP:
             if force_issue_dialog_b:
                # the user clicked 'show issues', then 'skip', so we have to
                # ignore his previous series selection.
                del scrape_cache[key]
+            if result.get_name() == IssueFormResult.PERMSKIP:
+               book.skip_forever(self)
             return self._BookStatus.SKIPPED
          elif result.get_name() == IssueFormResult.BACK:
             # ignore users previous series selection
