@@ -22,7 +22,7 @@ from System.Drawing import Point, Size
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
    DataGridViewAutoSizeColumnMode, DataGridViewContentAlignment, \
-   DataGridViewSelectionMode, DialogResult, FlatStyle, Label
+   DataGridViewSelectionMode, DialogResult, FlatStyle, Keys, Label
 
 #==============================================================================
 class SeriesForm(CVForm):
@@ -53,8 +53,14 @@ class SeriesForm(CVForm):
       # row, where each SeriesRef represents a series the user can pick
       self.__series_refs = list(series_refs)
       
+      # true when the user is pressing the control key, false otherwise
+      self.__pressing_controlkey = False;
+      
       # the 'ok' button for this dialog
       self.__ok_button = None
+      
+      # the 'skip' button for this dialog
+      self.__skip_button = None
       
       # the 'show issues' button for this dialog
       self.__issues_button = None
@@ -85,7 +91,7 @@ class SeriesForm(CVForm):
       
       # 1. --- build each gui component
       self.__ok_button = self.__build_okbutton()
-      skip_button = self.__build_skipbutton()
+      self.__skip_button = self.__build_skipbutton()
       search_button = self.__build_searchbutton()
       self.__issues_button = self.__build_issuesbutton()
       label = self.__build_label(search_terms_s, len(self.__series_refs)) 
@@ -99,11 +105,14 @@ class SeriesForm(CVForm):
       self.ClientSize = Size(730, 395)
       self.Text = i18n.get("SeriesFormTitle")
       self.FormClosed += self.__form_closed_fired
+      self.KeyPreview = True;
+      self.KeyDown += self.__key_was_pressed
+      self.KeyUp += self.__key_was_released
       
       self.Controls.Add (label)
       self.Controls.Add(self.__table)
       self.Controls.Add (self.__ok_button)
-      self.Controls.Add (skip_button)
+      self.Controls.Add (self.__skip_button)
       self.Controls.Add (search_button)
       self.Controls.Add (self.__issues_button)
       self.Controls.Add(self.__cover_image)
@@ -111,7 +120,7 @@ class SeriesForm(CVForm):
       
       # 3. --- define the keyboard focus tab traversal ordering
       self.__ok_button.TabIndex = 1
-      skip_button.TabIndex = 2
+      self.__skip_button.TabIndex = 2
       search_button.TabIndex = 3
       self.__issues_button.TabIndex = 4
       self.__checkbox.TabIndex = 5
@@ -417,7 +426,10 @@ class SeriesForm(CVForm):
       elif dialogAnswer == DialogResult.Cancel: 
          result = SeriesFormResult( SeriesFormResult.CANCEL)
       elif dialogAnswer == DialogResult.Ignore:
-         result = SeriesFormResult( SeriesFormResult.SKIP)
+         if self.ModifierKeys == Keys.Control:
+            result = SeriesFormResult( SeriesFormResult.PERMSKIP )
+         else:
+            result = SeriesFormResult( SeriesFormResult.SKIP)
       elif dialogAnswer == DialogResult.Retry:
          result = SeriesFormResult( SeriesFormResult.SEARCH)
       else:
@@ -466,6 +478,25 @@ class SeriesForm(CVForm):
       # don't let the user click 'ok' or 'show issue' if no row is selected!    
       self.__ok_button.Enabled = selected_rows.Count == 1
       self.__issues_button.Enabled = selected_rows.Count == 1
+      
+               
+   #===========================================================================         
+   def __key_was_pressed(self, sender, args):
+      ''' Called whenever the user presses any key on this form. '''
+      
+      # highlight the skip button whenever the user presses control key
+      if args.KeyCode == Keys.ControlKey and not self.__pressing_controlkey:
+         self.__pressing_controlkey = True;
+         self.__skip_button.Text = "- " + i18n.get("SeriesFormSkip") + " -"
+         
+   #===========================================================================         
+   def __key_was_released(self, sender, args):
+      ''' Called whenever the user releases any key on this form. '''
+      
+      # unhighlight the skip button bold whenever the user releases control key
+      if args.KeyCode == Keys.ControlKey:
+         self.__pressing_controlkey = False;
+         self.__skip_button.Text = i18n.get("SeriesFormSkip")
 
       
 #==============================================================================      
@@ -476,11 +507,13 @@ class SeriesFormResult(object):
    dialog:
    
    1) SeriesFormResult.CANCEL  means the user cancelled this scrape operation.
-   2) SeriesormResult.SKIP means the user elected to skip the current book.
-   3) SeriesFormResult.SEARCH means the user chose to 'search again'
-   4) SeriesFormResult.OK means the user chose a SeriesRef, and the script
+   2) SeriesFormResult.SKIP means the user elected to skip the current book.
+   3) SeriesFormResult.PERMSKIP means the user elected to skip the current book
+      during this scrape, AND all future scrapes (i.e. add a 'skip tag' to book)
+   4) SeriesFormResult.SEARCH means the user chose to 'search again'
+   5) SeriesFormResult.OK means the user chose a SeriesRef, and the script
       should try to automatically choose the correct issue for that SeriesRef.
-   5) SeriesFormResult.SHOW means the user chose a SeriesRef, and the script
+   6) SeriesFormResult.SHOW means the user chose a SeriesRef, and the script
       should NOT automatically choose issue for that SeriesRef--it should 
       show the IssueForm and let the user choose manually.
       
@@ -493,6 +526,7 @@ class SeriesFormResult(object):
    SHOW = "show"
    CANCEL = "cancel"
    SKIP = "skip"
+   PERMSKIP = "permskip"
    SEARCH = "search"
    
    #===========================================================================         
@@ -504,7 +538,7 @@ class SeriesFormResult(object):
       '''  
             
       if name != self.OK and name != self.SHOW and name != self.CANCEL and \
-         name != self.SKIP and name != self.SEARCH:
+         name != self.SKIP and name != self.SEARCH and name!= self.PERMSKIP:
          raise Exception();
       
       self.__ref = ref if name == self.OK or name == self.SHOW else None;
@@ -532,6 +566,8 @@ class SeriesFormResult(object):
       
       if self.get_name() == self.SKIP:
          return "SKIP scraping this book"
+      elif self.get_name() == self.PERMSKIP:
+         return "ALWAYS SKIP scraping this book"
       elif self.get_name() == self.CANCEL:
          return "CANCEL this scrape operation"
       elif self.get_name() == self.SEARCH:

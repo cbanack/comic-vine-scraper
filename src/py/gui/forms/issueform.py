@@ -20,7 +20,7 @@ from System.Drawing import Point, Size
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
    DataGridViewAutoSizeColumnMode, DataGridViewContentAlignment, \
-   DataGridViewSelectionMode, DialogResult, Label
+   DataGridViewSelectionMode, DialogResult, Keys, Label
 from System import String
 
 
@@ -55,8 +55,14 @@ class IssueForm(CVForm):
       # where each IssueRef represents an issue that the user can pick
       self.__issue_refs = list(issue_refs)
       
+      # true when the user is pressing the control key, false otherwise
+      self.__pressing_controlkey = False;
+      
       # the ok button for this dialog
       self.__ok_button = None
+      
+      # the skip button for this dialog
+      self.__skip_button = None
       
       # the label for this dialog
       self.__label = None
@@ -85,7 +91,7 @@ class IssueForm(CVForm):
       
       # 1. --- build each gui component
       self.__ok_button = self.__build_okbutton()
-      skip_button = self.__build_skipbutton()
+      self.__skip_button = self.__build_skipbutton()
       back_button = self.__build_backbutton()
       self.__table = self.__build_table(
          self.__issue_refs, issue_ref_hint, series_name_s, self.__ok_button)
@@ -97,17 +103,20 @@ class IssueForm(CVForm):
       self.ClientSize = Size(730, 395)
       self.Text = i18n.get("IssueFormTitle")
       self.FormClosed += self.__form_closed_fired
+      self.KeyPreview = True;
+      self.KeyDown += self.__key_was_pressed
+      self.KeyUp += self.__key_was_released
       
       self.Controls.Add (self.__label)
       self.Controls.Add(self.__table)
       self.Controls.Add(self.__ok_button)
-      self.Controls.Add(skip_button)
+      self.Controls.Add(self.__skip_button)
       self.Controls.Add(back_button)
       self.Controls.Add(self.__coverpanel) # must be added LAST
 
       # 3. --- define the keyboard focus tab traversal ordering      
       self.__ok_button.TabIndex = 1
-      skip_button.TabIndex = 2
+      self.__skip_button.TabIndex = 2
       back_button.TabIndex = 3
       self.__coverpanel.TabIndex = 4
       self.__table.TabIndex = 5
@@ -295,7 +304,10 @@ class IssueForm(CVForm):
       elif dialogAnswer == DialogResult.Cancel:
          result = IssueFormResult( IssueFormResult.CANCEL )
       elif dialogAnswer == DialogResult.Ignore:
-         result = IssueFormResult( IssueFormResult.SKIP )
+         if self.ModifierKeys == Keys.Control:
+            result = IssueFormResult( IssueFormResult.PERMSKIP )
+         else:
+            result = IssueFormResult( IssueFormResult.SKIP )
       elif dialogAnswer == DialogResult.Retry:
          result = IssueFormResult( IssueFormResult.BACK )
       else:
@@ -356,6 +368,24 @@ class IssueForm(CVForm):
          else:
             args.SortResult = String.Compare(a,b)
          args.Handled = True
+         
+   #===========================================================================         
+   def __key_was_pressed(self, sender, args):
+      ''' Called whenever the user presses any key on this form. '''
+      
+      # highlight the skip button whenever the user presses control key
+      if args.KeyCode == Keys.ControlKey and not self.__pressing_controlkey:
+         self.__pressing_controlkey = True;
+         self.__skip_button.Text = "- " + i18n.get("IssueFormSkip") + " -"
+         
+   #===========================================================================         
+   def __key_was_released(self, sender, args):
+      ''' Called whenever the user releases any key on this form. '''
+      
+      # unhighlight the skip button bold whenever the user releases control key
+      if args.KeyCode == Keys.ControlKey:
+         self.__pressing_controlkey = False;
+         self.__skip_button.Text = i18n.get("IssueFormSkip")
       
 #==============================================================================      
 class IssueFormResult(object):
@@ -366,8 +396,10 @@ class IssueFormResult(object):
    
    1) IssueFormResult.CANCEL means the user cancelled this scrape operation.
    2) IssueFormResult.SKIP means the user elected to skip the current book.
-   3) IssueFormResult.BACK means the user chose to return to the SeriesForm
-   4) IssueFormResult.OK means the user chose an IssueRef from those displayed
+   3) IssueFormResult.PERMSKIP means the user elected to skip the current book
+      during this scrape, AND all future scrapes (i.e. add a 'skip tag' to book)
+   4) IssueFormResult.BACK means the user chose to return to the SeriesForm
+   5) IssueFormResult.OK means the user chose an IssueRef from those displayed
       
    Note that if the IssueFormResult has a name of 'OK', it should also have a 
    non-None 'ref', which is of course the actual IssueRef that the user chose.    
@@ -376,6 +408,7 @@ class IssueFormResult(object):
    OK = "ok"
    CANCEL = "cancel"
    SKIP = "skip"
+   PERMSKIP = "permskip"
    BACK = "back"
    
    #===========================================================================         
@@ -387,7 +420,7 @@ class IssueFormResult(object):
       '''  
             
       if name != self.OK and name != self.CANCEL and \
-         name != self.SKIP and name != self.BACK:
+         name != self.SKIP and name != self.BACK and name != self.PERMSKIP:
          raise Exception();
       
       self.__ref = ref if name == self.OK else None;
@@ -415,6 +448,8 @@ class IssueFormResult(object):
       
       if self.get_name() == self.SKIP:
          return "SKIP scraping this book"
+      elif self.get_name() == self.PERMSKIP:
+         return "ALWAYS SKIP scraping this book"
       elif self.get_name() == self.CANCEL:
          return "CANCEL this scrape operation"
       elif self.get_name() == self.BACK:
