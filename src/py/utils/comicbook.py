@@ -190,13 +190,26 @@ class ComicBook(object):
 
    #===========================================================================
    def skip_forever(self, scraper):
-      # tags ----------------------
-      if scraper.config.rescrape_tags_b:
+      ''' 
+      This method causes this book to be marked with the magic CVDBSKIP
+      flag, which means that from now on, the scraper will automatically
+      skip over it without even asking the user.
+      '''
+      
+      # try to make everyone happy here: if notes and tags "rescrape saving"
+      # are both turned on, or both turned off, then this command should just
+      # write CVDBSKIP to both of them (users who turn off both still might
+      # want CVDBSKIP to work!) otherwise, use the values of these 2 prefs to
+      # determine which fields to write the CVDBSKIP to.
+      
+      notes = scraper.config.rescrape_notes_b
+      tags = scraper.config.rescrape_tags_b
+      
+      if notes == tags or tags:
          self.__cr_book.Tags = self.__update_tags_s(self.__cr_book.Tags, None)
          log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Tags'")
       
-      # notes --------------------
-      if scraper.config.rescrape_notes_b:
+      if notes == tags or notes:
          self.__cr_book.Notes =self.__update_notes_s(self.__cr_book.Notes, None)
          log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Notes'")
          
