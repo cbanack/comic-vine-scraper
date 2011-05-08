@@ -10,7 +10,7 @@ from cvform import CVForm
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
-    DialogResult, Label, TextBox
+    DialogResult, Keys, Label, TextBox
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Point, Size
@@ -185,7 +185,10 @@ class SearchForm(CVForm):
          retval = self.__textbox.Text.strip()
          return retval if retval else SearchFormResult.CANCEL
       elif dialogAnswer == DialogResult.Ignore:
-         return SearchFormResult.SKIP
+         if self.ModifierKeys == Keys.Control:
+            return SearchFormResult.PERMSKIP
+         else:
+            return SearchFormResult.SKIP
       else:
          return SearchFormResult.CANCEL
       
@@ -193,6 +196,7 @@ class SearchForm(CVForm):
 #===========================================================================      
 class SearchFormResult(object):
    ''' Results that can be returned from the SearchForm.show_form() method. '''
-   
+   # corylow: make this more like SeriesFormResults
    CANCEL = "cancel"
    SKIP = "skip"
+   PERMSKIP = "permskip"
