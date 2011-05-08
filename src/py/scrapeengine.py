@@ -347,6 +347,9 @@ class ScrapeEngine(object):
                return self._BookStatus.SKIPPED
             elif search_terms_s == SearchFormResult.SKIP:
                return self._BookStatus.SKIPPED
+            elif search_terms_s == SearchFormResult.PERMSKIP:
+               book.skip_forever(self)
+               return self._BookStatus.SKIPPED
          # query the database for series_refs that match the search terms
          series_refs = self.__query_series_refs(search_terms_s)
          if self.__cancelled_b: 
@@ -506,9 +509,11 @@ class ScrapeEngine(object):
          new_terms = search_form.show_form() # blocks
 
       if new_terms == SearchFormResult.CANCEL:
-         log.debug("...but the user clicked 'cancel'")
+         log.debug("...but the user chose to CANCEL this scrape")
       elif new_terms == SearchFormResult.SKIP:
-         log.debug("...but the user clicked 'skip'")
+         log.debug("...but the user chose to SKIP this book")
+      elif new_terms == SearchFormResult.PERMSKIP:
+         log.debug("...but the user chose to ALWAYS SKIP this book")
       else:
          log.debug("...and the user provided: '", new_terms, "'")
       return new_terms
