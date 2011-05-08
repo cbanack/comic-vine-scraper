@@ -36,6 +36,9 @@ class SearchForm(CVForm):
       
       # the search button (i.e. the 'ok' button) for this form
       self.__search_button = None
+            
+      # true when the user is pressing the control key, false otherwise
+      self.__pressing_controlkey = False;
       
       # the skip button for this form
       self.__skip_button = None
@@ -67,7 +70,12 @@ class SearchForm(CVForm):
       # configure this form, and add all gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(405, 100)
-      self.Text = i18n.get("SearchFormTitle")
+      self.Text = i18n.get("SearchFormTitle") 
+      self.KeyDown += self.__key_was_pressed
+      self.KeyUp += self.__key_was_released
+      self.__textbox.KeyDown += self.__key_was_pressed
+      self.__textbox.KeyUp += self.__key_was_released
+      
       self.Controls.Add(self.__label)
       self.Controls.Add(self.__textbox)
       self.Controls.Add(self.__search_button)
@@ -191,6 +199,26 @@ class SearchForm(CVForm):
             return SearchFormResult.SKIP
       else:
          return SearchFormResult.CANCEL
+ 
+ 
+   #===========================================================================         
+   def __key_was_pressed(self, sender, args):
+      ''' Called whenever the user presses any key on this form. '''
+      
+      # highlight the skip button whenever the user presses control key
+      if args.KeyCode == Keys.ControlKey and not self.__pressing_controlkey:
+         self.__pressing_controlkey = True;
+         self.__skip_button.Text = "- " + i18n.get("SearchFormSkip") + " -"
+   
+         
+   #===========================================================================         
+   def __key_was_released(self, sender, args):
+      ''' Called whenever the user releases any key on this form. '''
+      
+      # unhighlight the skip button bold whenever the user releases control key
+      if args.KeyCode == Keys.ControlKey:
+         self.__pressing_controlkey = False;
+         self.__skip_button.Text = i18n.get("SearchFormSkip")
       
       
 #===========================================================================      
