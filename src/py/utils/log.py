@@ -5,7 +5,7 @@ handle_error methods will get printed to stdout.
 
 Once installed, this module also logs all text that is written to stderr or 
 stdout (by this module, or any other mechanism).  This text can be written out 
-to a file in its entirety at any time by the dump() method.
+to a file in its entirety at any time by the save() method.
 
 USAGE
 
@@ -30,12 +30,13 @@ from dberrors import DatabaseConnectionError
 
 clr.AddReference('System')
 from System.Threading import Mutex
+from System import DateTime
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import DialogResult, MessageBox, \
     MessageBoxButtons, MessageBoxIcon, SaveFileDialog
     
-from System.IO import StreamWriter
+from System.IO import FileInfo, StreamWriter
 from System.Text import UTF8Encoding 
 
 # a module global variable; an instance of the Logger class that will only be
@@ -119,18 +120,6 @@ def debug_exc(message=''):
       __logger.debug_exc(message)
 
 
-   
-#==============================================================================
-def dump(filename):
-   """
-   Writes the entire contents of the debug log (since the install() method was
-   called) to the given file.  This does not clear the log.
-   """
-   
-   global __logger
-   if __logger:
-      __logger.dump(filename)
-
 
 
 #==============================================================================
@@ -174,20 +163,48 @@ def handle_error(error):
          MessageBoxIcon.Error)
    
       if result == DialogResult.Yes:
-         dialog = SaveFileDialog()
-         dialog.Title = i18n.get("LogSaveTitle")
-         dialog.Filter = i18n.get("LogSaveFilter")+'|*.*'
-   
-         try:
-            if dialog.ShowDialog() == DialogResult.OK:
-               dump(dialog.FileName)
-               MessageBox.Show(__app_window, i18n.get("LogSavedText"),
-               i18n.get("LogSavedTitle"), MessageBoxButtons.OK, 
-               MessageBoxIcon.Information )
-         except:
-            debug_exc()
-            MessageBox.Show( __app_window, i18n.get("LogSaveFailedText") )
+         save(True)
 
+
+
+#==============================================================================
+def save(show_error_message=False):
+   """
+   Asks for the user to specify a file, and then writes the entire contents of 
+   the debug log (since the install() method was called) to the given file.  
+   This does not clear the log.
+   """
+   
+   global __logger, __app_window
+   if not __logger or not __app_window:
+      return
+   
+   def dosave():
+      dialog = SaveFileDialog()
+      dialog.FileName="cvs-debug-log-" + \
+         DateTime.Today.ToString("yyyy-MM-dd") + ".txt"
+      dialog.Title = i18n.get("LogSaveTitle")
+      dialog.Filter = i18n.get("LogSaveFilter")+'|*.*'
+   
+      try:
+         if dialog.ShowDialog(__app_window) == DialogResult.OK:
+            if dialog.FileName != None:
+               debug("wrote debug logfile: ", FileInfo(dialog.FileName).Name)
+               __logger.save(dialog.FileName)
+               if show_error_message:
+                  MessageBox.Show(__app_window, i18n.get("LogSavedText"),
+                     i18n.get("LogSavedTitle"), MessageBoxButtons.OK, 
+                     MessageBoxIcon.Information )
+      except:
+         debug_exc()
+         MessageBox.Show( __app_window, i18n.get("LogSaveFailedText") )
+   
+   if __app_window.InvokeRequired:
+      # fixes a bug where this doesn't work if you manually invoke from
+      # the comciform.   
+      utils.invoke(__app_window, dosave, False)
+   else:
+      dosave()
 
 
 #==============================================================================
@@ -205,7 +222,7 @@ class __Logger(object):
          raise "do not instantiate two instances of this class!!"
       
       # the log of all debugged output that this class creates
-      self._logLines = []
+      self._loglines = []
       
       # a mutex that protects all access to the logLines (above)
       self._mutex = Mutex()
@@ -224,7 +241,7 @@ class __Logger(object):
       # protect access to the logLines by using the mutex.
       self._mutex.WaitOne(-1)
       try:
-         self._logLines = None
+         self._loglines = None
          self.__app_window = None
       
          # return stdout and stderr to their original state
@@ -277,7 +294,7 @@ class __Logger(object):
       # protect access to the logLines with a mutex (for multiple threads)
       self._mutex.WaitOne(-1)
       try:
-         if self._logLines == None:
+         if self._loglines == None:
             raise Exception("you must install the __Logger before using it")
          
          try:
@@ -286,7 +303,7 @@ class __Logger(object):
             # shouldn't happen!
             output_line = "***** LOGGING ERROR *****"
              
-         self._logLines.append( output_line )
+         self._loglines.append( output_line )
          sys.__stdout__.write(output_line)
       finally:
          self._mutex.ReleaseMutex()
@@ -326,23 +343,25 @@ class __Logger(object):
 
    
    #==========================================================================
-   def dump(self, filename):
-      """ Implements the module-level dump() method. """
+   def save(self, filename):
+      """ Implements the module-level save() method by writing the 
+          debug log information to the given file. """
       
       # protect access to the logLines with a mutex (for multiple threads)
       self._mutex.WaitOne(-1)
       try:
-         if self._logLines == None:
+         if self._loglines == None:
             raise Exception("you must install the __Logger before using it")
-         
-         try:
-            writer = StreamWriter(filename, False, UTF8Encoding())
-            for line in self._logLines:
-               writer.Write(line)
-         finally:
-            if writer: writer.Dispose()
+         loglines_copy = list(self._loglines)
       finally:
          self._mutex.ReleaseMutex()
+         
+      try:
+         writer = StreamWriter(filename, False, UTF8Encoding())
+         for line in loglines_copy:
+            writer.Write(line)
+      finally:
+         if writer: writer.Dispose()
       
       
             

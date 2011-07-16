@@ -70,7 +70,7 @@ def invoke(control, delegate, synchronous = True):
    if not control or not delegate:
       raise TypeError("null parameter not allowed!")
    
-   if True or control.IsHandleCreated and \
+   if control.IsHandleCreated and \
          not control.IsDisposed and not control.Disposing:
 
       try:
