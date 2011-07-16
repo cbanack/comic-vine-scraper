@@ -108,6 +108,7 @@ class SeriesForm(CVForm):
       self.KeyPreview = True;
       self.KeyDown += self.__key_was_pressed
       self.KeyUp += self.__key_was_released
+      self.Deactivate += self.__was_deactivated
       
       self.Controls.Add (label)
       self.Controls.Add(self.__table)
@@ -498,6 +499,14 @@ class SeriesForm(CVForm):
          self.__pressing_controlkey = False;
          self.__skip_button.Text = i18n.get("SeriesFormSkip")
 
+   #===========================================================================         
+   def __was_deactivated(self, sender, args):
+      ''' Called whenever this form gets deactivated, for any reason '''
+      
+      # unhighlight the skip button bold whenever we deactivate
+      if self.__pressing_controlkey:
+         self.__pressing_controlkey = False;
+         self.__skip_button.Text = i18n.get("SeriesFormSkip")
       
 #==============================================================================      
 class SeriesFormResult(object):

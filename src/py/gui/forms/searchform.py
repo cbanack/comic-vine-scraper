@@ -75,6 +75,7 @@ class SearchForm(CVForm):
       self.KeyUp += self.__key_was_released
       self.__textbox.KeyDown += self.__key_was_pressed
       self.__textbox.KeyUp += self.__key_was_released
+      self.Deactivate += self.__was_deactivated
       
       self.Controls.Add(self.__label)
       self.Controls.Add(self.__textbox)
@@ -217,6 +218,15 @@ class SearchForm(CVForm):
       
       # unhighlight the skip button bold whenever the user releases control key
       if args.KeyCode == Keys.ControlKey:
+         self.__pressing_controlkey = False;
+         self.__skip_button.Text = i18n.get("SearchFormSkip")
+         
+   #===========================================================================         
+   def __was_deactivated(self, sender, args):
+      ''' Called whenever this form gets deactivated, for any reason '''
+      
+      # unhighlight the skip button bold whenever we deactivate
+      if self.__pressing_controlkey:
          self.__pressing_controlkey = False;
          self.__skip_button.Text = i18n.get("SearchFormSkip")
       

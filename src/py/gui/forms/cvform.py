@@ -5,6 +5,8 @@ This module contains the CVForm class.
 '''
 
 import clr
+import log
+
 clr.AddReference('System.Windows.Forms')
 
 from System.Windows.Forms import FormBorderStyle, Keys
@@ -57,9 +59,12 @@ class CVForm(PersistentForm):
    def ProcessCmdKey(self, msg, keys):
       ''' Called anytime the user presses a key while this form has focus. '''
       
-      # overidden to ensure that all CVForms close themselves
-      # if you press the escape key. 
+      # overidden to allow various "application wide" hotkeys
       if keys == Keys.Escape:
+         # ensure that all CVForms close themselves if you press the escape key. 
          self.Close()
+      elif keys == Keys.Control|Keys.Shift|Keys.L:
+         # ensure that the use can manually save out an application log
+         log.save()
       else:
          super(CVForm, self).ProcessCmdKey(msg, keys)
