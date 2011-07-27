@@ -19,20 +19,29 @@ from System.Drawing import Point, Size
 class SearchForm(CVForm):
    '''
    This class is a popup, modal dialog with a text field that asks the user to 
-   specify search terms for a search query on the Comic Vine database.
+   specify search terms for a search query on the Comic Vine database.  It may
+   also display an error message describing previous search terms that failed.
    '''
    
    #===========================================================================
-   def __init__(self, scraper, initial_search_s):
+   def __init__(self, scraper, initial_search_s, failed_search_s=""):
       '''
       Initializes this form.
       
       'scraper' -> the currently running ScrapeEngine
       'initial_search_s' -> the initial value in this form's text field.
+      'failed_search_s' -> (optional) the failed search terms associated with
+         this SearchForm.  If this is NOT empty, the search dialog will display
+         an error message about the failed search terms couldn't be found
       ''' 
-
-      # the text label for this form
+      # the text label for this form (displays regular message)
       self.__label = None
+      
+      # the fail label for this form (display 'search failed' message)
+      self.__fail_label = None
+      
+      # whether or not the fail label should be visible
+      self.__fail_label_is_visible = failed_search_s and failed_search_s.strip()
       
       # the search button (i.e. the 'ok' button) for this form
       self.__search_button = None
@@ -52,14 +61,15 @@ class SearchForm(CVForm):
       
       CVForm.__init__(self, scraper.comicrack.MainWindow, "searchformLocation")
       scraper.cancel_listeners.append(self.Close)
-      self.__build_gui(initial_search_s)
+      self.__build_gui(initial_search_s, failed_search_s)
       
 
    #===========================================================================      
-   def __build_gui(self, initial_search_s):
+   def __build_gui(self, initial_search_s, failed_search_s):
       ''' Constructs and initializes the gui for this form. '''
       
-      # build each gui component
+      # build each gui component.
+      self.__fail_label = self.__build_fail_label(failed_search_s)
       self.__label = self.__build_label()
       self.__search_button = self.__build_searchbutton()
       self.__skip_button = self.__build_skipbutton()
@@ -69,14 +79,16 @@ class SearchForm(CVForm):
       
       # configure this form, and add all gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
-      self.ClientSize = Size(405, 100)
-      self.Text = i18n.get("SearchFormTitle") 
+      self.ClientSize = Size(435, 200 if self.__fail_label_is_visible else 100)
+      self.Text = i18n.get("SeriesSearchFailedTitle") \
+         if self.__fail_label_is_visible else i18n.get("SearchFormTitle")
       self.KeyDown += self.__key_was_pressed
       self.KeyUp += self.__key_was_released
       self.__textbox.KeyDown += self.__key_was_pressed
       self.__textbox.KeyUp += self.__key_was_released
       self.Deactivate += self.__was_deactivated
       
+      self.Controls.Add(self.__fail_label)
       self.Controls.Add(self.__label)
       self.Controls.Add(self.__textbox)
       self.Controls.Add(self.__search_button)
@@ -90,14 +102,28 @@ class SearchForm(CVForm):
       self.__cancel_button.TabIndex = 3
 
 
+   #===========================================================================      
+   def __build_fail_label(self, failed_search_s):
+      ''' builds and returns the 'search failed' text label for this form.
+          if there is no failed search terms, this returns None. '''
+
+      label = Label()
+      label.Location = Point(10, 10)
+      label.Size = Size(415, 100)
+      label.Visible = self.__fail_label_is_visible   
+      if self.__fail_label_is_visible:
+         label.Text = i18n.get("SeriesSearchFailedText").format(failed_search_s)
+         
+      return label
+
    
    #===========================================================================      
    def __build_label(self):
       ''' builds and returns the text label for this form '''
 
       label = Label()
-      label.Location = Point(10, 10)
-      label.Size = Size(385, 20)
+      label.Location = Point(10, 110 if self.__fail_label_is_visible else 10)
+      label.Size = Size(415, 20)
       label.Text = i18n.get("SearchFormText")
       return label
 
@@ -108,7 +134,7 @@ class SearchForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.OK
-      button.Location = Point(95, 70)
+      button.Location = Point(125, 170 if self.__fail_label_is_visible else 70)
       button.Size = Size(100, 23)
       button.Text = i18n.get("SearchFormSearch")
       button.UseVisualStyleBackColor = True
@@ -121,7 +147,7 @@ class SearchForm(CVForm):
 
       button = Button()
       button.DialogResult = DialogResult.Ignore
-      button.Location = Point(205, 70)
+      button.Location = Point(235, 170 if self.__fail_label_is_visible else 70)
       button.Size = Size(90, 23)
       button.Text = i18n.get("SearchFormSkip")
       button.UseVisualStyleBackColor = True
@@ -134,7 +160,7 @@ class SearchForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Cancel
-      button.Location = Point(305, 70)
+      button.Location = Point(335, 170 if self.__fail_label_is_visible else 70)
       button.Size = Size(90, 23)
       button.Text = i18n.get("SearchFormCancel")
       button.UseVisualStyleBackColor = True
@@ -168,8 +194,8 @@ class SearchForm(CVForm):
             searchbutton.Enabled = bool(self.Text.strip())
             
       textbox = SearchTextBox()
-      textbox.Location = Point(10, 35)
-      textbox.Size = Size(385, 1)
+      textbox.Location = Point(10, 135 if self.__fail_label_is_visible else 35)
+      textbox.Size = Size(415, 1)
       if initial_text_s:
          textbox.Text = initial_text_s
       textbox.SelectAll()

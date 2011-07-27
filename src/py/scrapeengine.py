@@ -344,10 +344,9 @@ class ScrapeEngine(object):
          # get serach terms for the book that we're scraping
          search_terms_s = book.series_s
          if manual_search_b or not search_terms_s:
-            if prev_status.get_failed_search_terms_s():
-               log.debug("FAILED BEFORE: ", prev_status.get_failed_search_terms_s())
             # show dialog asking the user for the right search terms
-            search_terms_s = self.__choose_search_terms(search_terms_s)
+            search_terms_s = self.__choose_search_terms(
+               search_terms_s, prev_status.get_failed_search_terms_s() )
             if search_terms_s == SearchFormResult.CANCEL:
                self.__cancelled_b = True
                return BookStatus("SKIPPED")
@@ -361,10 +360,7 @@ class ScrapeEngine(object):
          if self.__cancelled_b: 
             return BookStatus("SKIPPED")
          if not series_refs:
-            MessageBox.Show(self.comicrack.MainWindow, 
-               i18n.get("SeriesSearchFailedText").format(search_terms_s),
-               i18n.get("SeriesSearchFailedTitle"), MessageBoxButtons.OK, 
-               MessageBoxIcon.Warning)
+            # include failed search terms here, so search dialog mentions them
             return BookStatus("UNSCRAPED", search_terms_s)
 
       # 3. now that we have a set if series_refs that match this book, 
@@ -499,10 +495,12 @@ class ScrapeEngine(object):
 
 
    # ==========================================================================   
-   def __choose_search_terms(self, initial_search_terms=""):
+   def __choose_search_terms(self, init_search_s, failed_search_s=""):
       '''
-      Displays a dialog asking the user for search terms.  The given search
-      terms will be used to pre-populate the dialog results.
+      Displays a dialog asking the user for search terms.  The given initial
+      search terms will be used to pre-populate the dialog results, and the 
+      given failed search terms (if not empty) will appear as extra error 
+      text on the dialog (i.e. "couldn't find anything for this search:")
       
       Returns a non-empty string containing the user's specified search terms,
       or SearchFormResult.CANCEL if the user cancelled the scrape operation, or
@@ -511,7 +509,7 @@ class ScrapeEngine(object):
       
       log.debug('asking user for series search terms...');
 
-      with SearchForm(self, initial_search_terms) as search_form:
+      with SearchForm(self, init_search_s, failed_search_s) as search_form:
          new_terms = search_form.show_form() # blocks
 
       if new_terms == SearchFormResult.CANCEL:
