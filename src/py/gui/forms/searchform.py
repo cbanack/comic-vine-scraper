@@ -7,6 +7,7 @@ This module is home to the SearchForm class.
 import clr
 import i18n
 from cvform import CVForm
+import utils
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
@@ -206,26 +207,22 @@ class SearchForm(CVForm):
    #===========================================================================      
    def show_form(self):
       '''
-      Displays this form, blocking until the user closes it.  When it is 
-      closed, one of three values will be returned.  If SearchFormResult.CANCEL
-      is returned, it means the user has elected to cancel the scrape operation.
-      If an SearchFormResults.SKIP is returned, it means the user has elected to
-      skip the current book.   Finally, if anything else is returned it will be 
-      a string that the user has entered--the string that the user wants to 
-      search on.
+      Displays this form, blocking until the user closes it.  When it is closed, 
+      a SearchFormResult will be returned indicating what the user chose.
       '''
       
       dialogAnswer = self.ShowDialog( self.Owner ) # blocks
       if dialogAnswer == DialogResult.OK:
-         retval = self.__textbox.Text.strip()
-         return retval if retval else SearchFormResult.CANCEL
+         search_terms_s = self.__textbox.Text.strip()
+         return SearchFormResult("SEARCH", search_terms_s) if search_terms_s \
+             else SearchFormResult("CANCEL")
       elif dialogAnswer == DialogResult.Ignore:
          if self.ModifierKeys == Keys.Control:
-            return SearchFormResult.PERMSKIP
+            return SearchFormResult("PERMSKIP")
          else:
-            return SearchFormResult.SKIP
+            return SearchFormResult("SKIP")
       else:
-         return SearchFormResult.CANCEL
+         return SearchFormResult("CANCEL")
  
  
    #===========================================================================         
@@ -260,7 +257,64 @@ class SearchForm(CVForm):
 #===========================================================================      
 class SearchFormResult(object):
    ''' Results that can be returned from the SearchForm.show_form() method. '''
-   # corylow: make this more like SeriesFormResults
+   
    CANCEL = "cancel"
    SKIP = "skip"
    PERMSKIP = "permskip"
+   
+   def __init__(self, id, search_terms_s=""):
+      '''
+      Creates a new SearchFormResult object with the given ID.
+      
+      id -> the result ID.  Must be one of "SEARCH" (proceed with search), 
+            "CANCEL" (cancel entire scrape operation), "SKIP" (skip this book) 
+            or "PERMSKIP" (permanently skip this book)
+            
+      search_terms_s -> the search terms to search on when our ID is "SEARCH". 
+            This value should be empty for all other IDs.
+      '''
+      if id != "SEARCH" and id != "CANCEL" and \
+            id != "SKIP" and id != "PERMSKIP":
+         raise Exception()
+      
+      search_terms_s = search_terms_s.strip()
+      if id=="SEARCH" and not search_terms_s:
+         raise Exception()
+      
+      self.__id = id
+      self.__search_terms_s = search_terms_s \
+          if id=="SEARCH" and utils.is_string(search_terms_s) else ""
+      
+      
+   #===========================================================================         
+   def equals(self, id):
+      ''' 
+      Returns True iff this SearchFormResult has the given ID (i.e. one of 
+      "SEARCH", "CANCEL", "SKIP", or "PERMSKIP". 
+      '''
+      return self.__id == id
+
+  
+   #===========================================================================         
+   def get_search_terms_s(self):
+      '''
+      Get the series search terms for this SearchFormResult. This value will be
+      non-empty if our id is "SEARCH", and it will be empty ("") otherwise.  
+      '''
+      return self.__search_terms_s
+   
+   #===========================================================================         
+   def get_debug_string(self):
+      ''' Gets a simple little debug string summarizing this result.'''
+      
+      if self.equals("SKIP"):
+         return "SKIP scraping this book"
+      elif self.equals("PERMSKIP"):
+         return "ALWAYS SKIP scraping this book"
+      elif self.equals("CANCEL"):
+         return "CANCEL this scrape operation"
+      elif self.equals("SEARCH"):
+         return "SEARCH using: '" + self.get_search_terms_s() + "'"
+      else:
+         raise Exception()  
+      

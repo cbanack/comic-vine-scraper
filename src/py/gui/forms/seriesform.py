@@ -556,7 +556,7 @@ class SeriesFormResult(object):
 
       
    #===========================================================================         
-   def get_name(self): #coryhigh: rename to id
+   def get_name(self): #coryhigh: rename to id + refactor
       ''' Gets the 'name' portion of this result (see possibilities above) '''
       return self.__name;
 
