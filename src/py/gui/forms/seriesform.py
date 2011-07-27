@@ -508,6 +508,7 @@ class SeriesForm(CVForm):
          self.__pressing_controlkey = False;
          self.__skip_button.Text = i18n.get("SeriesFormSkip")
       
+      
 #==============================================================================      
 class SeriesFormResult(object):
    '''
@@ -555,7 +556,7 @@ class SeriesFormResult(object):
 
       
    #===========================================================================         
-   def get_name(self):
+   def get_name(self): #coryhigh: rename to id
       ''' Gets the 'name' portion of this result (see possibilities above) '''
       return self.__name;
 
