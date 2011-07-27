@@ -290,7 +290,7 @@ class SearchFormResult(object):
    def equals(self, id):
       ''' 
       Returns True iff this SearchFormResult has the given ID (i.e. one of 
-      "SEARCH", "CANCEL", "SKIP", or "PERMSKIP". 
+      "SEARCH", "CANCEL", "SKIP", or "PERMSKIP".)
       '''
       return self.__id == id
 

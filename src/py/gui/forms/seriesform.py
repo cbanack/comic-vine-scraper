@@ -419,20 +419,20 @@ class SeriesForm(CVForm):
       dialogAnswer = self.ShowDialog(self.Owner) # blocks
       
       if dialogAnswer == DialogResult.OK:
-         result = SeriesFormResult( SeriesFormResult.OK,
-               self.__series_refs[self.__chosen_index] )
+         result = SeriesFormResult( 
+            "OK", self.__series_refs[self.__chosen_index] )
       elif dialogAnswer == DialogResult.Yes:
-         result = SeriesFormResult( SeriesFormResult.SHOW,
-               self.__series_refs[self.__chosen_index] )
+         result = SeriesFormResult( 
+            "SHOW", self.__series_refs[self.__chosen_index] )
       elif dialogAnswer == DialogResult.Cancel: 
-         result = SeriesFormResult( SeriesFormResult.CANCEL)
+         result = SeriesFormResult( "CANCEL")
       elif dialogAnswer == DialogResult.Ignore:
          if self.ModifierKeys == Keys.Control:
-            result = SeriesFormResult( SeriesFormResult.PERMSKIP )
+            result = SeriesFormResult( "PERMSKIP" )
          else:
-            result = SeriesFormResult( SeriesFormResult.SKIP)
+            result = SeriesFormResult( "SKIP" )
       elif dialogAnswer == DialogResult.Retry:
-         result = SeriesFormResult( SeriesFormResult.SEARCH)
+         result = SeriesFormResult( "SEARCH" )
       else:
          raise Exception()
       
@@ -513,59 +513,58 @@ class SeriesForm(CVForm):
 class SeriesFormResult(object):
    '''
    Results that can be returned from the SeriesForm.show_form() method.  The
-   'name' of this object describes the manner in which the user closed the 
+   'id' of this object describes the manner in which the user closed the 
    dialog:
    
-   1) SeriesFormResult.CANCEL  means the user cancelled this scrape operation.
-   2) SeriesFormResult.SKIP means the user elected to skip the current book.
-   3) SeriesFormResult.PERMSKIP means the user elected to skip the current book
+   1) "CANCEL"  means the user cancelled this scrape operation.
+   2) "SKIP" means the user elected to skip the current book.
+   3) "PERMSKIP" means the user elected to skip the current book
       during this scrape, AND all future scrapes (i.e. add a 'skip tag' to book)
-   4) SeriesFormResult.SEARCH means the user chose to 'search again'
-   5) SeriesFormResult.OK means the user chose a SeriesRef, and the script
+   4) "SEARCH" means the user chose to 'search again'
+   5) "OK" means the user chose a SeriesRef, and the script
       should try to automatically choose the correct issue for that SeriesRef.
-   6) SeriesFormResult.SHOW means the user chose a SeriesRef, and the script
+   6) "SHOW" means the user chose a SeriesRef, and the script
       should NOT automatically choose issue for that SeriesRef--it should 
       show the IssueForm and let the user choose manually.
       
-   Note that if the SeriesFormResult has a name of 'OK' or 'SHOW', it should
+   Note that if the SeriesFormResult has an id of 'OK' or 'SHOW', it must
    also have a non-None 'ref', which is of course the actual SeriesRef that 
    the user chose.    
    '''
    
-   OK = "ok"
-   SHOW = "show"
-   CANCEL = "cancel"
-   SKIP = "skip"
-   PERMSKIP = "permskip"
-   SEARCH = "search"
-   
    #===========================================================================         
-   def __init__(self, name, ref=None):
+   def __init__(self, id, ref=None):
       ''' 
       Creates a new SeriesFormResult.
-      name -> the name of the result, i.e. based on what button the user pressed
+      id -> the id of the result, i.e. "OK", "SHOW", "CANCEL", "SKIP", etc.
       ref -> the reference that the user chose, if they chose one at all.
+             (required for "SHOW" and "OK".)
       '''  
             
-      if name != self.OK and name != self.SHOW and name != self.CANCEL and \
-         name != self.SKIP and name != self.SEARCH and name!= self.PERMSKIP:
+      if id != "OK" and id != "SHOW" and id != "CANCEL" and \
+         id != "SKIP" and id != "SEARCH" and id != "PERMSKIP":
+         raise Exception();
+      if (id == "OK" or id == "SHOW") and ref == None:
          raise Exception();
       
-      self.__ref = ref if name == self.OK or name == self.SHOW else None;
-      self.__name = name;
+      self.__ref = ref if id == "OK" or id == "SHOW" else None;
+      self.__id = id;
 
       
    #===========================================================================         
-   def get_name(self): #coryhigh: rename to id + refactor
-      ''' Gets the 'name' portion of this result (see possibilities above) '''
-      return self.__name;
+   def equals(self, id): 
+      ''' 
+      Returns True iff this SeriesFormResult has the given ID (i.e. one of 
+      "SHOW", "OK, "CANCEL", "SKIP", etc.)
+      '''
+      return self.__id == id
 
    
    #===========================================================================         
    def get_ref(self):
       ''' 
       Gets the SeriesRef portion of this result, i.e. the one the user picked.
-      This is only defined when the'name' of this result is "OK" or "SHOW".
+      This is only defined when the'id' of this result is "OK" or "SHOW".
       '''
       return self.__ref;
 
@@ -574,17 +573,17 @@ class SeriesFormResult(object):
    def get_debug_string(self):
       ''' Gets a simple little debug string summarizing this result.'''
       
-      if self.get_name() == self.SKIP:
+      if self.equals("SKIP"):
          return "SKIP scraping this book"
-      elif self.get_name() == self.PERMSKIP:
+      elif self.equals("PERMSKIP"):
          return "ALWAYS SKIP scraping this book"
-      elif self.get_name() == self.CANCEL:
+      elif self.equals("CANCEL"):
          return "CANCEL this scrape operation"
-      elif self.get_name() == self.SEARCH:
+      elif self.equals("SEARCH"):
          return "SEARCH AGAIN for more series"
-      elif self.get_name() == self.SHOW:
+      elif self.equals("SHOW"):
          return "SHOW ISSUES for: '" + sstr(self.get_ref()) + "'"
-      elif self.get_name() == self.OK:
+      elif self.equals("OK"):
          return "SCRAPE using: '" + sstr(self.get_ref()) + "'"
       else:
          raise Exception()

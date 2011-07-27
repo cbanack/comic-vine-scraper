@@ -12,7 +12,7 @@ from comicform import ComicForm
 from seriesform import SeriesForm, SeriesFormResult
 from issueform import IssueForm, IssueFormResult
 from progressbarform import ProgressBarForm
-from searchform import SearchForm, SearchFormResult
+from searchform import SearchForm
 import utils
 import db
 from welcomeform import WelcomeForm
@@ -381,23 +381,24 @@ class ScrapeEngine(object):
          if key not in scrape_cache: 
             if not series_refs or not search_terms_s:
                return BookStatus("UNSCRAPED") # rare but possible, bug 77
-            result = self.__choose_series_ref(book, search_terms_s, series_refs)
+            series_form_result =\
+               self.__choose_series_ref(book, search_terms_s, series_refs)
             
-            if SeriesFormResult.CANCEL==result.get_name() or self.__cancelled_b:
+            if series_form_result.equals("CANCEL") or self.__cancelled_b:
                self.__cancelled_b = True
                return BookStatus("SKIPPED") # user says 'cancel'
-            elif SeriesFormResult.SKIP == result.get_name():
+            elif series_form_result.equals("SKIP"):
                return BookStatus("SKIPPED") # user says 'skip this book'
-            elif SeriesFormResult.PERMSKIP == result.get_name():
+            elif series_form_result.equals("PERMSKIP"):
                book.skip_forever(self)
                return BookStatus("SKIPPED") # user says 'skip book always'
-            elif SeriesFormResult.SEARCH == result.get_name(): 
+            elif series_form_result.equals("SEARCH"): 
                return BookStatus("UNSCRAPED") # user says 'search again'
-            elif SeriesFormResult.SHOW == result.get_name() or \
-                 SeriesFormResult.OK == result.get_name(): # user says 'ok'
+            elif series_form_result.equals("SHOW") or \
+                 series_form_result.equals("OK"): # user says 'ok'
                scraped_series = ScrapedSeries()
-               scraped_series.series_ref = result.get_ref()
-               force_issue_dialog_b = SeriesFormResult.SHOW == result.get_name()
+               scraped_series.series_ref = series_form_result.get_ref()
+               force_issue_dialog_b = series_form_result.equals("SHOW")
                scrape_cache[key] = scraped_series
                
          # one way or another, the chosen series is now in the cache. get it.      
@@ -515,7 +516,7 @@ class ScrapeEngine(object):
       This method returns a SeriesFormResult object (from the SeriesForm). 
       '''
       
-      result = SeriesFormResult(SeriesFormResult.SEARCH) # default
+      result = SeriesFormResult("SEARCH") # default
       if series_refs:
          log.debug('displaying the series selection dialog...')
          with  SeriesForm(self, book, series_refs, search_terms_s) as sform:
