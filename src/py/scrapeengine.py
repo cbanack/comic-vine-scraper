@@ -207,25 +207,25 @@ class ScrapeEngine(object):
             #     the user chooses to skip it, or the user cancels altogether.
             manual_search_b = self.config.specify_series_b
             fast_rescrape_b = self.config.fast_rescrape_b and i < orig_length
-            bookstatus = self._BookStatus.UNSCRAPED
-            while bookstatus == self._BookStatus.UNSCRAPED \
-                  and not self.__cancelled_b:
-               
+            bookstatus = BookStatus("UNSCRAPED")
+            
+            while bookstatus.equals("UNSCRAPED") and not self.__cancelled_b:
                bookstatus = self.__scrape_book(book, scrape_cache,
-                 manual_search_b, fast_rescrape_b)
-               if bookstatus == self._BookStatus.UNSCRAPED:
+                 manual_search_b, fast_rescrape_b, bookstatus)
+               
+               if bookstatus.equals("UNSCRAPED"):
                   # this return code means 'no series could be found using 
                   # the current (automatic or manual) search terms'.  when  
                   # that happens, force the user to chose the search terms.
                   manual_search_b = True
-               elif bookstatus == self._BookStatus.SCRAPED:
+               elif bookstatus.equals("SCRAPED"):
                   # book was scraped normally, all is good, update status
                   self.__status[0] += 1;
                   self.__status[1] -= 1;
-               elif bookstatus == self._BookStatus.SKIPPED:
+               elif bookstatus.equals("SKIPPED"):
                   # book was skipped, status is already correct for that book
                   pass;
-               elif bookstatus == self._BookStatus.DELAYED:
+               elif bookstatus.equals("DELAYED"):
                   # put this book into the end of the list, where we can try
                   # rescraping (with fast_rescrape_b set to false this time)
                   # after we've handled the ones that we can do automatically.
@@ -242,7 +242,7 @@ class ScrapeEngine(object):
 
    # ==========================================================================
    def __scrape_book(self, book, scrape_cache, 
-         manual_search_b, fast_rescrape_b):
+         manual_search_b, fast_rescrape_b, prev_status=None):
       '''
       This method is the heart of the Main Processing Loop. It scrapes a single
       ComicBook object by first figuring out which issue entry in the database 
@@ -263,7 +263,7 @@ class ScrapeEngine(object):
        4c. Else the user might decide to start over with new search terms
        4d. Else the user might choose to specify the correct issue manually
        4e. Else the user might cancel the entire operation
-       
+             
        Throughout this process, the 'scrape_cache' (a map, empty at first) is
        used to speed things up.  It caches details from previous calls to this 
        method, so if this method is called repeatedly, the same scrape_cache 
@@ -275,21 +275,24 @@ class ScrapeEngine(object):
        the steps described above.  If no key is available, just fall back to
        the user-interactive method of identifying the comic.
        
+       When this method is called repeatedly on the same book, a 'prev_status'
+       should be passed in, giving this method access to the BookStatus object 
+       that it returned the last time it was called (for the current book). 
        
        RETURN VALUES
        
-       _BookStatus.UNSCRAPED: if the book wasn't be scraped, either because
+       BookStatus("UNSCRAPED"): if the book wasn't be scraped, either because
           the search terms yielded no results, or the user opted to specify
           new search terms
           
-       _BookStatus.SKIPPED: if this one book was skipped over by the user, or  
+       BookStatus("SKIPPED"): if this one book was skipped over by the user, or  
           of the user cancelled the entire current scrape operation (check the
           status if the ScrapeEngine).
           
-       _BookStatus.SCRAPED: if the book was scraped successfully, and now 
+       BookStatus("SCRAPED"): if the book was scraped successfully, and now 
           contains updated metadata.
           
-       _BookStatus.DELAYED: if we attempted to do a fast_rescrape on the book,
+       BookStatus("DELAYED"): if we attempted to do a fast_rescrape on the book,
           but failed because the database key was invalid.  the book has not
           been scraped successfully.
           
@@ -301,7 +304,8 @@ class ScrapeEngine(object):
       # try to change anything in here.  You've been warned!
       
       Application.DoEvents()
-      if self.__cancelled_b: return self._BookStatus.SKIPPED
+      if self.__cancelled_b: return BookStatus("SKIPPED")
+      if prev_status == None: prev_status = BookStatus("UNSCRAPED")
 
       # 1. if this book is being 'rescraped', sometimes it already knows the 
       #    correct issue_ref from a previous scrape. METHOD EXIT: if that 
@@ -310,7 +314,7 @@ class ScrapeEngine(object):
       issue_ref = book.get_issue_ref()
       if issue_ref == 'skip': 
          log.debug("found SKIP tag, so skipping the scrape for this book.")
-         return self._BookStatus.SKIPPED
+         return BookStatus("SKIPPED")
 
       if issue_ref and fast_rescrape_b:
          log.debug("found rescrape tag in book, " + 
@@ -318,11 +322,11 @@ class ScrapeEngine(object):
          try:
             issue = db.query_issue(issue_ref)
             book.save_issue(issue, self)
-            return self._BookStatus.SCRAPED
+            return BookStatus("SCRAPED")
          except:
             log.debug_exc("Error rescraping details:")
             log.debug("we'll retry scraping this book again at the end.")
-            return self._BookStatus.DELAYED
+            return BookStatus("DELAYED")
 
       # 2. search for all the series in the database that match the current
       #    book.  if info for this book's series has already been cached, we 
@@ -340,26 +344,28 @@ class ScrapeEngine(object):
          # get serach terms for the book that we're scraping
          search_terms_s = book.series_s
          if manual_search_b or not search_terms_s:
+            if prev_status.get_failed_search_terms_s():
+               log.debug("FAILED BEFORE: ", prev_status.get_failed_search_terms_s())
             # show dialog asking the user for the right search terms
             search_terms_s = self.__choose_search_terms(search_terms_s)
             if search_terms_s == SearchFormResult.CANCEL:
                self.__cancelled_b = True
-               return self._BookStatus.SKIPPED
+               return BookStatus("SKIPPED")
             elif search_terms_s == SearchFormResult.SKIP:
-               return self._BookStatus.SKIPPED
+               return BookStatus("SKIPPED")
             elif search_terms_s == SearchFormResult.PERMSKIP:
                book.skip_forever(self)
-               return self._BookStatus.SKIPPED
+               return BookStatus("SKIPPED")
          # query the database for series_refs that match the search terms
          series_refs = self.__query_series_refs(search_terms_s)
          if self.__cancelled_b: 
-            return self._BookStatus.SKIPPED
+            return BookStatus("SKIPPED")
          if not series_refs:
             MessageBox.Show(self.comicrack.MainWindow, 
                i18n.get("SeriesSearchFailedText").format(search_terms_s),
                i18n.get("SeriesSearchFailedTitle"), MessageBoxButtons.OK, 
                MessageBoxIcon.Warning)
-            return self._BookStatus.UNSCRAPED
+            return BookStatus("UNSCRAPED", search_terms_s)
 
       # 3. now that we have a set if series_refs that match this book, 
       #    show the user the 'series dialog' so they can pick the right one.  
@@ -371,22 +377,22 @@ class ScrapeEngine(object):
          force_issue_dialog_b = False 
          if key not in scrape_cache: 
             if not series_refs or not search_terms_s:
-               return self._BookStatus.UNSCRAPED # rare but possible, bug 77
+               return BookStatus("UNSCRAPED") # rare but possible, bug 77
             result = self.__choose_series_ref(book, search_terms_s, series_refs)
             
             if SeriesFormResult.CANCEL==result.get_name() or self.__cancelled_b:
                self.__cancelled_b = True
-               return self._BookStatus.SKIPPED # user says 'cancel'
+               return BookStatus("SKIPPED") # user says 'cancel'
             elif SeriesFormResult.SKIP == result.get_name():
-               return self._BookStatus.SKIPPED # user says 'skip this book'
+               return BookStatus("SKIPPED") # user says 'skip this book'
             elif SeriesFormResult.PERMSKIP == result.get_name():
                book.skip_forever(self)
-               return self._BookStatus.SKIPPED # user says 'skip book always'
+               return BookStatus("SKIPPED") # user says 'skip book always'
             elif SeriesFormResult.SEARCH == result.get_name(): 
-               return self._BookStatus.UNSCRAPED # user says 'search again'
+               return BookStatus("UNSCRAPED") # user says 'search again'
             elif SeriesFormResult.SHOW == result.get_name() or \
                  SeriesFormResult.OK == result.get_name(): # user says 'ok'
-               scraped_series = self._ScrapedSeries()
+               scraped_series = ScrapedSeries()
                scraped_series.series_ref = result.get_ref()
                force_issue_dialog_b = SeriesFormResult.SHOW == result.get_name()
                scrape_cache[key] = scraped_series
@@ -410,7 +416,7 @@ class ScrapeEngine(object):
             scraped_series.issue_refs = \
                self.__query_issue_refs(scraped_series.series_ref)
             if self.__cancelled_b: 
-               return self._BookStatus.SKIPPED
+               return BookStatus("SKIPPED")
 
          # choose the issue that matches the book we are scraping
          result = self.__choose_issue_ref( book, scraped_series.series_ref, 
@@ -418,7 +424,7 @@ class ScrapeEngine(object):
          
          if result.get_name() == IssueFormResult.CANCEL or self.__cancelled_b:
             self.__cancelled_b = True
-            return self._BookStatus.SKIPPED
+            return BookStatus("SKIPPED")
          elif result.get_name() == IssueFormResult.SKIP or \
                result.get_name() == IssueFormResult.PERMSKIP:
             if force_issue_dialog_b:
@@ -427,7 +433,7 @@ class ScrapeEngine(object):
                del scrape_cache[key]
             if result.get_name() == IssueFormResult.PERMSKIP:
                book.skip_forever(self)
-            return self._BookStatus.SKIPPED
+            return BookStatus("SKIPPED")
          elif result.get_name() == IssueFormResult.BACK:
             # ignore users previous series selection
             del scrape_cache[key]
@@ -436,7 +442,7 @@ class ScrapeEngine(object):
             log.debug("querying comicvine for issue details...")
             issue = db.query_issue( result.get_ref() )
             book.save_issue(issue, self)
-            return self._BookStatus.SCRAPED
+            return BookStatus("SCRAPED")
 
       raise Exception("should never get here")
 
@@ -677,28 +683,62 @@ class ScrapeEngine(object):
 
 
 
-   # ==========================================================================
-   class _ScrapedSeries(object):
-      '''
-      An object that contains all the scraped information for a particular 
-      ComicBook series--that is, the SeriesRef for the particular series, 
-      and all of the IssueRefs that are associated with that series.
-      '''
-      def __init__(self):
-         self.series_ref = None  
-         self.issue_refs = None
+# ==========================================================================
+class ScrapedSeries(object):
+   '''
+   An object that contains all the scraped information for a particular 
+   ComicBook series--that is, the SeriesRef for the particular series, 
+   and all of the IssueRefs that are associated with that series.
+   '''
+   def __init__(self):
+      self.series_ref = None  
+      self.issue_refs = None
  
 
-   # ==========================================================================
-   class _BookStatus(object):
-      '''
-      Constants used to represent the various states that a book can be in 
-      while the scraper is running or finished.
-      '''
+# ==========================================================================
+class BookStatus(object):
+   '''
+   A status object used to represent the various states that a book can be in 
+   while the scraper is running or finished.
+   '''
+    
+   #===========================================================================         
+   def __init__(self, id, failed_search_terms_s=""):
+      ''' 
+      Creates a new BookStatus object with the given ID.
       
-      SCRAPED = "scraped"   # successfully scraped
-      SKIPPED = "skipped"   # user chose to skip this book
-      UNSCRAPED = "unscraped"   # hasn't been scraped yet
-      DELAYED = "delayed"  # hasn't been scraped, try again later
+      id -> the status ID.  Must be one of "SCRAPED" (book was successfully 
+            scraped), "SKIPPED" (user chose to skip this book), "UNSCRAPED" 
+            (hasn't been scraped yet) or "DELAYED" (hasn't been scraped, try
+            again later).
+      failed_search_terms_s -> (optional) the series search terms that couldn't 
+            be found, if there are any.  This only makes sense in certain cases
+            where the id is "UNSCRAPED". 
+      '''  
+            
+      if id != "SCRAPED" and id != "SKIPPED" and \
+            id != "UNSCRAPED" and id != "DELAYED":
+         raise Exception();
+      
+      self.__id = id
+      self.__failed_search_terms_s = failed_search_terms_s \
+          if id=="UNSCRAPED" and utils.is_string(failed_search_terms_s) else ""
+      
+      
+   #===========================================================================         
+   def equals(self, id):
+      ''' 
+      Returns True iff this BookStatus has the given ID (i.e. one of "SCRAPED",
+      "UNSCRAPED", "SKIPPED", or "DELAYED").
+      '''
+      return self.__id == id
 
-
+  
+   #===========================================================================         
+   def get_failed_search_terms_s(self):
+      '''
+      Get the series search terms that could not be found in the comic database,
+      leading to this BookStatus's "UNSCRAPED" status.   This value will be "" 
+      there are no failed search terms, OR if our status is not "UNSCRAPED".
+      '''
+      return self.__failed_search_terms_s
