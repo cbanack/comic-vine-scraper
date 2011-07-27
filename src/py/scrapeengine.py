@@ -345,14 +345,21 @@ class ScrapeEngine(object):
          search_terms_s = book.series_s
          if manual_search_b or not search_terms_s:
             # show dialog asking the user for the right search terms
-            search_terms_s = self.__choose_search_terms(
-               search_terms_s, prev_status.get_failed_search_terms_s() )
-            if search_terms_s == SearchFormResult.CANCEL:
+            log.debug('asking user for series search terms...');
+            with SearchForm(self, search_terms_s, 
+                  prev_status.get_failed_search_terms_s() ) as search_form:
+               search_form_result = search_form.show_form() # blocks
+            log.debug( "...and the user chose to " 
+               + search_form_result.get_debug_string() )
+            
+            if search_form_result.equals("SEARCH"):
+               search_terms_s = search_form_result.get_search_terms_s()
+            elif search_form_result.equals("CANCEL"):
                self.__cancelled_b = True
                return BookStatus("SKIPPED")
-            elif search_terms_s == SearchFormResult.SKIP:
+            elif search_form_result.equals("SKIP"):
                return BookStatus("SKIPPED")
-            elif search_terms_s == SearchFormResult.PERMSKIP:
+            elif search_form_result.equals("PERMSKIP"):
                book.skip_forever(self)
                return BookStatus("SKIPPED")
          # query the database for series_refs that match the search terms
@@ -492,35 +499,6 @@ class ScrapeEngine(object):
       fast_scrape_books.sort(cmp=__compare_books)     
       
       return fast_scrape_books+slow_scrape_books
-
-
-   # ==========================================================================   
-   def __choose_search_terms(self, init_search_s, failed_search_s=""):
-      '''
-      Displays a dialog asking the user for search terms.  The given initial
-      search terms will be used to pre-populate the dialog results, and the 
-      given failed search terms (if not empty) will appear as extra error 
-      text on the dialog (i.e. "couldn't find anything for this search:")
-      
-      Returns a non-empty string containing the user's specified search terms,
-      or SearchFormResult.CANCEL if the user cancelled the scrape operation, or
-      SearchFormResult.SKIP if the user wants to skip the current book.
-      '''
-      
-      log.debug('asking user for series search terms...');
-
-      with SearchForm(self, init_search_s, failed_search_s) as search_form:
-         new_terms = search_form.show_form() # blocks
-
-      if new_terms == SearchFormResult.CANCEL:
-         log.debug("...but the user chose to CANCEL this scrape")
-      elif new_terms == SearchFormResult.SKIP:
-         log.debug("...but the user chose to SKIP this book")
-      elif new_terms == SearchFormResult.PERMSKIP:
-         log.debug("...but the user chose to ALWAYS SKIP this book")
-      else:
-         log.debug("...and the user provided: '", new_terms, "'")
-      return new_terms
 
 
 
