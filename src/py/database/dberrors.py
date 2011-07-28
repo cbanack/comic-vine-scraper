@@ -19,7 +19,7 @@ class DatabaseConnectionError(Exception):
       ''' 
       database_name_s -> the name of the database that raised this error
       url_s -> the url that caused the problem
-      underlying => the underlying io exception or error
+      underlying => the underlying io exception object or error string
       '''
       
       super(Exception,self).__init__(sstr(database_name_s) +
