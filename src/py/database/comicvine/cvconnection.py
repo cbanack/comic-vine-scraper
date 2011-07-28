@@ -208,7 +208,7 @@ def _query_issue_image_dom(issueid_s):
 # =============================================================================
 def __get_dom(url, lasttry=False):
    ''' 
-   Obtains a parsed DOM tree from the XML at the given URL. 
+   Obtains a parsed comicvine-formatted DOM tree from the XML at the given URL. 
    Never returns null, but may throw an exception if it has any problems
    downloading or parsing the XML.
    '''
@@ -226,6 +226,14 @@ def __get_dom(url, lasttry=False):
       try:
          xml = __strip_invalid_xml_chars(xml)
          dom = xml2py.parseString(xml)
+         
+         # for some reason, the comicvine server will return invalid xml
+         # for a while, I think just before it goes totally down.  bug 194
+         # describes why this is ugly, and it why we handle that specially here
+         if not "status_code" in dom.__dict__:
+            raise DatabaseConnectionError(
+               "Comic Vine", url, "empty comicvine dom: see bug 194")
+         
          if int(dom.status_code) == 1:
             retval = dom # success
          else:
