@@ -13,7 +13,7 @@ import sys
 clr.AddReference('System')
 from System.IO import File, StreamReader, StreamWriter, StringWriter
 from System.Text import Encoding
-from System.Net import WebRequest
+from System.Net import HttpStatusCode, WebException, WebRequest
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Graphics, Bitmap
@@ -265,12 +265,19 @@ def get_html_string(url):
    then downloads, htmldecodes, and returns the contents of that page as 
    an html string.
    
-   This method will throw an exception if anything goes wrong.
+   This method will throw an WebException or IOException if anything goes wrong,
+   including if the response code is not valid (i.e. 200).
    '''
    
    try:
       request = WebRequest.Create(url) 
       response = request.GetResponse()
+      # if the response code is not "OK", throw a web exception immediately.
+      # this stops red-herring errors later on as we try to parse bad results.
+      # usually this only happens if the CV server is temporarily down.
+      if response.StatusCode != HttpStatusCode.OK:
+         raise WebException("server response code " + 
+            sstr(int(response.StatusCode))+" ("+sstr(response.StatusCode)+")" )
       responseStream = response.GetResponseStream()
       reader = StreamReader(responseStream, Encoding.UTF8)
       page = reader.ReadToEnd()
