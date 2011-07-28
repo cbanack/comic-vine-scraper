@@ -423,28 +423,29 @@ class ScrapeEngine(object):
                return BookStatus("SKIPPED")
 
          # choose the issue that matches the book we are scraping
-         result = self.__choose_issue_ref( book, scraped_series.series_ref, 
-             scraped_series.issue_refs, force_issue_dialog_b)
+         issue_form_result = self.__choose_issue_ref( book, 
+            scraped_series.series_ref, scraped_series.issue_refs, 
+            force_issue_dialog_b)
          
-         if result.get_name() == IssueFormResult.CANCEL or self.__cancelled_b:
+         if issue_form_result.equals("CANCEL") or self.__cancelled_b:
             self.__cancelled_b = True
             return BookStatus("SKIPPED")
-         elif result.get_name() == IssueFormResult.SKIP or \
-               result.get_name() == IssueFormResult.PERMSKIP:
+         elif issue_form_result.equals("SKIP") or \
+               issue_form_result.equals("PERMSKIP"):
             if force_issue_dialog_b:
                # the user clicked 'show issues', then 'skip', so we have to
                # ignore his previous series selection.
                del scrape_cache[key]
-            if result.get_name() == IssueFormResult.PERMSKIP:
+            if issue_form_result.equals("PERMSKIP"):
                book.skip_forever(self)
             return BookStatus("SKIPPED")
-         elif result.get_name() == IssueFormResult.BACK:
+         elif issue_form_result.equals("BACK"):
             # ignore users previous series selection
             del scrape_cache[key]
          else:
             # we've the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
-            issue = db.query_issue( result.get_ref() )
+            issue = db.query_issue( issue_form_result.get_ref() )
             book.save_issue(issue, self)
             return BookStatus("SCRAPED")
 
@@ -563,7 +564,7 @@ class ScrapeEngine(object):
             for ref in issue_refs:
                # strip leading zeroes (see issue 81)
                if ref.issue_num_s.lstrip('0') == issue_num_s.lstrip('0'):
-                  result = IssueFormResult(IssueFormResult.OK, ref) # found it!
+                  result = IssueFormResult("OK", ref) # found it!
                   log.debug("found info for issue number ", issue_num_s, )
                   break
 
@@ -573,7 +574,7 @@ class ScrapeEngine(object):
       # the cover for this issue in the series dialog and chosen it, so no 
       # point in making them choose it again...just use the one choice we have
       if len(issue_refs) == 1 and not issue_num_s and not force_b:
-         result = IssueFormResult(IssueFormResult.OK, list(issue_refs)[0])
+         result = IssueFormResult("OK", list(issue_refs)[0])
 
       # 3. if there are no issue_refs and that's a problem; tell the user
       if len(issue_refs) == 0:
@@ -581,7 +582,7 @@ class ScrapeEngine(object):
          i18n.get("NoIssuesAvailableText").format(series_name_s),
          i18n.get("NoIssuesAvailableTitle"), MessageBoxButtons.OK, 
          MessageBoxIcon.Warning)
-         result = IssueFormResult(IssueFormResult.BACK)
+         result = IssueFormResult("BACK")
          log.debug("no issues in this series; forcing user to go back...")
       elif force_b or not result:
          # 4. if we are forced to, or we have no result yet, display IssueForm
@@ -590,7 +591,7 @@ class ScrapeEngine(object):
          log.debug("displaying the issue selection dialog", forcing_s, "...")
          with IssueForm(self, hint, issue_refs, series_name_s) as issue_form:
             result = issue_form.show_form()
-            result = result if result else IssueFormResult(IssueFormResult.BACK)
+            result = result if result else IssueFormResult("BACK")
          log.debug('   ...user chose to ', result.get_debug_string())
 
       return result # will not be None now
