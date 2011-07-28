@@ -543,9 +543,9 @@ class SeriesFormResult(object):
             
       if id != "OK" and id != "SHOW" and id != "CANCEL" and \
          id != "SKIP" and id != "SEARCH" and id != "PERMSKIP":
-         raise Exception();
+         raise Exception()
       if (id == "OK" or id == "SHOW") and ref == None:
-         raise Exception();
+         raise Exception()
       
       self.__ref = ref if id == "OK" or id == "SHOW" else None;
       self.__id = id;
@@ -564,7 +564,7 @@ class SeriesFormResult(object):
    def get_ref(self):
       ''' 
       Gets the SeriesRef portion of this result, i.e. the one the user picked.
-      This is only defined when the'id' of this result is "OK" or "SHOW".
+      This is only defined when the id of this result is "OK" or "SHOW".
       '''
       return self.__ref;
 

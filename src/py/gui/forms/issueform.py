@@ -293,8 +293,8 @@ class IssueForm(CVForm):
       dialogAnswer = self.ShowDialog(self.Owner) # blocks
       
       if dialogAnswer == DialogResult.OK:
-         result = IssueFormResult( IssueFormResult.OK, 
-            self.__issue_refs[self.__chosen_index] )
+         result = IssueFormResult( 
+            "OK", self.__issue_refs[self.__chosen_index] )
          alt_image_ref = self.__coverpanel.get_alt_cover_image_url()
          if alt_image_ref:
             # the user chose a non-default cover image for this issue.
@@ -303,14 +303,14 @@ class IssueForm(CVForm):
             alt_cover_key = sstr(result) + "-altcover"
             self.__config.session_data_map[alt_cover_key] = alt_image_ref
       elif dialogAnswer == DialogResult.Cancel:
-         result = IssueFormResult( IssueFormResult.CANCEL )
+         result = IssueFormResult( "CANCEL" )
       elif dialogAnswer == DialogResult.Ignore:
          if self.ModifierKeys == Keys.Control:
-            result = IssueFormResult( IssueFormResult.PERMSKIP )
+            result = IssueFormResult( "PERMSKIP" )
          else:
-            result = IssueFormResult( IssueFormResult.SKIP )
+            result = IssueFormResult( "SKIP" )
       elif dialogAnswer == DialogResult.Retry:
-         result = IssueFormResult( IssueFormResult.BACK )
+         result = IssueFormResult( "BACK" )
       else:
          raise Exception()
       return result
@@ -401,53 +401,53 @@ class IssueForm(CVForm):
 class IssueFormResult(object):
    '''
    Results that can be returned from the IssueForm.show_form() method.  The
-   'name' of this object describes the manner in which the user closed the 
+   'id' of this object describes the manner in which the user closed the 
    dialog:
    
-   1) IssueFormResult.CANCEL means the user cancelled this scrape operation.
-   2) IssueFormResult.SKIP means the user elected to skip the current book.
-   3) IssueFormResult.PERMSKIP means the user elected to skip the current book
+   1) "CANCEL" means the user cancelled this scrape operation.
+   2) "SKIP" means the user elected to skip the current book.
+   3) "PERMSKIP" means the user elected to skip the current book
       during this scrape, AND all future scrapes (i.e. add a 'skip tag' to book)
-   4) IssueFormResult.BACK means the user chose to return to the SeriesForm
-   5) IssueFormResult.OK means the user chose an IssueRef from those displayed
+   4) "BACK" means the user chose to return to the SeriesForm
+   5) "OK" means the user chose an IssueRef from those displayed
       
-   Note that if the IssueFormResult has a name of 'OK', it should also have a 
+   Note that if the IssueFormResult has an id of 'OK', it must also have a 
    non-None 'ref', which is of course the actual IssueRef that the user chose.    
    '''
    
-   OK = "ok"
-   CANCEL = "cancel"
-   SKIP = "skip"
-   PERMSKIP = "permskip"
-   BACK = "back"
-   
    #===========================================================================         
-   def __init__(self, name, ref=None):
+   def __init__(self, id, ref=None):
       ''' 
       Creates a new IssueFormResult.
-      name -> the name of the result, i.e. based on what button the user pressed
+      id -> the id of the result, i.e. "OK", "CANCEL", "BACK", etc.
       ref -> the reference that the user chose, if they chose one at all.
+             (required for "OK".)
       '''  
             
-      if name != self.OK and name != self.CANCEL and \
-         name != self.SKIP and name != self.BACK and name != self.PERMSKIP:
-         raise Exception();
+      if id != "OK" and id != "CANCEL" and \
+         id != "SKIP" and id != "BACK" and id != "PERMSKIP": 
+         raise Exception()
+      if id == "OK" and ref == None:
+         raise Exception()
       
-      self.__ref = ref if name == self.OK else None;
-      self.__name = name;
+      self.__ref = ref if id == "OK" else None;
+      self.__id = id;
 
       
    #===========================================================================         
-   def get_name(self): #coryhigh: rename to id + refactor
-      ''' Gets the 'name' portion of this result (see possibilities above) '''
-      return self.__name;
+   def equals(self, id): 
+      ''' 
+      Returns True iff this SeriesFormResult has the given ID (i.e. one of 
+      "OK, "CANCEL", "SKIP", etc.)
+      '''
+      return self.__id == id
 
    
    #===========================================================================         
    def get_ref(self):
       ''' 
       Gets the IssueRef portion of this result, i.e. the one the user picked.
-      This is only defined when the'name' of this result is "OK".
+      This is only defined when the id of this result is "OK".
       '''
       return self.__ref;
 
@@ -456,15 +456,15 @@ class IssueFormResult(object):
    def get_debug_string(self):
       ''' Gets a simple little debug string summarizing this result.'''
       
-      if self.get_name() == self.SKIP:
+      if self.equals("SKIP"):
          return "SKIP scraping this book"
-      elif self.get_name() == self.PERMSKIP:
+      elif self.equals("PERMSKIP"):
          return "ALWAYS SKIP scraping this book"
-      elif self.get_name() == self.CANCEL:
+      elif self.equals("CANCEL"):
          return "CANCEL this scrape operation"
-      elif self.get_name() == self.BACK:
+      elif self.equals("BACK"):
          return "GO BACK to the series dialog"
-      elif self.get_name() == self.OK:
+      elif self.equals("OK"):
          return "SCRAPE using: '" + sstr(self.get_ref()) + "'"
       else:
          raise Exception()
