@@ -18,15 +18,16 @@ clr.AddReference('System')
 from System import GC
 
 clr.AddReference('System.Drawing')
-from System.Drawing import Point, Rectangle, Size
+from System.Drawing import GraphicsUnit, Point, Rectangle, Size
+from System.Drawing.Imaging import ColorMatrix, ImageAttributes
 
 from System.Threading import Monitor, Thread, ThreadStart, \
    ThreadExceptionEventHandler
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AnchorStyles, Application, AutoScaleMode, \
-   Button, FormBorderStyle, Label, Panel, PictureBox, ProgressBar, \
-   PictureBoxSizeMode
+   Button, FormBorderStyle, Label, PaintEventHandler, Panel, PictureBox, \
+   PictureBoxSizeMode, ProgressBar
 
 # =============================================================================
 class ComicForm(CVForm):
@@ -54,13 +55,18 @@ class ComicForm(CVForm):
       CVForm.__init__(self, scraper.comicrack.MainWindow, \
          "comicformLocation", "comicformSize")
       
+      # coryhigh: comment these!
       self.__cancel_on_close = True
       
       self.__scraper = scraper
       
       self.__already_closed = False
       
-      self.__last_scraped_book = None 
+      self.__current_book = None
+      
+      self.__current_page = 0 
+      
+      self.__current_page_count = 0
       
       self.__build_gui()
    
@@ -136,6 +142,11 @@ class ComicForm(CVForm):
       pbox.Size = Size(320, 496)
       pbox.Anchor = AnchorStyles.Top | \
          AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+       
+      # register listeners on the panel  
+      pbox.MouseClick += self.__picture_box_clicked
+      pbox.MouseDoubleClick += self.__picture_box_clicked
+      
       return pbox
    
    
@@ -180,14 +191,18 @@ class ComicForm(CVForm):
             if book.volume_n >= 0 else (' (' + sstr(book.year_n) +')') \
             if book.year_n >= 0 else ''
         
-      # 2. obtain a copy of the cover page of the book
-      cover_image = book.create_cover_image(self.__scraper)
+      # 2. obtain a copy of the first (cover) page of the book to install
+      page_image = book.create_page_image(self.__scraper, 0)
+      page_count = book.get_page_count()
        
       # 3. install those values into the ComicForm.  update progressbar.        
       def delegate():
          # NOTE: now we're on the ComicForm Application Thread
+         self.__current_book = book
+         self.__current_page = 0
+         self.__current_page_count = page_count
          self.__label.Text = i18n.get("ComicFormScrapingLabel") + book_name
-         self.__pbox_panel.set_image(cover_image) # cover image may be None
+         self.__pbox_panel.set_image(page_image) # cover image may be None
          self.__progbar.PerformStep()
          self.__progbar.Maximum = self.__progbar.Value + num_remaining
          self.__cancel_button.Text=\
@@ -262,7 +277,18 @@ class ComicForm(CVForm):
       if not self.__already_closed:
          utils.invoke(self, delegate, True)
           
-             
+   # ==========================================================================           
+   def _can_change_page(self, forward):
+      '''
+      Returns whether or not the user can change the currently displayed comic
+      book page forward (or backward if 'foward==False').  This value is 
+      computed based on the current page and the number of available pages.
+      ''' 
+      if forward:
+         return self.__current_page < self.__current_page_count-1
+      else: 
+         return self.__current_page > 0
+                
               
    # ==========================================================================           
    def __form_closing_fired(self, sender, args):
@@ -288,11 +314,39 @@ class ComicForm(CVForm):
          self.__scraper.cancel()
          
       # clean up and disposal
+      self.__current_book = None
+      self.__current_page = 0
       self.__pbox_panel.Dispose(True)
       del self.__pbox_panel
       GC.Collect()
       
       
+   # ==========================================================================
+   def __picture_box_clicked(self, sender, args):
+      ''' This method is called whenever the user clicks on the pboxpanel. '''
+      if self.__current_book != None:
+         # 1. calculate a new current page index, based on where use clicked
+         leftside = args.X < self.__pbox_panel.Width/2
+         self.__current_page += (-1 if leftside else 1)
+         self.__current_page = \
+            min( self.__current_page_count-1, max(0, self.__current_page) )
+         
+         # grab the new page_image on the main ComicRack thread, because doing 
+         # so accesses ComicRack's data.  then set it our own thread, because
+         # doing so accesses our own data!  thread safety is fun.
+         page_index = self.__current_page # athread safety copy
+         page_image = [None]
+         def get_page():
+            page_image[0] =\
+               self.__current_book.create_page_image(self.__scraper, page_index)
+            def set_page():
+               self.__pbox_panel.set_image(page_image[0]) # image may be None
+               self.__pbox_panel.Refresh() # just in case nothing changed
+               log.debug(page_index) # coryhigh: delete
+            utils.invoke(self, set_page, False)
+         utils.invoke( self.__scraper.comicrack.MainWindow, get_page, False )
+      
+
    # ==========================================================================
    def CenterToParent(self):
       # Overridden  to  makes the initial position of this form a little nicer
@@ -316,15 +370,34 @@ class _PictureBoxPanel(Panel):
    def __init__(self):
       ''' Creates a _PictureBoxPanel.  Call set_image after initialization. '''
       
+      # coryhigh: clean this up
       Panel.__init__(self)
+      
+      self.__left_arrow = Resources.createArrowIcon(True)
+      self.__right_arrow = Resources.createArrowIcon(False)
+      self.__mouse_hovered_left = False
+      self.__mouse_hovered_right = False
+      
+      cm = ColorMatrix()
+      cm.Matrix33 = 0.55
+      self.__solid_image_atts = ImageAttributes()
+      self.__alpha_image_atts = ImageAttributes()
+      self.__alpha_image_atts.SetColorMatrix(cm)
+      
       self._picbox = PictureBox()
       self._picbox.SizeMode = PictureBoxSizeMode.StretchImage
       self._picbox.Location = Point(0,0)
+      self._picbox.Enabled = False
+      
       self.Controls.Add(self._picbox)
       self.set_image(None)
       
       self.Disposed += self.__disposed_fired
       self.Resize += self.__resize_fired
+      self.MouseMove += self.__mouse_moved
+      self.MouseLeave += self.__mouse_exited
+      self._picbox.Paint += PaintEventHandler(self.__pbox_painted)
+ 
  
    # ==========================================================================     
    def set_image(self, image):
@@ -349,6 +422,20 @@ class _PictureBoxPanel(Panel):
          
       self._picbox.Image = image
       self.OnResize(None)
+
+      
+   # ==========================================================================      
+   def __disposed_fired(self, sender, args):
+      ''' This method is called when this panel is disposed '''
+      
+      # force the PictureBox and arrow icons to dispose in a timely manner 
+      if self._picbox.Image:                                               
+         self._picbox.Image.Dispose()                                      
+      self._picbox.Image = None              
+      self.__left_arrow.Dispose()
+      self.__right_arrow.Dispose()
+      self.__left_arrow = None
+      self.__right_arrow = None
       
       
    # ==========================================================================      
@@ -370,11 +457,60 @@ class _PictureBoxPanel(Panel):
          self._picbox.Location = Point( (self.Size.Width-b.Width)/2, 0 )
       
       
-   # ==========================================================================      
-   def __disposed_fired(self, sender, args):
-      ''' This method is called when this panel is disposed '''
+   # ==========================================================================
+   def __mouse_moved(self, picbox, args):
+      ''' This method is called whenever the mouse enters this panel. '''
+      mouse_hov_left = args.X < self.Width/2
+      if self.__mouse_hovered_left != mouse_hov_left or \
+            self.__mouse_hovered_right == mouse_hov_left:
+         self.__mouse_hovered_left = mouse_hov_left
+         self.__mouse_hovered_right = not mouse_hov_left
+         self.Refresh() # force repaint
+         
+   # ==========================================================================
+   def __mouse_exited(self, picbox, args):
+      ''' This method is called whenever the mouse leaves this panel. '''
+      if self.__mouse_hovered_left or self.__mouse_hovered_right:
+         self.__mouse_hovered_left = False
+         self.__mouse_hovered_right = False
+         self.Refresh() # force repaint
+          
       
-      # force the PictureBox to dispose in a timely manner 
-      if self._picbox.Image:                                               
-         self._picbox.Image.Dispose()                                      
-      self._picbox.Image = None                           
+   # ==========================================================================
+   def __pbox_painted(self, picbox, args):
+      ''' Called everytime (right after) the picturebox paints itself'''
+
+      # coryhigh: comment this method      
+      left_arrow = self.__left_arrow
+      right_arrow = self.__right_arrow
+      if left_arrow.Width != right_arrow.Width and \
+            left_arrow.Height != right_arrow.Height:
+         raise Exception("arrows must be identical dimensions")
+      
+      old_width = float(right_arrow.Width)
+      scaled_width = min(picbox.Width*0.15, old_width)
+      old_height = float(right_arrow.Height)
+      scaled_height = old_height * scaled_width / old_width
+       
+      y = picbox.Height/2-scaled_height/2
+      xoffset = picbox.Width * 0.01
+      leftx = xoffset
+      rightx = picbox.Width-xoffset-scaled_width
+      
+      if self.Parent != None:
+         g = args.Graphics
+         mouse_hovered = self.__mouse_hovered_left or self.__mouse_hovered_right
+         if mouse_hovered and self.Parent._can_change_page(False):
+            dest_rect = Rectangle(leftx, y, scaled_width, scaled_height)
+            image_atts = self.__solid_image_atts if self.__mouse_hovered_left\
+               else self.__alpha_image_atts 
+            g.DrawImage(left_arrow, dest_rect, 0, 0, old_width, old_height,
+                GraphicsUnit.Pixel, image_atts);
+         if mouse_hovered and self.Parent._can_change_page(True):
+            dest_rect = Rectangle(rightx, y, scaled_width, scaled_height)  
+            image_atts = self.__solid_image_atts if self.__mouse_hovered_right\
+               else self.__alpha_image_atts 
+            g.DrawImage(right_arrow, dest_rect, 0, 0, old_width, old_height,
+                GraphicsUnit.Pixel, image_atts);
+      
+
