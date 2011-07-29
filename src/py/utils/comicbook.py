@@ -135,26 +135,30 @@ class ComicBook(object):
 
 
    #==========================================================================
-   def create_cover_image(self, scraper):
+   def create_page_image(self, scraper, page_index):
       ''' 
-      Retrieves an COPY of the cover page (a .NET Image object from ComicRack's
-      database) for this ComicBook.  Returns None if one could not be obtained.
+      Retrieves an COPY of a single page (a .NET "Image" object) for this 
+      ComicBook.  Returns None if the requested page could not be obtained.
       
       scraper --> the ScraperEngine object that is currently running 
+      page_index --> the index of the page to retrieve; a value on the range
+                  [0, n-1], where n is the value returned by get_page_count().
       '''
-      
       fileless = self.filename_ext_s.strip() == ""
-      cover_image = None
-      if fileless:
-         cover_image = None
+      page_image = None
+      if fileless or page_index < 0 or page_index >= self.get_page_count():
+         page_image = None
       else:
-         cover_index = 0 
-         if self.__cr_book.FrontCoverPageIndex > 0:
-            cover_index = self.__cr_book.FrontCoverPageIndex
-         cover_image = \
-            scraper.comicrack.App.GetComicPage( self.__cr_book, cover_index )
-         cover_image = utils.strip_back_cover(cover_image)
-      return cover_image
+         page_image = \
+            scraper.comicrack.App.GetComicPage( self.__cr_book, page_index )
+         page_image = utils.strip_back_cover(page_image)
+      return page_image
+   
+   
+   #==========================================================================
+   def get_page_count(self):
+      ''' Retrieves the number of pages in this ComcBook. '''
+      return self.__cr_book.PageCount
    
          
    #==========================================================================

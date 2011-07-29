@@ -66,3 +66,17 @@ class Resources(object):
       '''
       dir = __file__[:-(len(__name__) + len('.py'))]
       return Image.FromFile( dir + 'comicvinelogo.png')
+   
+   #===========================================================================         
+   @classmethod
+   def createArrowIcon(cls, left=True):
+      '''
+      Obtains a brand new Image object (don't forget to Dispose() it!) that 
+      displays either a left or right pointing arrow.
+      '''
+      dir = __file__[:-(len(__name__) + len('.py'))]
+      return Image.FromFile( dir + 'leftarrow.png') if left \
+         else Image.FromFile( dir + 'rightarrow.png') 
+   
+   
+   
