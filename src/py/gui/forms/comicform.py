@@ -26,8 +26,8 @@ from System.Threading import Monitor, Thread, ThreadStart, \
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AnchorStyles, Application, AutoScaleMode, \
-   Button, FormBorderStyle, Label, PaintEventHandler, Panel, PictureBox, \
-   PictureBoxSizeMode, ProgressBar
+   Button, Cursors, FormBorderStyle, Label, PaintEventHandler, Panel, \
+   PictureBox, PictureBoxSizeMode, ProgressBar
 
 # =============================================================================
 class ComicForm(CVForm):
@@ -55,17 +55,23 @@ class ComicForm(CVForm):
       CVForm.__init__(self, scraper.comicrack.MainWindow, \
          "comicformLocation", "comicformSize")
       
-      # coryhigh: comment these!
+      # whether or not this form should call cancel when it is closed.
+      # this is mainly to fix a difficult bug caused by calling cancel twice 
       self.__cancel_on_close = True
       
-      self.__scraper = scraper
-      
+      # stops us from calling close twice.  also fixes a tricky bug.
       self.__already_closed = False
       
+      # an internal reference to the main scrapeengine object
+      self.__scraper = scraper
+      
+      # the book that is currently being scraped
       self.__current_book = None
       
+      # the page from the currently scraped book that is currently displayed
       self.__current_page = 0 
       
+      # the number of pages in the currently scraped book
       self.__current_page_count = 0
       
       self.__build_gui()
@@ -324,6 +330,10 @@ class ComicForm(CVForm):
    # ==========================================================================
    def __picture_box_clicked(self, sender, args):
       ''' This method is called whenever the user clicks on the pboxpanel. '''
+      
+      # this method causes the currently displayed page to change, either
+      # forward or backward, as a result of the user clicking on the pbox
+      
       if self.__current_book != None:
          # 1. calculate a new current page index, based on where use clicked
          leftside = args.X < self.__pbox_panel.Width/2
@@ -342,7 +352,6 @@ class ComicForm(CVForm):
             def set_page():
                self.__pbox_panel.set_image(page_image[0]) # image may be None
                self.__pbox_panel.Refresh() # just in case nothing changed
-               log.debug(page_index) # coryhigh: delete
             utils.invoke(self, set_page, False)
          utils.invoke( self.__scraper.comicrack.MainWindow, get_page, False )
       
@@ -370,33 +379,57 @@ class _PictureBoxPanel(Panel):
    def __init__(self):
       ''' Creates a _PictureBoxPanel.  Call set_image after initialization. '''
       
-      # coryhigh: clean this up
-      Panel.__init__(self)
-      
+      # the left and right arrow Image objects
       self.__left_arrow = Resources.createArrowIcon(True)
       self.__right_arrow = Resources.createArrowIcon(False)
+
+      # the image attributes to use for drawing non-alpha blended images      
+      self.__solid_image_atts = None
+      
+      # the image attributes to use for drawing alpha blended images      
+      self.__alpha_image_atts = None
+      
+      # whether the mouse is hovered over the left side of this panel
       self.__mouse_hovered_left = False
+      
+      # whether the mouse is hovered over right left side of this panel
       self.__mouse_hovered_right = False
       
+      # our PictureBox object, which we center and stretch as needed 
+      self._picbox = None
+      
+      Panel.__init__(self)
+      self.__build_gui()
+      
+
+
+   #===========================================================================
+   def __build_gui(self):
+      '''  Builds and initializes the gui for this panel '''      
+
+      # configure our image attribute objects      
       cm = ColorMatrix()
       cm.Matrix33 = 0.55
       self.__solid_image_atts = ImageAttributes()
       self.__alpha_image_atts = ImageAttributes()
       self.__alpha_image_atts.SetColorMatrix(cm)
       
+      # build our PictureBox
       self._picbox = PictureBox()
       self._picbox.SizeMode = PictureBoxSizeMode.StretchImage
       self._picbox.Location = Point(0,0)
       self._picbox.Enabled = False
-      
       self.Controls.Add(self._picbox)
-      self.set_image(None)
       
+      # set up our listeners
       self.Disposed += self.__disposed_fired
       self.Resize += self.__resize_fired
       self.MouseMove += self.__mouse_moved
       self.MouseLeave += self.__mouse_exited
       self._picbox.Paint += PaintEventHandler(self.__pbox_painted)
+      
+      # initialize ourself with a non-existent image
+      self.set_image(None)
  
  
    # ==========================================================================     
@@ -422,6 +455,12 @@ class _PictureBoxPanel(Panel):
          
       self._picbox.Image = image
       self.OnResize(None)
+      
+      # update our mouse cursor
+      comicform = self.Parent
+      if comicform != None:
+         self.Cursor = Cursors.Hand if comicform._can_change_page(True) or \
+           comicform._can_change_page(False) else None
 
       
    # ==========================================================================      
@@ -478,26 +517,34 @@ class _PictureBoxPanel(Panel):
       
    # ==========================================================================
    def __pbox_painted(self, picbox, args):
-      ''' Called everytime (right after) the picturebox paints itself'''
+      ''' Called after the picturebox paints itself. '''
 
-      # coryhigh: comment this method      
+      # this method adds two arrows (left and right) to the PictureBox, 
+      # painted on top of it's regular graphcis.
+         
       left_arrow = self.__left_arrow
       right_arrow = self.__right_arrow
       if left_arrow.Width != right_arrow.Width and \
             left_arrow.Height != right_arrow.Height:
          raise Exception("arrows must be identical dimensions")
       
+      # 1. compute scaled widths and heights for the arrow images
       old_width = float(right_arrow.Width)
       scaled_width = min(picbox.Width*0.15, old_width)
       old_height = float(right_arrow.Height)
       scaled_height = old_height * scaled_width / old_width
        
+      # 2. compute the right location for the arrow images
       y = picbox.Height/2-scaled_height/2
       xoffset = picbox.Width * 0.01
       leftx = xoffset
       rightx = picbox.Width-xoffset-scaled_width
       
       if self.Parent != None:
+         
+         # 3. paint each arrow if it is possible to "turn the page" in that
+         #    direction.   alpha-blend the inactive arrow (the one on the half
+         #    of the pbox that the mouse ISN'T hovering over.)
          g = args.Graphics
          mouse_hovered = self.__mouse_hovered_left or self.__mouse_hovered_right
          if mouse_hovered and self.Parent._can_change_page(False):
