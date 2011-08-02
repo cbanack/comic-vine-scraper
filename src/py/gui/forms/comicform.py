@@ -344,11 +344,12 @@ class ComicForm(CVForm):
          # grab the new page_image on the main ComicRack thread, because doing 
          # so accesses ComicRack's data.  then set it our own thread, because
          # doing so accesses our own data!  thread safety is fun.
-         page_index = self.__current_page # athread safety copy
+         page_index = self.__current_page # a thread safety copy
+         current_book = self.__current_book # a thread safety copy
          page_image = [None]
          def get_page():
             page_image[0] =\
-               self.__current_book.create_page_image(self.__scraper, page_index)
+               current_book.create_page_image(self.__scraper, page_index)
             def set_page():
                self.__pbox_panel.set_image(page_image[0]) # image may be None
                self.__pbox_panel.Refresh() # just in case nothing changed

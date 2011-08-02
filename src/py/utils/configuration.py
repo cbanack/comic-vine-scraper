@@ -65,7 +65,7 @@ class Configuration(object):
       self.specify_series_b = False # user specify series search terms
       self.show_covers_b = True # show cover images when possible
       self.download_thumbs_b = True # download thumbnails for fileless comics
-      self.preserve_thumbs_b = False # ...except when they already have thumbs
+      self.preserve_thumbs_b = True # ...except when they already have thumbs
       self.scrape_in_groups_b = True # group comics by series when scraping
       self.fast_rescrape_b = True # use previous scrape choice when available
       self.rescrape_notes_b = True # store prev scrape choice in notes field

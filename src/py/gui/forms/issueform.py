@@ -10,6 +10,7 @@ import i18n
 from buttondgv import ButtonDataGridView
 from issuecoverpanel import IssueCoverPanel
 from cvform import CVForm
+import log
 
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection
@@ -300,7 +301,7 @@ class IssueForm(CVForm):
             # the user chose a non-default cover image for this issue.
             # we'll store that choice in the global "session data map",
             # in case any other part of the program wants to use it.
-            alt_cover_key = sstr(result) + "-altcover"
+            alt_cover_key = sstr(result.get_ref().issue_key) + "-altcover"
             self.__config.session_data_map[alt_cover_key] = alt_image_ref
       elif dialogAnswer == DialogResult.Cancel:
          result = IssueFormResult( "CANCEL" )
