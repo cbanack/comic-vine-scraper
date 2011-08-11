@@ -26,8 +26,8 @@ from System.Threading import Monitor, Thread, ThreadStart, \
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AnchorStyles, Application, AutoScaleMode, \
-   Button, Cursors, FormBorderStyle, Label, PaintEventHandler, Panel, \
-   PictureBox, PictureBoxSizeMode, ProgressBar
+   Button, Cursors, FormBorderStyle, Label, MouseButtons, PaintEventHandler, \
+   Panel, PictureBox, PictureBoxSizeMode, ProgressBar
 
 # =============================================================================
 class ComicForm(CVForm):
@@ -332,9 +332,9 @@ class ComicForm(CVForm):
       ''' This method is called whenever the user clicks on the pboxpanel. '''
       
       # this method causes the currently displayed page to change, either
-      # forward or backward, as a result of the user clicking on the pbox
+      # forward or backward, as a result of the user left-clicking on the pbox
       
-      if self.__current_book != None:
+      if self.__current_book != None and args.Button == MouseButtons.Left:
          # 1. calculate a new current page index, based on where use clicked
          leftside = args.X < self.__pbox_panel.Width/2
          self.__current_page += (-1 if leftside else 1)
