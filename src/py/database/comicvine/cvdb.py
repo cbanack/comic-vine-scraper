@@ -756,12 +756,13 @@ def __issue_parse_roles(issue, dom):
    # this is a dictionary of comicvine role descriptors, mapped to the 
    # 'issue' attribute names of the member variables that we want to 
    # assign the associated values to.  so any comicvine person with the
-   # 'coverr' role will, for example, be assigned to the issue.CoverArtist
+   # 'cover' role will, for example, be assigned to the issue.cover_artists
    #  attribue.
    ROLE_DICT = {'writer':['writers'], 'penciler':['pencillers'], \
       'artist':['pencillers','inkers'], 'inker':['inkers'],\
       'cover':['cover_artists'], 'editor':['editors'],\
-      'colorer':['colorists'], 'letterer':['letterers']} 
+      'colorer':['colorists'], 'colorist':['colorists'],\
+      'letterer':['letterers']} 
    
    # a simple test to make sure that all the values in ROLE_DICT match up 
    # with members (symbols) in 'issue'.  this is to protect against renaming!
