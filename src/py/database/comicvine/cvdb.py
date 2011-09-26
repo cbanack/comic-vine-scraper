@@ -757,7 +757,7 @@ def __issue_parse_roles(issue, dom):
    # 'issue' attribute names of the member variables that we want to 
    # assign the associated values to.  so any comicvine person with the
    # 'cover' role will, for example, be assigned to the issue.cover_artists
-   #  attribue.
+   #  attribute.
    ROLE_DICT = {'writer':['writers'], 'penciler':['pencillers'], \
       'artist':['pencillers','inkers'], 'inker':['inkers'],\
       'cover':['cover_artists'], 'editor':['editors'],\
