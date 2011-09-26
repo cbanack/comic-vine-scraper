@@ -262,14 +262,14 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
          issue_data = f.readline()
          while issue_data: # might contain newline or whitespace
             if issue_data.strip():
-               tuple = issue_data.strip().split(",")
-               if len(tuple) != 3: 
+               ctuple = issue_data.strip().split(",")
+               if len(ctuple) != 3: 
                   # something's gone very wrong; clear the cache results
                   issues_to_tuples = {}
                   break
                else:
-                  issue_key = tuple[1]
-                  issues_to_tuples[issue_key] = (tuple[0],tuple[1],tuple[2])
+                  issue_key = ctuple[1]
+                  issues_to_tuples[issue_key] = (ctuple[0],ctuple[1],ctuple[2])
             issue_data = f.readline()
          del issue_data
          loaded_from_cache_n = len(issues_to_tuples)
@@ -341,11 +341,11 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
          return cmp(int(t1[2]), int(t2[2])) or cmp(t1[0], t2[0])
       
       with open(cache_file, 'w') as f:
-         for tuple in sorted(issues_to_tuples.values(), _compare_tuples):
-            if is_string(tuple[0]) and is_number(tuple[1])\
-                  and is_number(tuple[2]):
-               f.write(sstr(tuple[0]) + ',' + \
-                  sstr(tuple[1]) + ',' + sstr(tuple[2]) + '\n')
+         for ctuple in sorted(issues_to_tuples.values(), _compare_tuples):
+            if is_string(ctuple[0]) and is_number(ctuple[1])\
+                  and is_number(ctuple[2]):
+               f.write(sstr(ctuple[0]) + ',' + \
+                  sstr(ctuple[1]) + ',' + sstr(ctuple[2]) + '\n')
                
    # 7. prune out the tuples that don't match the current series, and make
    #    a list of IssueRefs out of the remaining tuples
