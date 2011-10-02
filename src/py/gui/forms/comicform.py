@@ -92,7 +92,7 @@ class ComicForm(CVForm):
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(346, 604)  
       self.MinimumSize = Size(166,275)
-      self.FormBorderStyle = FormBorderStyle.SizableToolWindow
+      self.FormBorderStyle = FormBorderStyle.Sizable
       self.Icon = None
    
       self.Controls.Add(self.__progbar)

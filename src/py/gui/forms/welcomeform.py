@@ -134,7 +134,7 @@ class WelcomeForm(CVForm):
       (False) or whether the user clicked ok to continue (True).
       '''
       
-      dialogAnswer = self.ShowDialog() # blocks
+      dialogAnswer = self.ShowDialog(self.Owner) # blocks
       return dialogAnswer == DialogResult.OK;      
       
    # ==========================================================================
