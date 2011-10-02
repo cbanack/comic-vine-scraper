@@ -36,9 +36,21 @@ class CVForm(PersistentForm):
       self.MinimizeBox = False                                                
       self.ShowIcon = False                                                   
       self.ShowInTaskbar = False    
-      self.FormBorderStyle = FormBorderStyle.FixedToolWindow
+      self.FormBorderStyle = FormBorderStyle.FixedSingle
       
-
+      
+   #===========================================================================
+   def ShowDialog(self, owner=None):
+      ''' Overidden to make the ShowDialog method behave more sensibly when 
+          an Owner is already set on the form; i.e. now you don't have to 
+          re-specify that owner. '''
+      if owner:
+         return super(CVForm, self).ShowDialog(owner)
+      elif self.Owner:
+         return super(CVForm, self).ShowDialog(self.Owner)
+      else:
+         return super(CVForm, self).ShowDialog()         
+         
    #===========================================================================
    def __enter__(self):
       ''' Called automatically if you use this form in a python "with" block.'''
@@ -46,7 +58,7 @@ class CVForm(PersistentForm):
    
    
    #===========================================================================
-   def __exit__(self, type, value, traceback):
+   def __exit__(self, type, value, traceback): 
       ''' Called automatically if you use this form in a python "with" block.'''
       
       # ensure that the form is closed and disposed in a timely manner.

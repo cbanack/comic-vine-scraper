@@ -10,7 +10,6 @@ import i18n
 from buttondgv import ButtonDataGridView
 from issuecoverpanel import IssueCoverPanel
 from cvform import CVForm
-import log
 
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection

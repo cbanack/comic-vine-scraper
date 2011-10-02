@@ -533,7 +533,7 @@ class SeriesFormResult(object):
    '''
    
    #===========================================================================         
-   def __init__(self, id, ref=None):
+   def __init__(self, id, ref=None): 
       ''' 
       Creates a new SeriesFormResult.
       id -> the id of the result, i.e. "OK", "SHOW", "CANCEL", "SKIP", etc.

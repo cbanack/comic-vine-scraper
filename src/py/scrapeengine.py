@@ -167,6 +167,7 @@ class ScrapeEngine(object):
          self.config = Configuration()
          self.config.load_defaults()
          if self.__cancelled_b:
+            log.debug("Cancelled!")
             return # user cancelled the scrape
 
       # 3. print the entire configuration to the debug stream
@@ -521,7 +522,7 @@ class ScrapeEngine(object):
       if series_refs:
          log.debug('displaying the series selection dialog...')
          with  SeriesForm(self, book, series_refs, search_terms_s) as sform:
-            result = sform.show_form()
+            result = sform.show_form() 
          log.debug('   ...user chose to ', result.get_debug_string())
       return result
 
