@@ -9,7 +9,6 @@ ComicVineScraper distributable and will not be run by regular users.
 import sys
 import os
 import cPickle
-from resources import Resources
 
 import clr
 clr.AddReferenceByPartialName("System.Windows.Forms")
@@ -34,12 +33,14 @@ class ComicRack(object):
    
    @classmethod
    def Localize(cls, resource, key, backuptext):
-      return backuptext    
+      return backuptext   
    
    App = AppImpl()
    MainWindow = MainForm()
-   MainWindow.Show()
-   MainWindow.CenterToScreen()
+   
+   # the existence of the attribute tells identifies this as our "fake" version
+   # of ComicRack, not the real application.  it's how we know we're standalone  
+   StandAloneFlag = None 
 
 #==============================================================================
 
@@ -49,14 +50,7 @@ class ComicRack(object):
 import ComicVineScraper
 ComicVineScraper.ComicRack = ComicRack
 
-
-# 2. change the location of key resources so that we run out of a profile 
-#    directory in our project on the IDE, rather than the real profile dir.
-Resources.enable_ide_mode( os.path.dirname(
-   os.path.dirname( os.path.dirname(__file__))) )
-
-
-# 3. now go ahead and start the ComicVineScraper plugin.
+# 2. now go ahead and start the ComicVineScraper plugin.
 if len(sys.argv) == 2:
       # note that this doesn't work (for highly mysterious reasons) if you
       # change the project source character encoding to anything other 

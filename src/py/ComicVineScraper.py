@@ -31,6 +31,7 @@ from scrapeengine import ScrapeEngine
 from configform import ConfigForm
 from utils import sstr
 from comicbook import ComicBook
+from resources import Resources
 
 clr.AddReference('System')
 from System.Threading import ThreadExceptionEventHandler
@@ -83,6 +84,9 @@ def __launch(delegate):
    it will take care of cleaning everything up afterwards.
    ''' 
    try:
+      # initialize the application resources (import directories, etc)
+      Resources.initialize("StandAloneFlag" in dir(ComicRack))
+      
       # fire up the debug logging system
       log.install(ComicRack.MainWindow)
       
