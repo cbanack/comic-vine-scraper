@@ -7,7 +7,7 @@ clr.AddReference('System.Drawing')
 from System.Drawing import Image
 clr.AddReference('System')
 from System import Environment
-from System.IO import Directory
+from System.IO import Directory, File
 
 #==============================================================================
 class Resources(object):
@@ -42,17 +42,23 @@ class Resources(object):
    
    # the full name of the app, including version string
    SCRIPT_FULLNAME = 'Comic Vine Scraper - v' + SCRIPT_VERSION
-   
-   #===========================================================================
-   @classmethod
-   def enable_standalone_mode(cls, project_dir):
+
+   #==============================================================================
+   @classmethod 
+   def initialize(cls, standalone):
       '''
-      This method switches the Resources object from "normal" mode (where all
-      dirs and paths, etc, are in the user's normal ComicRack profile dir) to
-      IDE mode, where these values are pointing to locations inside the IDE's
-      project directory.   This is only meant to be run during development.
+      Initialize the Resources class.  This method MUST be called exactly once
+      before you try to make use of this class in any other way.  The 
+      'standalone' argument determines whether we should configure Resources
+      for running this app standalone (True) or as a ComicRack plugin (False). 
       '''
-      cls.STANDALONE_MODE = True
+      # this code runs before we have our proper error handling installed, so 
+      # wrap it in a try-except block so at least we have SOME error handling
+      try:
+         cls.__initialize(standalone)
+      except:
+         print sys.exc_info()[1]
+         sys.exit();   
 
    #===========================================================================         
    @classmethod
@@ -76,44 +82,61 @@ class Resources(object):
          else Image.FromFile( dir + 'rightarrow.png') 
    
   
+   
    #==============================================================================
    @classmethod
-   def __import_legacy_settings(cls):
+   def __initialize(cls, standalone):
+      ''' Implements the publicly accessible method of the same name. '''
+      cls.STANDALONE_MODE = standalone
+
+      # get the basic locations that the other locations build on      
+      script_dir = Directory.GetParent(__file__).FullName
+      profile_dir = Environment.GetFolderPath(
+         Environment.SpecialFolder.ApplicationData) + \
+         r"\Comic Vine Scraper"
+      if not File.Exists(profile_dir):
+         Directory.CreateDirectory(profile_dir)
+      
+      if standalone:
+         # set the standard locations for when we are running in standalone
+         # mode (including when running directly out of the IDE) 
+         cls.SETTINGS_FILE = profile_dir + r'\settings.dat'
+         cls.GEOMETRY_FILE = profile_dir + r'\geometry.dat'
+         cls.I18N_DEFAULTS_FILE = script_dir + r"\en.zip"
+         
+         # do a special trick to make standalone mode run from within the IDE,
+         # where certain files like 'en.zip' are in different locations
+         ide_i18n_file = Directory.GetParent( 
+            Directory.GetParent( script_dir).FullName ).FullName + \
+            r'\src\resources\languages\en.zip'
+         if not File.Exists(cls.I18N_DEFAULTS_FILE) \
+               and File.Exists( ide_i18n_file ):
+            cls.I18N_DEFAULTS_FILE = ide_i18n_file
+             
+      elif not standalone:
+         # set the standard locations for when we are running in plugin mode
+         cls.SETTINGS_FILE = script_dir + r'\settings.dat'
+         cls.GEOMETRY_FILE = script_dir + r'\geometry.dat'
+         cls.I18N_DEFAULTS_FILE = script_dir + r'\en.zip'
+         
+      # the cache directory is the same regardless of which mode we're running
+      cls.LOCAL_CACHE_DIRECTORY = profile_dir + r'\localCache'
+      
+      # see if there is a old cache available for us to import
+      cls.__import_legacy_cache()
+   
+   #==============================================================================
+   @classmethod
+   def __import_legacy_cache(cls):
+      '''
+      This method looks to see if there is a) a cache available in the old
+      location, and b) no cache available in the new location.  If so, it 
+      moves the entire cache from the old location to the new one.
+      '''
       roaming_dir = Environment.GetFolderPath(
          Environment.SpecialFolder.ApplicationData)
-      legacy_dir = roaming_dir + "\cYo\ComicRack\Scripts\Comic Vine Scraper"
-      settings_dir = roaming_dir + "\Comic Vine Scraper"
-      print "Legacy: " + legacy_dir
-      print "Settings: " + settings_dir
-   
-   # coryhigh: comment all this
-   @classmethod
-   def __initialize(cls, standalone):
-      cls.STANDALONE_MODE = standalone
-      if standalone:
-         project_dir = Directory.GetParent( Directory.GetParent(
-           Directory.GetParent(__file__).FullName).FullName ).FullName
-         script_dir = project_dir + r"\\profile\\"
-         cls.LOCAL_CACHE_DIRECTORY = script_dir + r'localCache\\'
-         cls.SETTINGS_FILE = script_dir + r'settings.dat'
-         cls.GEOMETRY_FILE = script_dir + r'geometry.dat'
-         cls.I18N_DEFAULTS_FILE = project_dir + \
-            r'\src\resources\languages\en.zip'
-      else:
-         script_dir = __file__[:-len('resources.py')]
-         cls.LOCAL_CACHE_DIRECTORY = script_dir + 'localCache/'
-         cls.SETTINGS_FILE = script_dir + 'settings.dat'
-         cls.GEOMETRY_FILE = script_dir + 'geometry.dat'
-         cls.I18N_DEFAULTS_FILE = script_dir + 'en.zip'
-      
-   
-   @classmethod
-   def initialize(cls, standalone):
-      # this code runs before we have our proper error handling installed, so 
-      # wrap it in a try-except block so at least we have SOME error handling
-      try:
-         cls.__import_legacy_settings()
-         cls.__initialize(standalone)
-      except:
-         print sys.exc_info()[1]
-         sys.exit();
+      legacy_dir = roaming_dir + \
+         "\cYo\ComicRack\Scripts\Comic Vine Scraper\localCache"
+      target_dir = cls.LOCAL_CACHE_DIRECTORY
+      if Directory.Exists(legacy_dir) and not Directory.Exists(target_dir):
+         Directory.Move(legacy_dir, target_dir)

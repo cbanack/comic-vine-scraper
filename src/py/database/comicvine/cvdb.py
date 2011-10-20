@@ -489,7 +489,7 @@ def __get_cache_file_path(series_ref, extension = ''):
    '''
    
    series_id_n = int(series_ref.series_key)
-   cache_dir = Resources.LOCAL_CACHE_DIRECTORY + 'comicvine/'
+   cache_dir = Resources.LOCAL_CACHE_DIRECTORY + '\\comicvine\\'
    
    cache_file = ''
    legacy_cache = cache_dir + sstr(series_id_n) + extension
