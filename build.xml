@@ -35,6 +35,7 @@
    	<copy todir="${zip.dir}" flatten="true" includeemptydirs="false">
    	   <fileset dir="${src.dir}">
    	   	<exclude name="**/__init__.py"/>
+   	   	<exclude name="**/tests/**"/>
    	   </fileset>
       </copy>
    	

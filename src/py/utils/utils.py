@@ -5,7 +5,6 @@ This module contains a variety of generally useful utility methods.
 '''
 
 import clr
-import log
 from time import strftime
 import re
 import sys
@@ -176,6 +175,7 @@ def persist_map(map, file):
    """
    
    try:
+      import log
       with StreamWriter(file, False, Encoding.UTF8) as sw:
          sw.Write(":: This file was generated on "\
             + strftime(r'%Y.%m.%d %X') + "\n\n")
@@ -225,6 +225,7 @@ def load_map(file):
                   retval[key] = value
                line = sr.ReadLine()
    except:
+      import log
       log.debug_exc("problem loading mapfile " + sstr(file))
       retval = {}
    return retval
