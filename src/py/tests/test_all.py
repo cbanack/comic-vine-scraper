@@ -1,18 +1,33 @@
 '''
-This module contains all of the unit tests for this project, amalgamated into 
-a single test suite.
+This module contains all of the unit tests for this project, 
+amalgamated into a single test suite.
 
 Created on Oct 26, 2011
 @author: cbanack
-'''
+''' 
 import unittest
-from test_fnameparser import TestFnameParser
-from test_utils import TestUtils
+import test_fnameparser
+import sys
 
 #==============================================================================
-class Test(unittest.TestSuite):
+class AllTests(unittest.TestSuite):
    ''' A testsuite containing all unit tests for this project. '''
-   
    def __init__(self):
-      testcases = [TestFnameParser, TestUtils ]
-      unittest.TestSuite.__init__( self, [ x.suite() for x in testcases ])
+      loader = unittest.defaultTestLoader
+      unittest.TestSuite.__init__( self,
+         # add new test cases and test modules here.
+         loader.loadTestsFromModule(test_fnameparser), 
+         # TestLoader.loadTestsFromTestCase(test_fnameparser)
+      )
+
+#==============================================================================
+def load_tests(a,b,c):
+   ''' Makes sure this module's tests are autodiscovered properly. '''
+   return AllTests()
+ 
+
+#==============================================================================
+if __name__ == "__main__":
+   ''' make sure we run properly if called from the command line '''
+   runner = unittest.TextTestRunner(stream=sys.stdout, verbosity=1)
+   unittest.main(module='test_all', defaultTest='AllTests', testRunner=runner)
