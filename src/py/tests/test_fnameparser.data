@@ -1,0 +1,114 @@
+# This file contains the test data for the filename parser unit test.
+# The data is formatted with three strings to a line, where the three strings
+# are all either delineated by double quotes (") or all by single quotes (').
+# Characters (like whitespace and commas) outside of the strings are ignored.
+#
+# The first string is the name of the file to parse.
+# The second is the expected series name that the filename parser should find.
+# The third is the expected issue number string that the parser should find.
+   
+            # coryhigh: think of naming without brackets as the cuttoff??
+            # maybe strip out anything in brackets, leave rest behind?
+            # strip off anything after last period? unless period is too far left
+            # what if whole thing is in brackets?
+            
+            # do a two phase process:
+            #    1. strip out everything that you can
+            #    2. figure out the issue number from whats left, remove it
+            #    3. clean up what's left, that's the series name
+            
+            # how does comicrack handle that?
+            # think of variant ways that "volume" can be in there.
+            # think of patterns for stripping numbers?
+            # negative numbers
+            # test examples with both kinds of quotes in them
+            
+# first some very standard ones - these are how "normal" filenames look
+"Amazing-Spider-Man 671 (2011) (Digital-Empire).cbr", "Amazing-Spider-Man", "671"
+"American Vampire - Survival of The Fittest 05 (of 05) (2011) (digital-TheGroup).cbr", "American Vampire - Survival of The Fittest", "5" 
+"Baltimore - The Curse Bells 03 (of 05) (2011) (Minutemen-DTs).cbz", "Baltimore - The Curse Bells", "3"
+"Batgirl 002 (2011) (digital-TheGroup).cbr", "Batgirl", "2"
+"Buffy the Vampire Slayer Season 9 02 (2011) (two covers) (Minutemen-DTs).cbz", "Buffy the Vampire Slayer Season 9", "2"
+"Comic Shop News 1269(c2c)(Comic Shop News)(2011)(YZ1).cbr", "Comic Shop News", "1269")
+"Comic Shop News 1333.cbr", "Comic Shop News", "1333"
+"Critter 3(c2c)(2011)(Re-em).cbr", "Critter", "3"
+"Daily Bugle Avenging Spider-Man (2011) (digital-Empire).cbr", "Daily Bugle Avenging Spider-Man", ""
+      
+# some filenames can have weird bracketing
+"Conan 0a [c2c][2011]  [Re-em].cbr", "Conan", "0a"
+"Conan 0a {c2c } {2011}  {Re-em}.cbr", "Conan", "0a"
+"Conan 0a [[c2c][2011]]  [Re-em].cbr", "Conan", "0a"
+"Conan 0a (((c2c)(2011)  [Re-em])[special]).cbr", "Conan", "0a"
+      
+# certain series have numbers in the name, which can cause problems
+"2000AD 1740 (29-06-11) (John Williams-DCP).cbr", "2000AD", "1740" 
+"2000AD 0001 (29-06-11).cbz", "2000AD", "1" 
+"2000AD 0001 (29-06-11).cbz", "2000AD", "1" 
+       
+# if the word "volume" or a variant thereof appears, ignore it
+"Comic Shop News 1333 Vol. 3.cbr", "Comic Shop News", "1333" 
+"Comic Shop News 1333 Vol.3.cbr", "Comic Shop News", "1333" 
+"Comic Shop News 1333b V 3.cbr", "Comic Shop News", "1333b"
+"Comic Shop News -1333 Volume 3.cbr", "Comic Shop News", "-1333" 
+"Comic Shop News -13.33 Vol 5.cbr", "Comic Shop News", "-13.33" 
+"Comic Shop News -1.333c Vol5.cbr", "Comic Shop News", "-1.333c" 
+"Comic Shop News 1333 V1.cbr", "Comic Shop News", "1333"
+       
+"Comic Shop News Vol. 3 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News Vol.3 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News V 3 1222.cbr", "Comic Shop News", "1222"
+"Comic Shop News Volume 3a 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News Volume23 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News Vol 5cdf 1222.cbr", "Comic Shop News", "1222"
+"Comic Shop News Vol5s 1222cory.cbr", "Comic Shop News", "1222cory" 
+"Comic Shop News V1 1222.cbr", "Comic Shop News", "1222"
+      
+"Comic Shop News Vol. 3.cbr", "Comic Shop News", "" 
+"Comic Shop News Vol.3.cbr", "Comic Shop News", "" 
+"Comic Shop News V 3.cbr", "Comic Shop News", ""
+"Comic Shop News Volume 3.cbr", "Comic Shop News", "" 
+"Comic Shop News Volume23.cbr", "Comic Shop News", "" 
+"Comic Shop News Vol 5.cbr", "Comic Shop News", "" 
+"Comic Shop News Vol5.cbr", "Comic Shop News", "" 
+"Comic Shop News V1.cbr", "Comic Shop News", ""
+     
+"Comic Shop News Vol..cbr", "Comic Shop News Vol.", "" 
+"Comic Shop News V.cbr", "Comic Shop News V", ""
+"Comic Shop News Volume.cbr", "Comic Shop News Volume", "" 
+"Comic Shop News Vol.cbr", "Comic Shop News Vol", ""
+"Comic Shop News Volumes 3.cbr", "Comic Shop News Volumes", "3"
+            
+# some filenames have the issue number embedded mid-name      
+"Cobra 04 - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra - Cobra Civil War", "4"
+
+#Draw 21.cbr
+#Executive Assistant Iris V2 04 (2011) (Tarutaru-DCP).cbr
+#G.I. Joe v2 06 - Cobra Civil War (2011)(noads)(Aardvark).cbr
+#Green Lantern v5 02 (2011) (c2c) (The Last Kryptonian-DCP).cbr
+#Iron Man 2.0 006 (2011)(FBScan)(C2C).cbr
+#Iron Man 2.0 007.1 (2011)(FBScan)(C2C).cbr
+#Irredeemable 30 (2011) (two covers) (Minutemen-DTs).cbz
+#Lone Ranger Death of Zorro 2 of 5 (2011)(FBScan)(C2C).cbr
+#Lone Ranger Death of Zorro 4 of 5 (2011)(FBScan)(C2C).cbr
+#Marvel Season One Guide (c2c)(2011)(Re-em).cbr
+#Megaman 06 (2011) (Minutemen-DTs).cbz
+#Powerman & Iron Fist 2 of 5 (2011)(FBScan)(C2C).cbr
+#Red Hood & the Outlaws 001 (2011)(FBScan)(C2C).cbr
+#S.H.I.E.L.D. 03 (2011) (c2c) (Team-CPS).cbr
+#Season One Guide (2011) (Digital) (Empire-Meganubis).cbr
+#Superboy v5 02 (2011) (c2c) (The Last Kryptonian-DCP).cbr
+#The CBLDF Presents Liberty Annual 2011 (2011) (four covers) (c2c) (Minutemen-DTs).cbz # coryhigh: recognize > 1900 == year?? 2000?3000?
+#Transformers v2 027 (2011) (2 covers) (GiantGreenGoat-DCP).cbr
+#Ultimate Comics Hawkeye 2 of 4 (2011)(FBScan)(C2C).cbr
+#Zorro Rides Again 003 (2011)(FBScan)(C2C).cbr 
+#Ultimate Vision 000 (2007) (c2c) (Popbot & ArtNet-DCP)
+#Fantastic Four 583-586 (2011) (3rd & 4th Printing Variants Cover Poster Join) (Covers ONLY) (ScanDog & ArtNet-DCP)
+#Guff! (1998) (c2c) (FlipBook + Card) (Popbot & ArtNet-DCP)
+#Meta4 05 (of 05) (2011) (theProletariat-DCP)
+#New York 5 03 (2011) (noads) (AngelicWezzy-CPS-DCP)
+#Supergirl v5 062 (2011) (c2c) (The Last Kryptonian-DCP)
+#5 Ronin 03 (2011) (Minutemen-DeliriousScanner)
+#I, Zombie 10 (2011) (fixed) (Minutemen-XxxX&Saxon)
+#Lorna, Relic Wrangler (2011) (Minutemen-DTs)
+#Red Sonja - Deluge (noads) (2011) (Minutemen-Penner
+#Scratch9 03 (of 04) (2010) (C2C) (Minutemen-DrSouse)
