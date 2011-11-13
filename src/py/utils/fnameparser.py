@@ -1,11 +1,13 @@
 '''
 This module contains functions for extracting and parsing details out
 of comic book filenames.
+
 Created on Oct 23, 2011
 @author: cbanack
 '''
 import re
 import utils
+import log
 
 #==============================================================================
 def extract( filename_s ):
@@ -14,18 +16,34 @@ def extract( filename_s ):
    series name, and the issue number. These two pieces of information are 
    returned as a tuple, i.e. ("batman", "344")
    ''' 
-   series_s = ""
-   issue_num_s = ""
-   s = filename_s
    
-   # 1. find the last period, and remove everything after it.  it's not a 
-   #    valid comicbook file if it doesn't have an extension.
-   last_period = s.rfind(r".")
-   if last_period > 0:
-      s = s[0:last_period]
+   # remove the file extension, unless it's the whole filename
+   name_s = filename_s.strip()
+   last_period = name_s.rfind(r".")
+   name_s = name_s if last_period <= 0 else name_s[0:last_period]
+   
+   # try the extraction.  if anything goes wrong, or if we come up with a blank
+   # series name, revert to the filename (without extension) as series name
+   try:
+      retval = __extract(name_s)
+      if retval[0].strip() == "":
+         raise Exception("parsed blank series name")
+   except:
+      log.debug_exc("Recoverable error extracting from '" + filename_s + "':")
+      retval = name_s, ""
+   return retval
       
-   # 2. strip out all bracketed data from the name, as well as all volume info
-   #    gotta handle things like "vol. 2a" and "vol -3.1"
+   
+   
+#==============================================================================
+def __extract(name_s):
+   ''' Internal implementation of the similarly named method in this package '''
+   
+   # 1. 's' is the name of our 'working' series name.  we'll slowly strip the
+   #    'non-series name' data out of it, til what's left is the series name
+   s = name_s
+      
+   # 2. strip out all bracketed data from the name
    def recurse_sub(pattern, s):
       while re.search(pattern, s):
          s = re.sub(pattern, "", s)
@@ -33,25 +51,44 @@ def extract( filename_s ):
    s = recurse_sub(r"\([^\(]*?\)", s)
    s = recurse_sub(r"\{[^\{]*?\}", s)
    s = recurse_sub(r"\[[^\[]*?\]", s)
+   
+   # 3. remove of trace of volume from the name (like "vol. 2a" and "vol -3.1")
    s = re.sub(r"(?i)((v|vol)\.?|volume)\s*-?\s*[0-9]+[.0-9a-z]*", "", s)
    
+   # 4. if the name has things like "4 of 5", remove the " of 5" part
+   #    also, if the name has 3-6, remove the -6 part.
+   s = re.sub(r"(?i)(?<=\d)(\s*of\s*\d+)", "", s)
+   s = re.sub(r"(?<=\d)(-\d+)", "", s)
    
-   # 3. clean up whitespace
+   # 5. clean up excess whitespace and underscores
    s = re.sub(r"_", " ", s) 
-   s = re.sub(r"\s{2,}", " ", s) 
-   s = s.strip()
-   
-   # coryhigh: start here, count the number of "numbers", pick and remove
-   match = re.match(r"^(.*?)#?\s*(-?\s*[0-9]+[.0-9a-z]*)\s*$", s)
-   if match:
-      series_s = match.group(1).strip()
-      issue_num_s = match.group(2).strip().replace(" ", "")
+
+   # 6. get an ordered list of issue number-like strings in the filename
+   #    for example:  3, #4, 5a, 6.00, 10.0b, .5, -1.0   
+   #    also, remove numbers that look like years, EXCEPT on the "2000AD" series
+   matches = list(re.finditer(r"(?u)(^|[\s#])(-?\d*\.?\d\w*)", s))
+   is2000AD = re.match(r"(?i)\s*2000[\s\.-_]*a[\s.-_]*d.*", s) 
+   if not is2000AD:
+      def isYear(d): 
+         return re.match(r"^\d{4}$",d) and int(d) > 1950 and int(d) < 2100 
+      matches = [x for x in matches if not isYear(x.group(2))]  
+      
+   # 7. if we parsed out some potential issue numbers, designate the LAST 
+   #    (rightmost) one s the actual issue number, and remove it from the name
+   if len(matches) > 0: 
+      issue_num_s = matches[-1].group(2)
+      series_s = s[:matches[-1].start(0)] +s[matches[-1].end(0):]
       if re.match("^[-.0-9]+$", issue_num_s):
-         issue_num_s = float(issue_num_s) \
-            if '.' in issue_num_s else int(issue_num_s)
-      issue_num_s = utils.sstr(issue_num_s) 
+         # 7a. strip of leading zeroes if this is an int/float
+         issue_num_s = utils.sstr(float(issue_num_s) \
+            if '.' in issue_num_s else int(issue_num_s))
    else:
-      series_s = s
       issue_num_s = ""
+      series_s = s
+
+   # 8. contract repeating whitespace, and strip bad chars off the ends      
+   series_s = re.sub(r"\s{2,}", " ", series_s).strip(" ,-_").strip() 
       
    return [series_s, issue_num_s]
+
+

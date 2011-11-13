@@ -8,10 +8,13 @@ Created on Oct 26, 2011
 import unittest
 import test_fnameparser
 import sys
+import log
 
 #==============================================================================
 class AllTests(unittest.TestSuite):
    ''' A testsuite containing all unit tests for this project. '''
+   
+   #---------------------------------------------------------------------------
    def __init__(self):
       loader = unittest.defaultTestLoader
       unittest.TestSuite.__init__( self,
@@ -19,6 +22,14 @@ class AllTests(unittest.TestSuite):
          loader.loadTestsFromModule(test_fnameparser), 
          # TestLoader.loadTestsFromTestCase(test_fnameparser)
       )
+   
+   #---------------------------------------------------------------------------
+   def run(self, result):
+      # overridden to install our logging framework during unit tests!
+      log.install(None)
+      super(AllTests, self).run(result)
+      log.uninstall()
+      
 
 #==============================================================================
 def load_tests(a,b,c):
