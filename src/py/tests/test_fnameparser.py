@@ -38,12 +38,12 @@ def __load_testdata(file):
             line = line.strip()
             if len(line) > 0 and not line.startswith("#"):
                if line.startswith('"'):
-                  data = re.findall(r'".*?"', line)
+                  data = re.findall(r'"(.*?)"', line)
                else:
-                  data = re.findall(r"'.*?'", line)
+                  data = re.findall(r"'(.*?)'", line)
                if len(data) != 3:
                   raise Exception("badly formatted test data");
-               retval.append( [x.strip('"\'') for x in data] ) 
+               retval.append( data ) 
             line = sr.ReadLine()
    return retval
      
@@ -69,8 +69,10 @@ class TestFnameParser(TestCase):
       expectedSeries = self.__testdata[1]
       expectedIssueNum = self.__testdata[2]
       filename = self.__testdata[0]
-      error = 'error parsing filename "' + filename + '"'
+      actualSeries, actualIssueNum = extract(filename)
+      error = 'error parsing filename "' + filename + '"\n   -->' +\
+         'got series "' + actualSeries + '" and issue "' + actualIssueNum + '"'
       
-      self.assertEqual(expectedSeries, extract(filename)[0], error) 
-      self.assertEqual(expectedIssueNum, extract(filename)[1], error) 
+      self.assertEqual(expectedSeries, actualSeries, error) 
+      self.assertEqual(expectedIssueNum, actualIssueNum, error) 
       

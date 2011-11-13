@@ -55,7 +55,8 @@ def install(app_window):
    uninstall() method is called once you have called this method.
    
    Takes a single parameter, which is the Form/Window object that all error 
-   dialogs should be attached to.
+   dialogs should be attached to.  This parameter may be null, but if it is the
+   'handle_error' method will not show any visible dialogs.
    """
 
    global __logger, __app_window
@@ -126,9 +127,10 @@ def debug_exc(message=''):
 def handle_error(error):
    '''
    Handles the given error object (a python or .net exception) by formatting it
-   nicely and then printing it to the debug log.   Then an "unexpected error"
-   message is displayed for the user in a modal dialog (owned by the
-   app window that was passed into the log.install() method. )
+   nicely and then printing it to the debug log.   If the 'app_window' provided
+   to the 'install' method was not None, an "unexpected error" message 
+   will also be displayed for the user in a modal dialog owned by the
+   app_window.
    
    This method should be an application's normal way to handle unexpected
    errors and exceptions.
@@ -136,7 +138,7 @@ def handle_error(error):
    
     
    global __logger, __app_window
-   if not __logger or not __app_window:
+   if not __logger:
       return
    
    # if none, do current python exception.  else sstr() the given exception
@@ -146,24 +148,26 @@ def handle_error(error):
    else:
       debug("-------------------- .NET ERROR -------------------------")
       debug(utils.sstr(error).replace('\r','')) # a .NET exception 
-        
-   if type(error) == DatabaseConnectionError:  
-      # if this is a DatabaseConnectionError, then it is a semi-expected 
-      # error that usually occurs when the database website goes down.  
-      # Thus, it gets a special error message.
-      MessageBox.Show(__app_window, 
-         i18n.get("LogDBErrorText").format(error.db_name_s()), 
-         i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
-         MessageBoxIcon.Warning)
-      
-   else:
-      # all other errors are considered "unexpected", and handled generically
-      result = MessageBox.Show(__app_window, i18n.get("LogErrorText"),
-         i18n.get("LogErrorTitle"),  MessageBoxButtons.YesNo, 
-         MessageBoxIcon.Error)
    
-      if result == DialogResult.Yes:
-         save(True)
+   
+   if __app_window:     
+      if type(error) == DatabaseConnectionError:  
+         # if this is a DatabaseConnectionError, then it is a semi-expected 
+         # error that usually occurs when the database website goes down.  
+         # Thus, it gets a special error message.
+         MessageBox.Show(__app_window, 
+            i18n.get("LogDBErrorText").format(error.db_name_s()), 
+            i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
+            MessageBoxIcon.Warning)
+         
+      else:
+         # all other errors are considered "unexpected", and handled generically
+         result = MessageBox.Show(__app_window, i18n.get("LogErrorText"),
+            i18n.get("LogErrorTitle"),  MessageBoxButtons.YesNo, 
+            MessageBoxIcon.Error)
+      
+         if result == DialogResult.Yes:
+            save(True)
 
 
 
@@ -284,6 +288,8 @@ class __Logger(object):
             self.debug(self.__format_trace_line(line))
       except:
          self.debug(": Traceback couldn't be formatted :")
+         
+      self.debug()
 
   
    
