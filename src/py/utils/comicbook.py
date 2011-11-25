@@ -11,6 +11,7 @@ from utils import sstr
 import db
 import utils
 from dbmodels import IssueRef
+import fnameparser
 
 
 #==============================================================================
@@ -41,13 +42,8 @@ class ComicBook(object):
       if self.__cr_book.Id is None:
          raise Exception("invalid unique id string")
       
-      # we keep our own copy of series name and issue number, because sometimes
-      # we have to "repair" them.  these values are immutable after this point.   
-      self.__series_s = self.__cr_book.ShadowSeries.strip() \
-         if self.__cr_book.ShadowSeries else ""
-      self.__issue_num_s = self.__cr_book.ShadowNumber.strip() \
-         if self.__cr_book.ShadowNumber else ""
-      self.__repair_bad_filename_parsing()
+      # obtain values self.__series_s and self.__issue_num_s
+      self.__set_series_and_issuenum()
 
    
    #===========================================================================   
@@ -726,7 +722,7 @@ class ComicBook(object):
    
    
    # ==========================================================================
-   def __repair_bad_filename_parsing(self):
+   def __set_series_and_issuenum(self):
       ''' 
       Occasionally the ComicRack parser doesn't do a good job parsing in the
       series name and issue number (both critical bits of data for our
@@ -735,27 +731,19 @@ class ComicBook(object):
       method instead.
       '''
       
-      # comicrack doesn't recognize the "TPB" (trade paperback) format marker
-      # on the end of the series name, so it doesn't strip it off properly.  
-      if self.series_s.lower().endswith(" tpb"):
-         self.__series_s = self.series_s[:-4]
+      # 1. first off, if these values have been set in ComicRack, just use them
+      #    directly. if this is a Fileless book, these should ALWAYS be set.
+      self.__series_s = self.__cr_book.Series.strip() \
+         if self.__cr_book.Series else ""
+      self.__issue_num_s = self.__cr_book.Number.strip() \
+         if self.__cr_book.Number else ""
       
-      # if the filename contains comicrack's series name, go ahead and try to
-      # parse our own series name and issue number out of the filename 
-      if self.filename_s.find(self.__series_s) >= 0:
-         first_bracket_idx = self.filename_s.find('(')
-         if first_bracket_idx > 0: 
-            s = self.filename_s[0:first_bracket_idx]
-            match = re.match(r"^(.*?)#?\s*(-?[0-9]+[.0-9]*)\s*$", s)
-            if match:
-               series_s = match.group(1).strip()
-               issue_num_s = float(match.group(2).strip()) \
-                   if '.' in match.group(2) else int(match.group(2).strip())
-               issue_num_s = sstr(issue_num_s) 
-                        
-               if self.__issue_num_s != issue_num_s or len(self.__series_s)<=1:
-                  # if our parsed issue number doesn't match comicracks, then
-                  # there was probably a parsing error in comicrack, so use our
-                  # parsed series name and issue number for this book.
-                  self.__series_s = series_s
-                  self.__issue_num_s = issue_num_s
+      # 2. if we have no values (as will often be the case with fresh, unscraped
+      #    files) we'll use our own filename parsing routine to find them.
+      if not self.__series_s or not self.__issue_num_s:
+         if self.filename_ext_s:
+            extracted = fnameparser.extract(self.filename_ext_s)
+            if not self.__series_s:
+               self.__series_s = extracted[0]
+            if not self.__issue_num_s:
+               self.__issue_num_s = extracted[1]
