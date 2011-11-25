@@ -6,8 +6,7 @@
 # The first string is the name of the file to parse.
 # The second is the expected series name that the filename parser should find.
 # The third is the expected issue number string that the parser should find.
-  
-   
+
 # first some very standard ones - these are how "normal" filenames look
 "Amazing-Spider-Man 671 (2011) (Digital-Empire).cbr", "Amazing-Spider-Man", "671"
 "American Vampire - Survival of The Fittest 05 (of 05) (2011) (digital-TheGroup).cbr", "American Vampire - Survival of The Fittest", "5" 
@@ -138,6 +137,17 @@
 "Cobra 04 - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra - Cobra Civil War", "4"
 "Cobra      05.3a - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra - Cobra Civil War", "05.3a"
 "G.I. Joe v2 06 - Cobra Civil War (2011)(noads)(Aardvark).cbr" "G.I. Joe - Cobra Civil War" "6"
+
+# some filenames have a reading list number prepended to them.  In SOME cases,
+# we can recognize that and strip it off
+"013. Fear itself - The Worthy 02.cbr" "Fear itself - The Worthy" "2"
+"013 - Fear itself - The Worthy 02.cbr" "Fear itself - The Worthy" "2"
+" 13-Fear itself - The Worthy 02.cbr" "Fear itself - The Worthy" "2"
+"13.Fear itself - The Worthy 02.cbr" "13.Fear itself - The Worthy" "2"
+"13.3 - Fear itself - The Worthy 02.cbr" "13.3 - Fear itself - The Worthy" "2"
+# but we should never wreck valid titles like these:
+"4 Conan.cbz" "Conan" "4"
+"4.2a Conan the Man.cbr" "Conan the Man" "4.2a"
 
 
 # some very weird, pathological cases
