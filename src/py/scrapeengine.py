@@ -314,11 +314,11 @@ class ScrapeEngine(object):
       #    correct issue_ref from a previous scrape. METHOD EXIT: if that 
       #    rescrape issue_ref is available, we use it immediately and exit. and 
       #    if the issue_ref is the string "skip", we skip this book.
-      issue_ref = book.get_issue_ref()
-      if issue_ref == 'skip': 
+      if book.skip_b: 
          log.debug("found SKIP tag, so skipping the scrape for this book.")
          return BookStatus("SKIPPED")
 
+      issue_ref = book.issue_ref
       if issue_ref and fast_rescrape_b:
          log.debug("found rescrape tag in book, " + 
             "scraping details directly: " + sstr(issue_ref));
@@ -493,7 +493,7 @@ class ScrapeEngine(object):
       fast_scrape_books = []
       if self.config.fast_rescrape_b:
          for book in books:
-            if book.get_issue_ref():
+            if book.skip_b or book.issue_ref:
                fast_scrape_books.append(book)
             else:
                slow_scrape_books.append(book)

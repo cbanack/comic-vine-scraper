@@ -14,6 +14,7 @@
 <path>/comic-vine-scraper/src/py/utils</path>
 <path>/comic-vine-scraper/src/resources/languages</path>
 <path>/comic-vine-scraper/src/py/tests</path>
+<path>/comic-vine-scraper/src/py/book</path>
 </pydev_pathproperty>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">ironpython 2.6</pydev_property>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>

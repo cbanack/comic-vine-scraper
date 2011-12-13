@@ -13,6 +13,18 @@ import utils
 from dbmodels import IssueRef
 import fnameparser
 
+#   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
+#   from Ionic.Zip import ZipFile #@UnresolvedImport
+#   from System.IO import Directory, File
+#   def delegate2(): # coryhigh: delete
+#      zip = r"K:\xmlstuff\comic.cbz";
+#      xml = r"ComicInfo.xml" 
+#      
+#      # grab the default (i.e. english) zip file, unzip it, and grab the
+#      # xml file from inside.  parse that to obtain default i18n strings.
+#      with ZipFile.Read(zip) as zipfile:
+#         zipfile.AddEntry("cory.txt", "this is some sample text")
+#         zipfile.Save(zip+".zip")
 
 #==============================================================================
 class ComicBook(object):
@@ -91,14 +103,74 @@ class ComicBook(object):
       self.__cr_book.FileNameWithExtension is None else 
       self.__cr_book.FileNameWithExtension)
    
-   # the unique id string associated with thie comic books series.  all comic
+   # the unique id string associated with this comic book's series.  all comic
    # books that appear to be from the same series will have the same id string,
    # which will be different for each series. will not be null or None.
    unique_series_s = property( lambda self : self.__unique_series_s() )  
+   
+   # the number of pages in this comic book.  0 or higher.
+   page_count_n = property( lambda self : 0 if 
+       not self.__cr_book.PageCount or self.__cr_book.PageCount < 0
+       else self.__cr_book.PageCount )
 
+   # an IssueRef object, if this book has been scraped before, or None if not 
+   issue_ref = property( lambda self : None if 
+      self.__extract_issue_ref() == 'skip' else self.__extract_issue_ref() )
+    
+   # true if this book as has been marked to "skip forever" (the scraper should
+   # silently skip this book if this value is true, regardless of self.issue_ref
+   skip_b = property( lambda self : self.__extract_issue_ref() == 'skip' ) 
+
+   #==========================================================================
+   def create_page_image(self, scraper, page_index):
+      ''' 
+      Retrieves an COPY of a single page (a .NET "Image" object) for this 
+      ComicBook.  Returns None if the requested page could not be obtained.
+      
+      scraper --> the ScraperEngine object that is currently running 
+      page_index --> the index of the page to retrieve; a value on the range
+                  [0, n-1], where n is self.page_count_n.
+      '''
+      fileless = self.filename_ext_s.strip() == ""
+      page_image = None
+      if fileless or page_index < 0 or page_index >= self.page_count_n:
+         page_image = None
+      else:
+         page_image = \
+            scraper.comicrack.App.GetComicPage( self.__cr_book, page_index )
+         page_image = utils.strip_back_cover(page_image)
+      return page_image
+   
+
+   #===========================================================================
+   def skip_forever(self, scraper):
+      ''' 
+      This method causes this book to be marked with the magic CVDBSKIP
+      flag, which means that from now on, self.issue_ref will always be 
+      "skip", which tells the scraper to automatically skip over this book
+      without even asking the user.  
+      '''
+      
+      # try to make everyone happy here: if notes and tags "rescrape saving"
+      # are both turned on, or both turned off, then this command should just
+      # write CVDBSKIP to both of them (users who turn off both still might
+      # want CVDBSKIP to work!) otherwise, use the values of these 2 prefs to
+      # determine which fields to write the CVDBSKIP to.
+      
+      notes = scraper.config.rescrape_notes_b
+      tags = scraper.config.rescrape_tags_b
+      
+      if notes == tags or tags:
+         self.__cr_book.Tags = self.__update_tags_s(self.__cr_book.Tags, None)
+         log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Tags'")
+      
+      if notes == tags or notes:
+         self.__cr_book.Notes =self.__update_notes_s(self.__cr_book.Notes, None)
+         log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Notes'")
+         
 
    # =============================================================================
-   def get_issue_ref(self): 
+   def __extract_issue_ref(self): 
       '''
       This method looks in the tags and notes fields of the this book for 
       evidence that the it has been scraped before.   If possible, it will 
@@ -128,35 +200,8 @@ class ComicBook(object):
             retval = IssueRef(self.issue_num_s, issue_key)
    
       return retval
+   
 
-
-   #==========================================================================
-   def create_page_image(self, scraper, page_index):
-      ''' 
-      Retrieves an COPY of a single page (a .NET "Image" object) for this 
-      ComicBook.  Returns None if the requested page could not be obtained.
-      
-      scraper --> the ScraperEngine object that is currently running 
-      page_index --> the index of the page to retrieve; a value on the range
-                  [0, n-1], where n is the value returned by get_page_count().
-      '''
-      fileless = self.filename_ext_s.strip() == ""
-      page_image = None
-      if fileless or page_index < 0 or page_index >= self.get_page_count():
-         page_image = None
-      else:
-         page_image = \
-            scraper.comicrack.App.GetComicPage( self.__cr_book, page_index )
-         page_image = utils.strip_back_cover(page_image)
-      return page_image
-   
-   
-   #==========================================================================
-   def get_page_count(self):
-      ''' Retrieves the number of pages in this ComcBook. '''
-      return self.__cr_book.PageCount
-   
-         
    #==========================================================================
    def __unique_series_s(self):
       '''
@@ -188,33 +233,6 @@ class ComicBook(object):
       return sname + svolume
 
 
-   #===========================================================================
-   def skip_forever(self, scraper):
-      ''' 
-      This method causes this book to be marked with the magic CVDBSKIP
-      flag, which means that from now on, the scraper will automatically
-      skip over it without even asking the user.
-      '''
-      
-      # try to make everyone happy here: if notes and tags "rescrape saving"
-      # are both turned on, or both turned off, then this command should just
-      # write CVDBSKIP to both of them (users who turn off both still might
-      # want CVDBSKIP to work!) otherwise, use the values of these 2 prefs to
-      # determine which fields to write the CVDBSKIP to.
-      
-      notes = scraper.config.rescrape_notes_b
-      tags = scraper.config.rescrape_tags_b
-      
-      if notes == tags or tags:
-         self.__cr_book.Tags = self.__update_tags_s(self.__cr_book.Tags, None)
-         log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Tags'")
-      
-      if notes == tags or notes:
-         self.__cr_book.Notes =self.__update_notes_s(self.__cr_book.Notes, None)
-         log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Notes'")
-         
-         
-   
    #===========================================================================
    def save_issue(self, issue, scraper):
       '''
@@ -542,6 +560,7 @@ class ComicBook(object):
       'scraper' -> the ScraperEnginer that's current running
       '''
       
+      # coryhigh: this has to go into comicrack specific code!
       config = scraper.config
       label = "Thumbnail"
       already_has_thumb = self and self.__cr_book.CustomThumbnailKey
