@@ -199,7 +199,7 @@ class ComicForm(CVForm):
         
       # 2. obtain a copy of the first (cover) page of the book to install
       page_image = book.create_page_image(self.__scraper, 0)
-      page_count = book.get_page_count()
+      page_count = book.page_count_n
        
       # 3. install those values into the ComicForm.  update progressbar.        
       def delegate():
