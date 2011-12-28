@@ -201,7 +201,7 @@ class ScrapeEngine(object):
             
             log.debug("======> scraping next comic book: '",
                'FILELESS ("' + book.series_s +" #"+ book.issue_num_s+ ''")"
-               if book.filename_s.strip() == "" else book.filename_s,"'")
+               if book.filename_ext_s.strip()=="" else book.filename_ext_s,"'")
             num_remaining = len(books) - i
             for start_scrape in self.start_scrape_listeners:
                start_scrape(book, num_remaining)
@@ -324,7 +324,7 @@ class ScrapeEngine(object):
             "scraping details directly: " + sstr(issue_ref));
          try:
             issue = db.query_issue(issue_ref)
-            book.save_issue(issue, self)
+            book.copy_issue_details(issue, self)
             return BookStatus("SCRAPED")
          except:
             log.debug_exc("Error rescraping details:")
@@ -449,7 +449,7 @@ class ScrapeEngine(object):
             # we've the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
             issue = db.query_issue( issue_form_result.get_ref() )
-            book.save_issue(issue, self)
+            book.copy_issue_details(issue, self)
             return BookStatus("SCRAPED")
 
       raise Exception("should never get here")

@@ -13,6 +13,7 @@ import utils
 from dbmodels import IssueRef
 import fnameparser
 
+# coryhigh: use this
 #   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
 #   from Ionic.Zip import ZipFile #@UnresolvedImport
 #   from System.IO import Directory, File
@@ -91,12 +92,7 @@ class ComicBook(object):
    # the unique id string associated with this comicbook.  no other book will
    # have this id string, and the string will never be None or "".
    uuid_s = property( lambda self : utils.sstr(self.__cr_book.Id) )
-   
-   # the name of this comic book's backing file, NOT including its 
-   # file extension.  will not be None, will be empty if book is fileless.
-   filename_s = property( lambda self : "" if 
-      self.__cr_book.FileName is None else self.__cr_book.FileName)
-   
+    
    # the name of this comic book's backing file, including its file extension.
    # will not be None, will be empty if book is fileless.
    filename_ext_s = property(lambda self : "" if 
@@ -234,7 +230,7 @@ class ComicBook(object):
 
 
    #===========================================================================
-   def save_issue(self, issue, scraper):
+   def copy_issue_details(self, issue, scraper):
       '''
       Copies all data in the given issue into this ComicBook object, respecting 
       all of the overwrite/ignore rules defined in the given scraper's
