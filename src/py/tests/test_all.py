@@ -6,9 +6,10 @@ Created on Oct 26, 2011
 @author: cbanack
 ''' 
 import unittest
-import test_fnameparser
 import sys
 import log
+import test_fnameparser
+import test_bookdata
 
 #==============================================================================
 class AllTests(unittest.TestSuite):
@@ -19,8 +20,10 @@ class AllTests(unittest.TestSuite):
       loader = unittest.defaultTestLoader
       unittest.TestSuite.__init__( self,
          # add new test cases and test modules here.
-         loader.loadTestsFromModule(test_fnameparser), 
-         # TestLoader.loadTestsFromTestCase(test_fnameparser)
+         [
+         loader.loadTestsFromModule(test_bookdata),
+         loader.loadTestsFromModule(test_fnameparser)
+         ] 
       )
    
    #---------------------------------------------------------------------------
