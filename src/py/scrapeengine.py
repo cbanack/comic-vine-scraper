@@ -201,7 +201,7 @@ class ScrapeEngine(object):
             
             log.debug("======> scraping next comic book: '",
                'FILELESS ("' + book.series_s +" #"+ book.issue_num_s+ ''")"
-               if book.filename_ext_s.strip()=="" else book.filename_ext_s,"'")
+               if book.filename_s.strip() == "" else book.filename_s,"'")
             num_remaining = len(books) - i
             for start_scrape in self.start_scrape_listeners:
                start_scrape(book, num_remaining)

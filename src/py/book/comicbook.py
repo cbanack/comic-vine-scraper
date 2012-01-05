@@ -89,25 +89,24 @@ class ComicBook(object):
    notes_s = property( lambda self : self.__cr_book.Notes
       if self.__cr_book.Notes else "" )
    
-   # the unique id string associated with this comicbook.  no other book will
-   # have this id string, and the string will never be None or "".
-   uuid_s = property( lambda self : utils.sstr(self.__cr_book.Id) )
-    
    # the name of this comic book's backing file, including its file extension.
    # will not be None, will be empty if book is fileless.
-   filename_ext_s = property(lambda self : "" if 
+   filename_s = property(lambda self : "" if 
       self.__cr_book.FileNameWithExtension is None else 
       self.__cr_book.FileNameWithExtension)
-   
-   # the unique id string associated with this comic book's series.  all comic
-   # books that appear to be from the same series will have the same id string,
-   # which will be different for each series. will not be null or None.
-   unique_series_s = property( lambda self : self.__unique_series_s() )  
    
    # the number of pages in this comic book.  0 or higher.
    page_count_n = property( lambda self : 0 if 
        not self.__cr_book.PageCount or self.__cr_book.PageCount < 0
        else self.__cr_book.PageCount )
+   
+   
+   
+   
+   # the unique id string associated with this comic book's series.  all comic
+   # books that appear to be from the same series will have the same id string,
+   # which will be different for each series. will not be null or None.
+   unique_series_s = property( lambda self : self.__unique_series_s() )  
 
    # an IssueRef object, if this book has been scraped before, or None if not 
    issue_ref = property( lambda self : None if 
@@ -116,6 +115,7 @@ class ComicBook(object):
    # true if this book as has been marked to "skip forever" (the scraper should
    # silently skip this book if this value is true, regardless of self.issue_ref
    skip_b = property( lambda self : self.__extract_issue_ref() == 'skip' ) 
+
 
    #==========================================================================
    def create_page_image(self, scraper, page_index):
@@ -127,7 +127,7 @@ class ComicBook(object):
       page_index --> the index of the page to retrieve; a value on the range
                   [0, n-1], where n is self.page_count_n.
       '''
-      fileless = self.filename_ext_s.strip() == ""
+      fileless = self.filename_s.strip() == ""
       page_image = None
       if fileless or page_index < 0 or page_index >= self.page_count_n:
          page_image = None
@@ -210,7 +210,6 @@ class ComicBook(object):
       
       This value is NOT the same as the series_s property.
       '''
-      
       sname = '' if not self.series_s else self.series_s
       if sname and self.format_s:
          sname += self.format_s
@@ -222,10 +221,10 @@ class ComicBook(object):
             svolume = "[v" + sstr(self.volume_n) + "]"
       else:
          # if we can't find a name at all (very weird), fall back to the
-         # ComicRack ID, which should be unique and thus ensure that this 
+         # memory ID, which is be unique and thus ensures that this 
          # comic doesn't get lumped in to the same series choice as any 
          # other unnamed comics! 
-         sname = self.uuid_s
+         sname = "uniqueid-" + utils.sstr(id(self))
       return sname + svolume
 
 
@@ -352,19 +351,6 @@ class ComicBook(object):
          config.ow_existing_b, config.ignore_blanks_b )
       if ( value is not None ) :  book.Locations = value
       
-      # webpage ----------------
-      value = cb.__massage_new_string("Webpage", issue.webpage_s, \
-         book.Web, config.update_webpage_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
-      if ( value is not None ) :  book.Web = value
-      
-      # rating -----------------------
-      value = cb.__massage_new_number("Rating", issue.rating_n, \
-         float(book.CommunityRating), config.update_rating_b, 
-         config.ow_existing_b, config.ignore_blanks_b, 0.0,
-         lambda x: x >= 0 and x <= 5, lambda x : max(0.0,min(5.0,x)) )
-      if ( value is not None ) :  book.CommunityRating = value
-      
       # writer --------------------
       value = cb.__massage_new_string("Writers", \
          ', '.join(issue.writers), book.Writer, \
@@ -414,6 +400,19 @@ class ComicBook(object):
          config.ignore_blanks_b )
       if ( value is not None ) :  book.Editor = value
    
+      # webpage ----------------
+      value = cb.__massage_new_string("Webpage", issue.webpage_s, \
+         book.Web, config.update_webpage_b, \
+         config.ow_existing_b, config.ignore_blanks_b )
+      if ( value is not None ) :  book.Web = value
+      
+      # rating -----------------------
+      value = cb.__massage_new_number("Rating", issue.rating_n, \
+         float(book.CommunityRating), config.update_rating_b, 
+         config.ow_existing_b, config.ignore_blanks_b, 0.0,
+         lambda x: x >= 0 and x <= 5, lambda x : max(0.0,min(5.0,x)) )
+      if ( value is not None ) :  book.CommunityRating = value
+         
       # tags ----------------------
       new_tags = self.__update_tags_s(book.Tags, issue.issue_key)
       value = cb.__massage_new_string("Tags", new_tags, \
@@ -745,7 +744,7 @@ class ComicBook(object):
       doesn't seem like it's gonna happen, I'll patch up know problems in this
       method instead.
       '''
-      
+      # corynorm: this should figure out the format too?!?
       # 1. first off, if these values have been set in ComicRack, just use them
       #    directly. if this is a Fileless book, these should ALWAYS be set.
       self.__series_s = self.__cr_book.Series.strip() \
@@ -756,8 +755,8 @@ class ComicBook(object):
       # 2. if we have no values (as will often be the case with fresh, unscraped
       #    files) we'll use our own filename parsing routine to find them.
       if not self.__series_s or not self.__issue_num_s:
-         if self.filename_ext_s:
-            extracted = fnameparser.extract(self.filename_ext_s)
+         if self.filename_s:
+            extracted = fnameparser.extract(self.filename_s)
             if not self.__series_s:
                self.__series_s = extracted[0]
             if not self.__issue_num_s:
