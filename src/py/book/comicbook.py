@@ -4,28 +4,15 @@ from ComicRack that we are scraping data into.
 
 @author: Cory Banack
 '''
-import re
-import log
+from dbmodels import IssueRef
+from pluginbookdata import PluginBookData
 from time import strftime
 from utils import sstr
 import db
-import utils
-from dbmodels import IssueRef
 import fnameparser
-
-# coryhigh: use this
-#   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
-#   from Ionic.Zip import ZipFile #@UnresolvedImport
-#   from System.IO import Directory, File
-#   def delegate2(): # coryhigh: delete
-#      zip = r"K:\xmlstuff\comic.cbz";
-#      xml = r"ComicInfo.xml" 
-#      
-#      # grab the default (i.e. english) zip file, unzip it, and grab the
-#      # xml file from inside.  parse that to obtain default i18n strings.
-#      with ZipFile.Read(zip) as zipfile:
-#         zipfile.AddEntry("cory.txt", "this is some sample text")
-#         zipfile.Save(zip+".zip")
+import log
+import re
+import utils
 
 #==============================================================================
 class ComicBook(object):
@@ -42,73 +29,47 @@ class ComicBook(object):
    CVDBSKIP = 'CVDBSKIP'
 
    #===========================================================================   
-   def __init__(self, cr_book):
+   def __init__(self, crbook, scraper):
       '''
       Initializes this ComicBook object based on an underlying ComicRack 
-      ComicBook object (the cr_book) parameter.
+      ComicBook object (the crbook) parameter and the the given ScrapeEngine.
       '''
-      
-      if not cr_book:
-         raise Exception("invalid backing comic book")
-      self.__cr_book = cr_book
-      
-      if self.__cr_book.Id is None:
-         raise Exception("invalid unique id string")
-      
-      # obtain values self.__series_s and self.__issue_num_s
+      self.__scraper = scraper;
+      self.__bookdata = PluginBookData(crbook, scraper)
       self.__set_series_and_issuenum()
 
    
-   #===========================================================================   
-   # the series name of this comicbook as a string.  not None, maybe empty.
-   series_s = property( lambda self : self.__series_s )
+   #===========================================================================
+
+   # Series name of this book.  Not None, may be empty.
+   series_s = property( lambda self : self.__bookdata.series_s )
    
-   # the issue 'number' of this comicbook as a string. not None. maybe empty.
-   issue_num_s = property( lambda self : self.__issue_num_s )
+   # Issue number (string) of this book. Not None, may be empty.
+   issue_num_s = property( lambda self : self.__bookdata.issue_num_s )
    
-   # the volume (start year) of this comic book, as an integer >= 0, 
-   # or else -1 to indicate a blank value.
-   volume_n = property( lambda self :  self.__cr_book.ShadowVolume 
-      if self.__cr_book.ShadowVolume >= -1 else -1   )
+   # Volume (start year) of this book as an int >= -1, where -1 is unknown.
+   volume_year_n = property( lambda self :  self.__bookdata.volume_year_n )
    
-   # the year (of publication) of this comic book, as an integer >= 0, 
-   # or else -1 to indicate a blank value.
-   year_n = property( lambda self : self.__cr_book.ShadowYear 
-      if self.__cr_book.ShadowYear >= -1 else -1   )
+   # Publication year of this book, as an int >= -1, where -1 is unknown
+   year_n = property( lambda self : self.__bookdata.year_n )
    
-   # the format of this comic book, as a string, or "" if empty.  Not None.
-   format_s = property( lambda self : self.__cr_book.ShadowFormat
-      if self.__cr_book.ShadowFormat else "" )
+   # The format of this book (giant, annual, etc.)  Not None, may be empty.
+   format_s = property( lambda self : self.__bookdata.format_s )
    
-   # a comma separated string listing the tags associated with this comic book.   
-   # maybe be empty, but will not be None.
-   tags_s = property( lambda self : self.__cr_book.Tags 
-      if self.__cr_book.Tags else "" )
+   # The underlying filename for this book, or "" if it is a fileless book.
+   # Will never be None.
+   filename_s = property(lambda self : self.__bookdata.filename_s )
    
-   # the notes string for this comic book.  Mayb be "", but will not be None.
-   notes_s = property( lambda self : self.__cr_book.Notes
-      if self.__cr_book.Notes else "" )
-   
-   # the name of this comic book's backing file, including its file extension.
-   # will not be None, will be empty if book is fileless.
-   filename_s = property(lambda self : "" if 
-      self.__cr_book.FileNameWithExtension is None else 
-      self.__cr_book.FileNameWithExtension)
-   
-   # the number of pages in this comic book.  0 or higher.
-   page_count_n = property( lambda self : 0 if 
-       not self.__cr_book.PageCount or self.__cr_book.PageCount < 0
-       else self.__cr_book.PageCount )
-   
-   
-   
+   # The number of pages in this book, an integer >= 0.
+   page_count_n = property( lambda self : self.__bookdata.page_count_n )
    
    # the unique id string associated with this comic book's series.  all comic
    # books that appear to be from the same series will have the same id string,
    # which will be different for each series. will not be null or None.
    unique_series_s = property( lambda self : self.__unique_series_s() )  
 
-   # an IssueRef object, if this book has been scraped before, or None if not 
+   # a comicvine IssueRef object based if this book has been scraped before,
+   # or None if it hasn't. 
    issue_ref = property( lambda self : None if 
       self.__extract_issue_ref() == 'skip' else self.__extract_issue_ref() )
     
@@ -116,30 +77,19 @@ class ComicBook(object):
    # silently skip this book if this value is true, regardless of self.issue_ref
    skip_b = property( lambda self : self.__extract_issue_ref() == 'skip' ) 
 
-
    #==========================================================================
-   def create_page_image(self, scraper, page_index):
+   def create_image_of_page(self, page_index):
       ''' 
       Retrieves an COPY of a single page (a .NET "Image" object) for this 
       ComicBook.  Returns None if the requested page could not be obtained.
       
-      scraper --> the ScraperEngine object that is currently running 
       page_index --> the index of the page to retrieve; a value on the range
                   [0, n-1], where n is self.page_count_n.
       '''
-      fileless = self.filename_s.strip() == ""
-      page_image = None
-      if fileless or page_index < 0 or page_index >= self.page_count_n:
-         page_image = None
-      else:
-         page_image = \
-            scraper.comicrack.App.GetComicPage( self.__cr_book, page_index )
-         page_image = utils.strip_back_cover(page_image)
-      return page_image
-   
+      return self.__bookdata.create_image_of_page(page_index)
 
    #===========================================================================
-   def skip_forever(self, scraper):
+   def skip_forever(self):
       ''' 
       This method causes this book to be marked with the magic CVDBSKIP
       flag, which means that from now on, self.issue_ref will always be 
@@ -153,15 +103,16 @@ class ComicBook(object):
       # want CVDBSKIP to work!) otherwise, use the values of these 2 prefs to
       # determine which fields to write the CVDBSKIP to.
       
-      notes = scraper.config.rescrape_notes_b
-      tags = scraper.config.rescrape_tags_b
+      bd = self.__bookdata
+      notes = self.__scraper.config.rescrape_notes_b
+      tags = self.__scraper.config.rescrape_tags_b
       
       if notes == tags or tags:
-         self.__cr_book.Tags = self.__update_tags_s(self.__cr_book.Tags, None)
+         bd.tags_sl = self.__update_tags_sl(bd.tags_sl, None);
          log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Tags'")
       
       if notes == tags or notes:
-         self.__cr_book.Notes =self.__update_notes_s(self.__cr_book.Notes, None)
+         bd.notes_s =self.__update_notes_s(bd.notes_s, None)
          log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Notes'")
          
 
@@ -178,18 +129,22 @@ class ComicBook(object):
       which should be interpreted as "never scrape this book".
       '''
       
+      # in this method, its easier to work with tags as a single string
+      bd = self.__bookdata
+      tagstring = ', '.join(bd.tags_sl)
+      
       # check for the magic CVDBSKIP skip flag
-      skip_found = re.search(r'(?i)'+ComicBook.CVDBSKIP, self.tags_s)
+      skip_found = re.search(r'(?i)'+ComicBook.CVDBSKIP, tagstring)
       if not skip_found:
-         skip_found = re.search(r'(?i)'+ComicBook.CVDBSKIP, self.notes_s)
+         skip_found = re.search(r'(?i)'+ComicBook.CVDBSKIP, bd.notes_s)
       retval = "skip" if skip_found else None
    
       if retval is None:   
          # if no skip tag, see if there's a key tag in the tags or notes
-         issue_key = db.parse_key_tag(self.tags_s)
+         issue_key = db.parse_key_tag(tagstring)
          
          if issue_key == None:
-            issue_key = db.parse_key_tag(self.notes_s)
+            issue_key = db.parse_key_tag(bd.notes_s)
       
          if issue_key != None:
             # found a key tag! convert to an IssueRef
@@ -210,15 +165,16 @@ class ComicBook(object):
       
       This value is NOT the same as the series_s property.
       '''
-      sname = '' if not self.series_s else self.series_s
-      if sname and self.format_s:
-         sname += self.format_s
+      bd = self.__bookdata
+      sname = '' if not bd.series_s else bd.series_s
+      if sname and bd.format_s:
+         sname += bd.format_s
       sname = re.sub('\W+', '', sname).lower()
 
       svolume = ''
       if sname:
-         if self.volume_n and self.volume_n > 0:
-            svolume = "[v" + sstr(self.volume_n) + "]"
+         if bd.volume_year_n and bd.volume_year_n > 0:
+            svolume = "[v" + sstr(bd.volume_year_n) + "]"
       else:
          # if we can't find a name at all (very weird), fall back to the
          # memory ID, which is be unique and thus ensures that this 
@@ -229,88 +185,73 @@ class ComicBook(object):
 
 
    #===========================================================================
-   def copy_issue_details(self, issue, scraper):
+   def update(self, issue):
       '''
-      Copies all data in the given issue into this ComicBook object, respecting 
-      all of the overwrite/ignore rules defined in the given scraper's
-      Configuration object.  
-      
-      Note that these changes get pushed down right into the backing 
-      ComicRack comic book object, so this method makes real modifications that 
-      the user will actually see in the comics in ComicRack. 
+      Copies all data in the given issue into this ComicBook object and its 
+      backing data source, respecting all of the overwrite/ignore rules 
+      defined in the the ScrapeEngine's Configuration object.  
       
       As a side-effect, some detailed debug log information about the new values
       is also emitted.
       '''
-      
       log.debug("setting values for this comic book ('*' = changed):")
-      config = scraper.config
-      cb = ComicBook
-      book = self.__cr_book
+      config = self.__scraper.config
+      bd = self.__bookdata
       
       # series ---------------------
-      value = cb.__massage_new_string("Series", issue.series_name_s, \
-         book.Series, config.update_series_b, config.ow_existing_b, \
+      value = self.__massage_new_string("Series", issue.series_name_s, \
+         bd.series_s, config.update_series_b, config.ow_existing_b, \
          True ) # note: we ALWAYS ignore blanks for 'series'!
-      if ( value is not None ) :  book.Series = value
+      if value is None: bd.dont_update("series_s") 
+      else: bd.series_s = value
       
       # issue number ---------------
-      value = cb.__massage_new_string("Issue Number", issue.issue_num_s, \
-         book.Number, config.update_number_b, config.ow_existing_b, \
+      value = self.__massage_new_string("Issue Number", issue.issue_num_s, \
+         bd.issue_num_s, config.update_number_b, config.ow_existing_b, \
          True ) # note: we ALWAYS ignore blanks for 'issue number'!
-      if ( value is not None ) :  book.Number = value
+      if value is None: bd.dont_update("issue_num_s") 
+      else: bd.issue_num_s = value
       
       # title ----------------------
-      value = cb.__massage_new_string("Title", issue.title_s, book.Title, \
+      value = self.__massage_new_string("Title", issue.title_s, bd.title_s, \
          config.update_title_b, config.ow_existing_b, config.ignore_blanks_b )
-      if ( value is not None ) :  book.Title = value
+      if value is None: bd.dont_update("title_s") 
+      else: bd.title_s = value
          
       # alternate series -----------
-      value = cb.__massage_new_string("Alt/Arc", \
-         ', '.join(issue.alt_series_names), book.AlternateSeries, \
-         config.update_alt_series_b, config.ow_existing_b, \
+      value = self.__massage_new_string_list("Alt/Arc", issue.alt_series_names,\
+         bd.alt_series_sl, config.update_alt_series_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.AlternateSeries = value
+      if value is None: bd.dont_update("alt_series_sl")
+      else: bd.alt_series_sl = value
       
       # summary --------------------
-      value = cb.__massage_new_string("Summary", issue.summary_s, \
-         book.Summary, config.update_summary_b, config.ow_existing_b, \
+      value = self.__massage_new_string("Summary", issue.summary_s, \
+         bd.summary_s, config.update_summary_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.Summary = value
+      if value is None: bd.dont_update("summary_s")
+      else: bd.summary_s = value
       
       # year -----------------------
-      value = cb.__massage_new_number("Year", issue.year_n, \
-         book.Year, config.update_year_b, config.ow_existing_b, \
+      value = self.__massage_new_number("Year", issue.year_n, \
+         bd.year_n, config.update_year_b, config.ow_existing_b, \
          True, -1, lambda x : x > 0 ) # note: we ALWAYS ignore blanks for 'year'
-      if ( value is not None ) :  book.Year = value
+      if value is None: bd.dont_update("year_n")
+      else: bd.year_n = value
       
       # month ----------------------
-      def remap(month):
-         # months 1 to 12 are straightforward, but the remaining possible
-         # values (listed below) must be converted into the range 1-12:
-         # 13 - Spring   18 - None      23 - Sep/Oct   28 - Apr/May
-         # 14 - Summer   19 - Jan/Feb   24 - Nov/Dec   29 - Jun/Jul
-         # 15 - Fall     20 - Mar/Apr   25 - Holiday   30 - Aug/Sep
-         # 16 - Winter   21 - May/Jun   26 - Dec/Jan   31 - Oct/Nov
-         # 17 - Annual   22 - Jul/Aug   27 - Feb/Mar  
-         remap={ 1:1, 26:1, 2:2, 19:2, 3:3, 13:3, 27:3, 4:4, 20:4, 5:5, 28:5, \
-                 6:6, 14:6, 21:6, 7:7, 29:7, 8:8, 22:8, 9:9, 15:9, 30:9, 10:10,\
-                 23:10, 11:11, 31:11, 12:12, 16:12, 24:12, 25:12 }
-         retval = -1;
-         if month in remap:
-            retval = remap[month]
-         return retval
-         
-      value = cb.__massage_new_number("Month", issue.month_n, book.Month, \
+      value = self.__massage_new_number("Month", issue.month_n, bd.month_n, \
          config.update_month_b, config.ow_existing_b, True, -1, \
-         lambda x : x>=1 and x <=12, remap ) # ALWAYS ignore blanks for 'month'
-      if ( value is not None ) :  book.Month = value
+         lambda x : x>=1 and x <= 31 ) # ALWAYS ignore blanks for 'month'
+      if value is None: bd.dont_update("month_n")
+      else: bd.month_n = value
       
       # volume --------------------
-      value = cb.__massage_new_number("Volume", issue.start_year_n, \
-      book.Volume, config.update_volume_b, config.ow_existing_b, \
+      value = self.__massage_new_number("Volume", issue.start_year_n, \
+      bd.volume_year_n, config.update_volume_b, config.ow_existing_b, \
       config.ignore_blanks_b, -1, lambda x : x > 0 )
-      if ( value is not None ) :  book.Volume = value
+      if value is None: bd.dont_update("volume_year_n")
+      else: bd.volume_year_n = value
        
       # if we found an imprint for this issue, the user may prefer that the 
       # imprint be listed as the publisher (instead). if so, make that change
@@ -320,134 +261,138 @@ class ComicBook(object):
          issue.imprint_s = ''                                   
             
       # imprint -------------------
-      value = cb.__massage_new_string("Imprint", issue.imprint_s, \
-         book.Imprint, config.update_imprint_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
-      if ( value is not None ) :  book.Imprint = value
+      value = self.__massage_new_string("Imprint", issue.imprint_s, \
+         bd.imprint_s, config.update_imprint_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
+      if value is None: bd.dont_update("imprint_s")
+      else: bd.imprint_s = value
             
       # publisher -----------------
-      value = cb.__massage_new_string("Publisher", issue.publisher_s, \
-         book.Publisher, config.update_publisher_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
-      if ( value is not None ) :  book.Publisher = value
+      value = self.__massage_new_string("Publisher", issue.publisher_s, \
+         bd.publisher_s, config.update_publisher_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
+      if value is None: bd.dont_update("publisher_s")
+      else: bd.publisher_s = value
       
       # characters ----------------
-      value = cb.__massage_new_string("Characters", \
-         ', '.join(issue.characters), book.Characters, \
-         config.update_characters_b, config.ow_existing_b, \
-         config.ignore_blanks_b )
-      if ( value is not None ) :  book.Characters = value
-      
-      # teams ----------------
-      value = cb.__massage_new_string("Teams", \
-         ', '.join(issue.teams), book.Teams, config.update_teams_b, \
+      value = self.__massage_new_string_list("Characters", \
+         issue.characters, bd.characters_sl, config.update_characters_b, \
          config.ow_existing_b, config.ignore_blanks_b )
-      if ( value is not None ) :  book.Teams = value
+      if value is None: bd.dont_update("characters_sl")
+      else: bd.characters_sl = value
+      
+      # teams --------------------
+      value = self.__massage_new_string_list("Teams", issue.teams, bd.teams_sl,\
+         config.update_teams_b, config.ow_existing_b, config.ignore_blanks_b )
+      if value is None: bd.dont_update("teams_sl")
+      else: bd.teams_sl = value
       
       # locations ----------------
-      value = cb.__massage_new_string( \
-         "Locations", ', '.join(issue.locations), \
-         book.Locations, config.update_locations_b,\
-         config.ow_existing_b, config.ignore_blanks_b )
-      if ( value is not None ) :  book.Locations = value
+      value = self.__massage_new_string_list( "Locations", issue.locations, \
+         bd.locations_sl, config.update_locations_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
+      if value is None: bd.dont_update("locations_sl")
+      else: bd.locations_sl = value
       
       # writer --------------------
-      value = cb.__massage_new_string("Writers", \
-         ', '.join(issue.writers), book.Writer, \
-         config.update_writer_b, config.ow_existing_b, \
+      value = self.__massage_new_string_list("Writers", issue.writers, \
+         bd.writers_sl, config.update_writer_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.Writer = value
+      if value is None: bd.dont_update("writers_sl")
+      else: bd.writers_sl = value
          
       # penciller -----------------
-      value = cb.__massage_new_string("Pencillers", \
-         ', '.join(issue.pencillers), book.Penciller, \
-         config.update_penciller_b, config.ow_existing_b, \
+      value = self.__massage_new_string_list("Pencillers", issue.pencillers, \
+         bd.pencillers_sl, config.update_penciller_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.Penciller = value
+      if value is None: bd.dont_update("pencillers_sl")
+      else: bd.pencillers_sl = value
       
       # inker ---------------------
-      value = cb.__massage_new_string("Inkers", \
-         ', '.join(issue.inkers), book.Inker, \
-         config.update_inker_b, config.ow_existing_b, \
+      value = self.__massage_new_string_list("Inkers", issue.inkers, \
+         bd.inkers_sl, config.update_inker_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.Inker = value
+      if value is None: bd.dont_update("inkers_sl")
+      else: bd.inkers_sl = value
          
       # colorist -----------------
-      value = cb.__massage_new_string("Colorists", \
-         ', '.join(issue.colorists), book.Colorist, \
-         config.update_colorist_b, config.ow_existing_b, \
+      value = self.__massage_new_string_list("Colorists", issue.colorists, \
+         bd.colorists_sl, config.update_colorist_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.Colorist = value
+      if value is None: bd.dont_update("colorists_sl")
+      else: bd.colorists_sl = value
          
       # letterer -----------------
-      value = cb.__massage_new_string("Letterers", \
-         ', '.join(issue.letterers), book.Letterer, \
-         config.update_letterer_b, config.ow_existing_b, \
+      value = self.__massage_new_string_list("Letterers", issue.letterers, \
+         bd.letterers_sl, config.update_letterer_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.Letterer = value
+      if value is None: bd.dont_update("letterers_sl")
+      else: bd.letterers_sl = value
          
       # coverartist --------------
-      value = cb.__massage_new_string("CoverArtists", \
-         ', '.join(issue.cover_artists), book.CoverArtist, \
+      value = self.__massage_new_string_list("CoverArtists", 
+         issue.cover_artists, bd.cover_artists_sl, \
          config.update_cover_artist_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.CoverArtist = value
+      if value is None: bd.dont_update("cover_artists_sl")
+      else: bd.cover_artists_sl = value
          
       # editor -------------------   
-      value = cb.__massage_new_string("Editors", \
-         ', '.join(issue.editors), book.Editor, \
-         config.update_editor_b, config.ow_existing_b, \
+      value = self.__massage_new_string_list("Editors", issue.editors, \
+         bd.editors_sl, config.update_editor_b, config.ow_existing_b, \
          config.ignore_blanks_b )
-      if ( value is not None ) :  book.Editor = value
+      if value is None: bd.dont_update("editors_sl")
+      else: bd.editors_sl = value
    
       # webpage ----------------
-      value = cb.__massage_new_string("Webpage", issue.webpage_s, \
-         book.Web, config.update_webpage_b, \
-         config.ow_existing_b, config.ignore_blanks_b )
-      if ( value is not None ) :  book.Web = value
+      value = self.__massage_new_string("Webpage", issue.webpage_s, \
+         bd.webpage_s, config.update_webpage_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
+      if value is None: bd.dont_update("webpage_s")
+      else: bd.webpage_s = value
       
-      # rating -----------------------
-      value = cb.__massage_new_number("Rating", issue.rating_n, \
-         float(book.CommunityRating), config.update_rating_b, 
-         config.ow_existing_b, config.ignore_blanks_b, 0.0,
-         lambda x: x >= 0 and x <= 5, lambda x : max(0.0,min(5.0,x)) )
-      if ( value is not None ) :  book.CommunityRating = value
+      # rating -----------------
+      value = self.__massage_new_number("Rating", issue.rating_n, \
+         bd.rating_n, config.update_rating_b, config.ow_existing_b, \
+         config.ignore_blanks_b, 0.0, lambda x: x >= 0 and x <= 5 )
+      if value is None: bd.dont_update("rating_n")
+      else: bd.rating_n = value
          
-      # tags ----------------------
-      new_tags = self.__update_tags_s(book.Tags, issue.issue_key)
-      value = cb.__massage_new_string("Tags", new_tags, \
-         book.Tags, config.rescrape_tags_b, True, False )
-      if ( value is not None ) :  book.Tags = value
+      # tags -------------------
+      new_tags = self.__update_tags_sl(bd.tags_sl, issue.issue_key)
+      value = self.__massage_new_string_list("Tags", new_tags, \
+         bd.tags_sl, config.rescrape_tags_b, True, False )
+      if value is None: bd.dont_update("tags_sl")
+      else: bd.tags_sl = value
       
-      # notes --------------------
-      new_notes = self.__update_notes_s(book.Notes, issue.issue_key)
-      value = cb.__massage_new_string("Notes", new_notes, \
-         book.Notes, config.rescrape_notes_b, True, False )
-      if ( value is not None ) :  book.Notes = value
+      # notes ------------------
+      new_notes = self.__update_notes_s(bd.notes_s, issue.issue_key)
+      value = self.__massage_new_string("Notes", new_notes, \
+         bd.notes_s, config.rescrape_notes_b, True, False )
+      if value is None: bd.dont_update("notes_s")
+      else: bd.notes_s = value
       
-      del value
-   
-      self.__maybe_download_thumbnail(issue, scraper) 
-   
+      bd.update();
    
    #===========================================================================
-   def __update_tags_s(self, tagstring_s, issue_key):
+   def __update_tags_sl(self, tags_sl, issue_key):
       '''
-      Returns the given comma separated tag string, but with a "key tag" for 
-      the given issue_key added in (iff key tags are supported by the current 
-      database implementation.)  If the given string already contains a valid 
+      Returns the given tag list, but with a "key tag" for the given issue_key 
+      added in (iff key tags are supported by the current database 
+      implementation.)  If the given string already contains a valid 
       key tag, the tag will be REPLACED with the new one, otherwise the new key 
-      tag will be appended to the end of the string.
+      tag will be appended to the end of the list.
       
-      If the given issue_key is None, the tag string will be updated with the
+      If the given issue_key is None, the tags will be updated with the
       magic CVDBSKIP tag instead of a regular key tag.
       
       This method never returns None. 
       '''
+      
       updated_tagstring_s = None   # our return value
       
       # 1. clean up whitespace and None in our tagstring parameter
-      tagstring_s = tagstring_s.strip() if tagstring_s else ''
+      tagstring_s = ', '.join(tags_sl).strip() if tags_sl else ''
       
       key_tag_s = db.create_key_tag_s(issue_key) \
          if issue_key != None else ComicBook.CVDBSKIP 
@@ -477,7 +422,7 @@ class ComicBook(object):
          # 4. there's no key tag available, so don't change the tagstring.
          updated_tagstring_s = tagstring_s
    
-      return updated_tagstring_s
+      return updated_tagstring_s.split(", ")
    
    
    #===========================================================================
@@ -543,56 +488,7 @@ class ComicBook(object):
       return updated_notestring_s
    
    
-   #===========================================================================
-   def __maybe_download_thumbnail(self, issue, scraper):
-      '''
-      Iff this is a 'fileless' ComicBook, this method downloads and stores a
-      cover image into it (assuming the given scraper's config settings permit.)
-      Otherwise, this method does nothing.
-      
-      'book' -> the book whose thumbnail we might update
-      'issue' -> the Issue for the book that we are updating
-      'scraper' -> the ScraperEnginer that's current running
-      '''
-      
-      # coryhigh: this has to go into comicrack specific code!
-      config = scraper.config
-      label = "Thumbnail"
-      already_has_thumb = self and self.__cr_book.CustomThumbnailKey
-      book_is_fileless = self and not self.__cr_book.FilePath
-      
-      # don't download the thumbnail if the book has a backing file (cause that's
-      # where the thumbnail will come from!) or if the user has specified in 
-      # config that we shouldn't.
-      if not book_is_fileless or not config.download_thumbs_b or \
-               (already_has_thumb and config.preserve_thumbs_b):
-            log.debug("-->  ", label.ljust(15), ": --- skipped ---")
-      else:
-         # get the url for this issue's cover art.  check to see if the user
-         # picked an alternate cover back when they closed the IssueForm, and if
-         # not, just grab the url for the default cover art.
-         url = None
-         alt_cover_key = sstr(issue.issue_key)+"-altcover"
-         if alt_cover_key in config.session_data_map:
-            url = config.session_data_map[alt_cover_key]
-         if not url and len(issue.image_urls):  
-            url = issue.image_urls[0]
-            
-         if not url:
-            # there is no image url available for this issue 
-            log.debug("-->  ", label.ljust(15),": --- not available! ---")
-         else:
-            image = db.query_image(url)
-            if not image:
-               log.debug("ERROR: couldn't download thumbnail: ", url)
-            else:
-               cr = scraper.comicrack.App
-               success = cr.SetCustomBookThumbnail(self.__cr_book, image)
-               if success:
-                  # it worked!
-                  log.debug("--> *", label.ljust(15),": ", url)
-               else:
-                  log.debug("ERROR: comicrack can't set thumbnail!")
+
    
    
    
@@ -649,6 +545,55 @@ class ComicBook(object):
          log.debug("-->  ", label.ljust(15), ": --- skipped ---")
       return retval
    
+   
+   #===========================================================================
+   @staticmethod 
+   def __massage_new_string_list( 
+         label, new_list, old_list, update, overwrite, ignoreblanks):
+      ''' 
+      Returns a string list [] that should be copied into our backing ComicBook
+      object, IFF that string list is not None.   Uses a number of rules to
+      decide what value to return.
+      
+      label - a human readable description of the given string being changed.
+      new_list - the proposed new string list to copy over.
+      old_list - the original list that the new list would copy over.
+      update - if false, this method always returns None
+      overwrite - whether it's acceptable to overwrite the old list with the
+                  new list when the old list is not empty.
+      ignoreblanks - if true, we'll never overwrite an old non-empty list
+                     with a new, empty one.
+      ''' 
+      
+      # first, a little housekeeping so that we stay really robust
+      new_list = [] if new_list is None else list(new_list)
+      new_list = [x for x in new_list if x != None and len(x.strip())>0]
+      old_list = [] if old_list is None else list(old_list)
+      old_list = [x for x in old_list if x != None and len(x.strip())>0]
+      
+      
+      # now decide about whether or not to actually do the update
+      # only update if all of the following are true:
+      #  1) the update option is turned on for this particular field
+      #  2) we can overwrite the existing value, or there is no existing value
+      #  3) we're not overwriting with a blank value unless we're allowed to
+      retval = None;      
+      if update and (overwrite or len(old_list)==0) and \
+            (not ignoreblanks or len(new_list > 0)):
+          
+         retval = new_list
+         
+         marker = ' '
+         if old_list != new_list:
+            marker = '*'
+         
+         chars = ', '.join(retval).replace('\n', ' ')
+         if len(chars) > 70:
+            chars = chars[:70] + " ..."
+         log.debug("--> ", marker, label.ljust(15), ": ", chars)
+      else:
+         log.debug("-->  ", label.ljust(15), ": --- skipped ---")
+      return retval
    
    
    #===========================================================================
@@ -745,19 +690,19 @@ class ComicBook(object):
       method instead.
       '''
       # corynorm: this should figure out the format too?!?
-      # 1. first off, if these values have been set in ComicRack, just use them
-      #    directly. if this is a Fileless book, these should ALWAYS be set.
-      self.__series_s = self.__cr_book.Series.strip() \
-         if self.__cr_book.Series else ""
-      self.__issue_num_s = self.__cr_book.Number.strip() \
-         if self.__cr_book.Number else ""
+      # corynorm: rename this to "parse_filename" or something
       
-      # 2. if we have no values (as will often be the case with fresh, unscraped
-      #    files) we'll use our own filename parsing routine to find them.
-      if not self.__series_s or not self.__issue_num_s:
-         if self.filename_s:
-            extracted = fnameparser.extract(self.filename_s)
-            if not self.__series_s:
-               self.__series_s = extracted[0]
-            if not self.__issue_num_s:
-               self.__issue_num_s = extracted[1]
+      # if these two values have been set in ComicRack, just use them
+      # directly. if this is a Fileless book, these will ALWAYS be set.
+      # f we have no values (as will often be the case with fresh, unscraped
+      # comicbooks) we'll find them with our own filename parsing routine.
+      bd  = self.__bookdata
+      if not bd.series_s or not bd.issue_num_s:
+         if bd.filename_s:
+            extracted = fnameparser.extract(bd.filename_s)
+            if not bd.series_s:
+               bd.series_s = extracted[0]
+            if not bd.issue_num_s:
+               bd.issue_num_s = extracted[1]
+               
+               

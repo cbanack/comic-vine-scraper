@@ -193,12 +193,12 @@ class ComicForm(CVForm):
             book_name = "<" + i18n.get("ComicFormUnknown") + ">"
          book_name += (' #' + book.issue_num_s) if book.issue_num_s else ''
          book_name += (' ({0} {1})'.format(
-            i18n.get("ComicFormVolume"), sstr(book.volume_n) ) ) \
-            if book.volume_n >= 0 else (' (' + sstr(book.year_n) +')') \
+            i18n.get("ComicFormVolume"), sstr(book.volume_year_n) ) ) \
+            if book.volume_year_n >= 0 else (' (' + sstr(book.year_n) +')') \
             if book.year_n >= 0 else ''
         
       # 2. obtain a copy of the first (cover) page of the book to install
-      page_image = book.create_page_image(self.__scraper, 0)
+      page_image = book.create_image_of_page(0)
       page_count = book.page_count_n
        
       # 3. install those values into the ComicForm.  update progressbar.        
@@ -348,8 +348,7 @@ class ComicForm(CVForm):
          current_book = self.__current_book # a thread safety copy
          page_image = [None]
          def get_page():
-            page_image[0] =\
-               current_book.create_page_image(self.__scraper, page_index)
+            page_image[0] = current_book.create_image_of_page(page_index)
             def set_page():
                self.__pbox_panel.set_image(page_image[0]) # image may be None
                self.__pbox_panel.Refresh() # just in case nothing changed

@@ -324,7 +324,7 @@ class ScrapeEngine(object):
             "scraping details directly: " + sstr(issue_ref));
          try:
             issue = db.query_issue(issue_ref)
-            book.copy_issue_details(issue, self)
+            book.update(issue)
             return BookStatus("SCRAPED")
          except:
             log.debug_exc("Error rescraping details:")
@@ -363,7 +363,7 @@ class ScrapeEngine(object):
             elif search_form_result.equals("SKIP"):
                return BookStatus("SKIPPED")
             elif search_form_result.equals("PERMSKIP"):
-               book.skip_forever(self)
+               book.skip_forever()
                return BookStatus("SKIPPED")
          # query the database for series_refs that match the search terms
          series_refs = self.__query_series_refs(search_terms_s)
@@ -393,7 +393,7 @@ class ScrapeEngine(object):
             elif series_form_result.equals("SKIP"):
                return BookStatus("SKIPPED") # user says 'skip this book'
             elif series_form_result.equals("PERMSKIP"):
-               book.skip_forever(self)
+               book.skip_forever()
                return BookStatus("SKIPPED") # user says 'skip book always'
             elif series_form_result.equals("SEARCH"): 
                return BookStatus("UNSCRAPED") # user says 'search again'
@@ -440,7 +440,7 @@ class ScrapeEngine(object):
                # ignore his previous series selection.
                del scrape_cache[key]
             if issue_form_result.equals("PERMSKIP"):
-               book.skip_forever(self)
+               book.skip_forever()
             return BookStatus("SKIPPED")
          elif issue_form_result.equals("BACK"):
             # ignore users previous series selection
@@ -449,7 +449,7 @@ class ScrapeEngine(object):
             # we've the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
             issue = db.query_issue( issue_form_result.get_ref() )
-            book.copy_issue_details(issue, self)
+            book.update(issue)
             return BookStatus("SCRAPED")
 
       raise Exception("should never get here")

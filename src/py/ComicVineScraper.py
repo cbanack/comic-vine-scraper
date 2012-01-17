@@ -69,7 +69,7 @@ def cvs_scrape(books):
    def delegate():
       if books:
          engine = ScrapeEngine(ComicRack)
-         comic_books = [ ComicBook(book) for book in books ]
+         comic_books = [ ComicBook(book, engine) for book in books ]
          engine.scrape(comic_books)
    __launch(delegate)
 

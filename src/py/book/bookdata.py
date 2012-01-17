@@ -1,30 +1,22 @@
 '''
 This module contains the Book class, which is an "abstract class" that defines
-the data attributes and read/write functionality and any kind of comic book 
+the data attributes and read/write functionality that any kind of comic book 
 must have.  Various subclasses will implement the specific details.
 
 @author: Cory Banack
 '''
-import re
-import log
-from time import strftime
-from utils import sstr
-import db
-import utils
-from dbmodels import IssueRef
-import fnameparser
 
-# coryhigh: start here
+# corynorm: BookData architecture
 # so BookData will be the superclass of PluginBookData and CRBookData.
 # CRBookData is for the ComicRack metadata format. (maybe more to come.)
 # CRBookData will have 3 subclasses, CBZBookData, CB7BookData, and CBRBookData
 # ComicBook merely has to contain and use a subclass of BookData.
 
-# coryhigh: use this
+# corynorm: use this
 #   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
 #   from Ionic.Zip import ZipFile #@UnresolvedImport
 #   from System.IO import Directory, File
-#   def delegate2(): # coryhigh: delete
+#   def delegate2(): 
 #      zip = r"K:\xmlstuff\comic.cbz";
 #      xml = r"ComicInfo.xml" 
 #      
@@ -37,7 +29,8 @@ import fnameparser
 #==============================================================================
 class BookData(object):
    '''
-   This class defines the attributes that persistable book objects must have. 
+   This abstract class defines the attributes and behaviours for all kinds of
+   persistable book objects. 
    '''
    
    #===========================================================================   
@@ -70,28 +63,92 @@ class BookData(object):
       self.__rating_n = 0.0 # 0.0 to 5.0
       self.__page_count_n = 0
       
-      self.__saved_properties = BookData.__all_properties();
-      self.dont_save("page_count_n")
-      self.dont_save("filename_s")
+      self.__updated_properties = BookData.all_properties();
+      self.dont_update("page_count_n")
+      self.dont_update("filename_s")
       
       
+   #===========================================================================
+   def update(self):
+      '''
+      This method (which is meant to be implemented by subclasses) will write
+      some of the properties in this BookData object back out to whatever source
+      they were originally read in from, thus updating the original source of
+      this book (and likely doing file or network IO.)
+      
+      The updated_properties() method defines which properties of this class 
+      should be written out by implementing subclasses; ALL other properties
+      should be ignored.
+      '''  
+      pass
+
+      
+
    #===========================================================================   
-   def dont_save(self, property):
-      if property in self.__saved_properties:
-         self.__saved_properties.remove(property)
+   def updated_properties(self):
+      ''' 
+      Returns a set containing all of the properties ("series_s", etc) that will
+      be updated when this BookData is "updated".   By default, it contains
+      everything except read-only attributes like filename_s and page_count_n.
+      ''' 
+      return set(self.__updated_properties) 
+   
+   
+   #===========================================================================   
+   def dont_update(self, property):
+      '''
+      Use this member to REMOVE the given property from the set of properties
+      that are updated when this BookData is "updated".
+      '''
+      if property in self.__updated_properties:
+         self.__updated_properties.remove(property)
       elif not property in BookData.__dict__:
          raise Exception("unrecognized property: " + property)
-      
-      
-   def saved_properties(self):
-      return set(self.__saved_properties)
    
+   
+   #==========================================================================
+   def create_image_of_page(self, page_index):
+      ''' 
+      Retrieves an COPY of a single page (a .NET "Image" object) for this 
+      BookData.  Returns None if the requested page could not be obtained.
+      
+      page_index --> the index of the page to retrieve; a value on the range
+                  [0, n-1], where n is self.page_count_n.
+      '''
+      return None
+     
+      
+   #===========================================================================   
+   @classmethod
+   def all_properties(cls):
+      '''
+      Returns a new list containing string names for ALL the properties in
+      any instance of this class (regardless of whether they will be saved out
+      when this BookData is "updated".) 
+      '''
+      return [ x for x in cls.__dict__ if 
+         x[0] != '_' and isinstance(cls.__dict__[x], property) ]
+      
+   
+   #===========================================================================   
    @classmethod
    def blank(cls, property):
+      '''
+      Returns the blank value for the given property in this bookdata.  This 
+      value should be interpreted as "I don't know" or "undefined".  All new 
+      BookData objects start with these properties by default, e.g.
+      year_n is blank("year_n"), series_s is blank("series_s"), etc.
+      
+      Values return by this method will never be None.
+      '''   
       if not hasattr(cls, "__BLANKMAP"):
          book = BookData() 
-         cls.__BLANKMAP = {x : getattr(book, x) for x in cls.__all_properties()}  
+         cls.__BLANKMAP = {x : getattr(book, x) for x in cls.all_properties()}
+         for prop in cls.__BLANKMAP.values():
+            if prop == None: raise Exception("None not allowed")
+              
       return cls.__BLANKMAP[property]
+    
     
    #===========================================================================   
    def __set_series_s(self, series_s = None):
@@ -383,26 +440,8 @@ class BookData(object):
    def __set_page_count_n(self, page_count_n = None):
       self.__page_count_n = int(page_count_n) \
          if page_count_n >= 0 else BookData.blank("page_count_n")
-      
    page_count_n = property( lambda self : self.__page_count_n,
       __set_page_count_n, __set_page_count_n, 
       "The number of pages in this book, an integer >= 0." )
-   
-   
-   #===========================================================================   
-   @classmethod
-   def __all_properties(cls):
-      return [ x for x in cls.__dict__ if 
-         x[0] != '_' and isinstance(cls.__dict__[x], property) ]
+
       
-      
-if __name__ == '__main__':  
-   book = BookData()
-   book.month_n = 5
-   print book.month_n
-   book.month_n = None
-   print book.month_n
-   book.month_n = 12
-   print book.month_n
-   del book.month_n
-   print book.month_n
