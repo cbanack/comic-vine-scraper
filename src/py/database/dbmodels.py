@@ -172,6 +172,7 @@ class SeriesRef(object):
    # the url of this series's thumbnail, as a string. may be None.
    thumb_url_s = property( lambda self : self.__thumb_url_s )
    
+   # corylow: rename to volume_year_n
    # the first publication year of this series. an int >= -1; -1 means unknown.
    start_year_n = property( lambda self : self.__start_year_n )
    
@@ -240,6 +241,7 @@ class Issue(object):
       self.start_year_n = -1
       self.rating_n = 0.0
       
+      # corylow: rename these with sl
       self.alt_series_names = []
       self.characters = []
       self.teams = []
