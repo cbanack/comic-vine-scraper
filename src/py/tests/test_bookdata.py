@@ -270,6 +270,16 @@ class TestBookData(TestCase):
       self.assertEquals(book.webpage_s, BookData.blank("webpage_s"))
       
    # --------------------------------------------------------------------------
+   def test_cover_url_s(self):
+      ''' Checks to see if the BookData's cover_url_s property works. '''
+      book = BookData()
+      self.assertEquals(book.cover_url_s, BookData.blank("cover_url_s"))
+      book.cover_url_s = "http:\\batman.com\pic.jpg"
+      self.assertEquals(book.cover_url_s, "http:\\batman.com\pic.jpg")
+      del book.cover_url_s
+      self.assertEquals(book.cover_url_s, BookData.blank("cover_url_s"))
+      
+   # --------------------------------------------------------------------------
    def test_rating_n(self):
       ''' Checks to see if the BookData's rating_n property works. '''
       book = BookData()

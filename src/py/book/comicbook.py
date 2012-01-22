@@ -350,7 +350,7 @@ class ComicBook(object):
          config.ignore_blanks_b )
       if value is None: bd.dont_update("webpage_s")
       else: bd.webpage_s = value
-      
+           
       # rating -----------------
       value = self.__massage_new_number("Rating", issue.rating_n, \
          bd.rating_n, config.update_rating_b, config.ow_existing_b, \
@@ -372,8 +372,39 @@ class ComicBook(object):
       if value is None: bd.dont_update("notes_s")
       else: bd.notes_s = value
       
+      # cover url -------------
+      self.__update_cover_url_s(issue)
+      
       bd.update();
    
+   
+   #===========================================================================
+   def __update_cover_url_s(self, issue):
+      '''
+      Obtains the appropriate cover art url for this book (if available), based
+      on the given Issue object.  Sets value in the underlying BookData, and 
+      prints out a debug line about it.  The implementing instance of BookData
+      may or may not use this URL to install a cover image when saved out.
+      '''
+      config = self.__scraper.config
+      bd = self.__bookdata
+      
+      url_s = None
+      alt_cover_key = sstr(issue.issue_key)+"-altcover"
+      if alt_cover_key in config.session_data_map:
+         url_s = config.session_data_map[alt_cover_key]
+      if not url_s and len(issue.image_urls):  
+         url_s = issue.image_urls[0]
+         
+      label = "Cover Art URL"
+      if not url_s:
+         log.debug("-->  ", label.ljust(15),": --- not available! ---")
+         bd.dont_update("cover_url_s")
+      else:
+         log.debug("-->  ", label.ljust(15),": ", url_s)
+         bd.cover_url_s = url_s
+            
+      
    #===========================================================================
    def __update_tags_sl(self, tags_sl, issue_key):
       '''

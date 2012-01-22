@@ -6,7 +6,6 @@ ComicRack's plugin api.
 @author: Cory Banack
 '''
 from bookdata import BookData
-from utils import sstr
 import utils
 import log
 import re
@@ -203,62 +202,33 @@ class PluginBookData(BookData):
          self.__crbook.CommunityRating = self.rating_n
          ok_to_update.remove("rating_n")
          
+   
+      # we only download and install a thumbnail for fileless CR books, and
+      # even then, only if the user's prefs indicate that they want us to      
+      if "cover_url_s" in ok_to_update:
+         already_has_thumb = self.__crbook.CustomThumbnailKey
+         book_is_fileless = not self.filename_s
+         config = self.__scraper.config
+   
+         if not self.cover_url_s or not book_is_fileless or \
+               not config.download_thumbs_b or \
+               (already_has_thumb and config.preserve_thumbs_b): 
+            pass
+         else:
+            image = db.query_image(self.cover_url_s)
+            if not image:
+               log.debug("ERROR: can't download thumbnail: ", self.cover_url_s)
+            else:
+               cr = self.__scraper.comicrack.App
+               success = cr.SetCustomBookThumbnail(self.__crbook, image)
+               if not success:
+                  log.debug("ERROR: can't set thumbnail: ", self.cover_url_s)
+         ok_to_update.remove("cover_url_s")
+
+         
       # a nice safety check to make sure we didn't miss anything
       if len(ok_to_update) > 0:
          for s in ok_to_update:
             log.debug(self.__class__.__name__ + " can't update property: " + s)
          raise Exception()
       
-     
-   #===========================================================================
-   def __maybe_download_thumbnail(self, issue):
-      # coryhigh: this is never called; we have to pass in an IssueRef?
-      # call it when update is called?
-      '''
-      Iff this PLuginBookData represents a 'fileless' book in the ComicRack
-      database, this method downloads and stores a cover image into the database 
-      (assuming the scraper's config settings permit.)  Otherwise, this 
-      method does nothing.
-      
-      'issue' -> the Issue for the book that we are updating
-      '''
-      
-      scraper = self.__scraper
-      config = scraper.config
-      label = "Thumbnail"
-      already_has_thumb = self.__crbook.CustomThumbnailKey
-      book_is_fileless = not self.filename_s
-      
-      # don't download the thumbnail if the book has a backing file (cause 
-      # that's where the thumbnail will come from!) or if the user has 
-      # specified in config that we shouldn't.
-      if not book_is_fileless or not config.download_thumbs_b or \
-               (already_has_thumb and config.preserve_thumbs_b):
-            log.debug("-->  ", label.ljust(15), ": --- skipped ---")
-      else:
-         # get the url for this issue's cover art.  check to see if the user
-         # picked an alternate cover back when they closed the IssueForm, and if
-         # not, just grab the url for the default cover art.
-         url = None
-         alt_cover_key = sstr(issue.issue_key)+"-altcover"
-         if alt_cover_key in config.session_data_map:
-            url = config.session_data_map[alt_cover_key]
-         if not url and len(issue.image_urls):  
-            url = issue.image_urls[0]
-            
-         if not url:
-            # there is no image url available for this issue 
-            log.debug("-->  ", label.ljust(15),": --- not available! ---")
-         else:
-            image = db.query_image(url)
-            if not image:
-               log.debug("ERROR: couldn't download thumbnail: ", url)
-            else:
-               cr = scraper.comicrack.App
-               success = cr.SetCustomBookThumbnail(self.__bookdata, image)
-               if success:
-                  # it worked!
-                  log.debug("--> *", label.ljust(15),": ", url)
-               else:
-                  log.debug("ERROR: comicrack can't set thumbnail!")
-                              
