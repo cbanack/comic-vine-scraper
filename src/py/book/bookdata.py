@@ -60,6 +60,7 @@ class BookData(object):
       self.__notes_s = ""
       self.__filename_s = ""
       self.__webpage_s = ""
+      self.__cover_url_s = ""
       self.__rating_n = 0.0 # 0.0 to 5.0
       self.__page_count_n = 0
       
@@ -394,6 +395,15 @@ class BookData(object):
    webpage_s = property( lambda self : self.__webpage_s, 
       __set_webpage_s, __set_webpage_s, 
       "The webpage associated with this book.  Not None, may be empty.")
+   
+   #===========================================================================   
+   def __set_cover_url_s(self, cover_url_s = None): 
+      self.__cover_url_s = BookData.blank("cover_url_s") \
+         if cover_url_s is None else cover_url_s.strip();   
+
+   cover_url_s = property( lambda self : self.__cover_url_s, 
+      __set_cover_url_s, __set_cover_url_s, 
+      "The url to a cover art image for this book.  Not None, may be empty.")
 
       
    #===========================================================================   
