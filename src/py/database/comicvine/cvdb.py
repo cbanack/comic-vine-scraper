@@ -12,13 +12,9 @@ import cvconnection
 import log
 import re
 import utils
-from resources import Resources
-from utils import is_string, is_number, sstr 
+from utils import is_string, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
 import cvimprints
-
-clr.AddReference('System')
-from System.IO import Directory, File, Path
 
 clr.AddReference('System')
 from System.Net import WebRequest
@@ -29,7 +25,6 @@ from System.Drawing import Image
 # this cache is used to speed up __issue_parse_series_details.  it is a 
 # memory leak (until the main app shuts down), but it is small and worth it.
 __series_details_cache = {}
-
 
 
 # =============================================================================
@@ -208,301 +203,36 @@ def __cleanup_trailing_zeroes(number_s):
 def _query_issue_refs(series_ref, callback_function=lambda x : False):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
-   # do a 'fast' query, and then a 'safe' query to catch anything the fast one
-   # might have missed, and remove any obsolete values in the fast query cache.
-   # the safe query is slower, but it always returns the right values, and it
-   # can use the results of the fast query to speed itself up.
-   fast = __query_issue_refs_fast(series_ref, callback_function);
-   safe = __query_issue_refs_safe( series_ref, fast, callback_function ); 
-   
-   log.debug("   ...found ", len(fast), " issues using FAST issue query")
-   log.debug("   ...found ", len(safe-fast), " more using SAFE issue query") 
-      
-   return safe
-      
-      
-# =============================================================================
-def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
-   '''
-   This method is a FAST Comic Vine implementation of the identically named 
-   method in the db.py module.  
-   
-   It is not guaranteed to return EVERY issue in comic vine's database, or even
-   ANY issues, or even (rarely) the RIGHT issues.  But it will usually return
-   most of all of them, and do so fairly quickly.
-   
-   For examples of where this method can fail, see bugs: 135, 136, 149
-   '''
-   
-   # this gets set to true if the user clicks "cancel" during the callback
-   cancelled_b = [False] 
-   
-   # map of issue_id strings to tuples.  contains one mapping for each issue 
-   # that our search (below) will return.   each mapped tuple contains 
-   # {issue_number_s, issue_id_s, volume_id_s} (basically, the compact details
-   # for a single issue.) the main point of the method is to populate this map
-   issues_to_tuples = {}
-   
-   series_key_n = int(series_ref.series_key)
-   series_name_s = sstr(series_ref.series_name_s)
-
-   # we'll read cached tuples for this series first. this is a much faster way 
-   # to populate issues_to_tuples than querying comicvine...
-
-   # 1. get the name of the tuples cache file.
-   cache_file = __get_cache_file_path(series_ref, '.dat')
-   if not Directory.Exists(Path.GetDirectoryName(cache_file)):
-      Directory.CreateDirectory(Path.GetDirectoryName(cache_file))
-
-   # 2. read in all tuples from the cache
-   loaded_from_cache_n = 0
-   loaded_from_web_n = 0
-   if File.Exists(cache_file):
-      with open(cache_file, 'r') as f:
-         issue_data = f.readline()
-         while issue_data: # might contain newline or whitespace
-            if issue_data.strip():
-               ctuple = issue_data.strip().split(",")
-               if len(ctuple) != 3: 
-                  # something's gone very wrong; clear the cache results
-                  issues_to_tuples = {}
-                  break
-               else:
-                  issue_key = ctuple[1]
-                  issues_to_tuples[issue_key] = (ctuple[0],ctuple[1],ctuple[2])
-            issue_data = f.readline()
-         del issue_data
-         loaded_from_cache_n = len(issues_to_tuples)
-
-   # 3. now do a query to comicvine to see how many issues we should have; this
-   #    lets us figure out if we need to grab more tuples from the web
-   dom = cvconnection._query_issue_ids_dom_fast(series_name_s, 0)
-   total_to_load_n = int(dom.number_of_total_results)
-   
-   # 4. make sure the cache is valid and current. if it's not, don't use it
-   missing_issues = total_to_load_n - loaded_from_cache_n
-   if missing_issues < 0 or missing_issues > 10: 
-      loaded_from_cache_n = 0
-      issues_to_tuples = {}
-      File.Delete(cache_file)
-   
-   # 5. now IF we didn't get all the issues from the cache, start
-   #    querying comicvine to get them individually
-   PAGE = 20
-   skip_n = total_to_load_n - PAGE
-   skip_n = max(0, skip_n)
-
-   def _parse_issue_dom(issue_dom):
-      issue_key_s = issue_dom.id.strip()
-      vol_key_s = issue_dom.volume.id.strip()
-      # if the issue number isn't a string, then it's "unknown" (i.e. blank)
-      issue_number_s = issue_dom.issue_number.strip() if \
-         is_string(issue_dom.issue_number) else ""
-      if not issue_key_s or not vol_key_s:
-         raise Exception("bad dom results from comicvine")
-      issue_number_s = __cleanup_trailing_zeroes(issue_number_s)
-      if not issues_to_tuples.has_key(issue_key_s): 
-         issues_to_tuples[issue_key_s]=(issue_number_s, issue_key_s, vol_key_s)         
-         return 1
-      else:
-         return 0
-         
-   def _done_loop():
-      return len(issues_to_tuples) >= total_to_load_n or \
-         skip_n < 0 or cancelled_b[0];
-         
-   while not _done_loop():
-      dom = cvconnection._query_issue_ids_dom_fast(series_name_s, skip_n)
-      if ("issue" in dom.results.__dict__):
-         if type(dom.results.issue) == type([]):
-            for issue in dom.results.issue:
-               loaded_from_web_n += _parse_issue_dom(issue)
-         else:
-            loaded_from_web_n += _parse_issue_dom(dom.results.issue)
-      cancelled_b[0] = callback_function(
-         len(issues_to_tuples)/float(total_to_load_n))
-      skip_n = 0 if skip_n > 0 and skip_n < PAGE else skip_n - PAGE
-      
-   if cancelled_b[0]:
-      pass
-   elif total_to_load_n < len(issues_to_tuples):
-      # this is rare, if comic vine deletes an issue, and adds 2 new ones, the
-      # cache is too big now, and we might end up with more loaded issues (from
-      # web + cache) than there are in CV! at least one issue we've loaded
-      # is invalid, so better to have this whole method return nothing.
-      log.debug("warning: cache had obsolete issues. clearing it.")
-      File.Delete(cache_file) # cache is corrupt, reload it next time
-      issues_to_tuples = {} # better to return nothing than an invalid list
-      loaded_from_web_n = 0 # don't write our current tuples out
-      
-   # 6. update the cache file so next time this operation is faster
-   if not cancelled_b[0] and loaded_from_web_n > 0: 
-      def _compare_tuples(t1, t2):
-         return cmp(int(t1[2]), int(t2[2])) or cmp(t1[0], t2[0])
-      
-      with open(cache_file, 'w') as f:
-         for ctuple in sorted(issues_to_tuples.values(), _compare_tuples):
-            if is_string(ctuple[0]) and is_number(ctuple[1])\
-                  and is_number(ctuple[2]):
-               f.write(sstr(ctuple[0]) + ',' + \
-                  sstr(ctuple[1]) + ',' + sstr(ctuple[2]) + '\n')
-               
-   # 7. prune out the tuples that don't match the current series, and make
-   #    a list of IssueRefs out of the remaining tuples 
-   # coryhigh: here?
-   issue_refs = set([ IssueRef(t[0], t[1], "") \
-      for t in issues_to_tuples.values() if int(t[2])==series_key_n ])
-
-   # 8. a little nice debug output...
-   #if not cancelled_b[0]:
-   #   log.debug("   ---> FAST ISSUE QUERY found ", loaded_from_cache_n, " (of ",
-   #   loaded_from_cache_n + loaded_from_web_n, ") results in the local cache")
-
-   return set() if cancelled_b[0] else issue_refs
-
-
-# =============================================================================
-def __query_issue_refs_safe( \
-      series_ref, already_found, callback_function=lambda x : False):
-   '''
-   This method is a SAFE but SLOW Comic Vine implementation of the identically 
-   named method in the db.py module.  
-   
-   It is guaranteed to return EVERY issue in comic vine's database, but it runs
-   very slowly.   If you already know some of the IssueRefs that it will find,
-   however, you can speed its operation up considerable by providing them as 
-   in the 'already_found' argument (a set of IssueRefs).
-   
-   This method will never return issues that are not in the comic vine database,
-   even if such issues are provided in the 'already_found' set.
-   '''
-   
    # a comicvine series key can be interpreted as an integer
    series_id_n = int(series_ref.series_key)
-   cancelled_b = [False]
    issue_refs = set()
 
-   # we'll read existing IssueRefs from a local cache if possible. this is a 
-   # much faster way to populate issue_refs than querying comicvine...
-
-   # 1. get the name of the cache file.
-   cache_file = __get_cache_file_path(series_ref, '.cache')
-   if not Directory.Exists(Path.GetDirectoryName(cache_file)):
-         Directory.CreateDirectory(Path.GetDirectoryName(cache_file))
-
-   # 2. read in all issues from the cache, including the 'already_found' list, 
-   #    which we treat as though it was part of the cache.
-   if already_found:
-      issue_refs = issue_refs.union(already_found)
-   if File.Exists(cache_file):
-      with open(cache_file, 'r') as f:
-         issue_data = f.readline()
-         while issue_data: # might contain newline or whitespace
-            if issue_data.strip():
-               issue_key = issue_data.strip().split(",")[0]
-               issue_num_s = issue_data.strip().split(",")[1]
-               #coryhigh: here?
-               newref = IssueRef(issue_num_s.strip(), issue_key.strip(), "")
-               if not newref in issue_refs:
-                  issue_refs.add( newref );
-            issue_data = f.readline()
-         del issue_data
-
-   # 3. now do a query to comicvine to see if we should grab some more issues
-   dom = cvconnection._query_issue_ids_dom_safe(sstr(series_id_n)) 
+   # 1. do a query to comicvine to get all the issues in this series
+   dom = cvconnection._query_issue_ids_dom(sstr(series_id_n)) 
    if dom is None:
       raise Exception("error getting issues in " + sstr(series_ref))
    else:
-      # 4. parse the query results to find the total number of issues that 
+      # 2. parse the query results to find the total number of issues that 
       #    comic vine has for our series.  
-      total_to_load_n = 0
+      issues = []
       if hasattr(dom.results, "__dict__") and \
          "issues" in dom.results.__dict__ and \
           hasattr(dom.results.issues, "__dict__") and \
          "issue" in dom.results.issues.__dict__:
-            total_to_load_n = len(dom.results.issues.issue) \
-               if isinstance(dom.results.issues.issue, list) else 1
+            issues = dom.results.issues.issue \
+               if isinstance(dom.results.issues.issue, list) else \
+               [dom.results.issues.issue]
+      for issue in issues:
+         issue_num_s = issue.issue_number
+         if not is_string(issue_num_s): issue_num_s = ''
+         issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
+         title_s = issue.name 
+         if not is_string(title_s): title_s = ''
+         issue_refs.add(IssueRef(issue_num_s, issue.id, title_s))
 
-      # 5. now if we didn't get all the issues from the cache, start
-      #    querying comicvine to get them individually
-      issue_keys = set([ref.issue_key for ref in issue_refs])
-      expected_issue_keys = set()
-      loaded_from_web_n = 0
-      def _grab_issue(issue):
-         expected_issue_keys.add(issue.id)
-         if issue.id not in issue_keys:
-            issue_dom = cvconnection._query_issue_number_dom(issue.id)
-            issue_num_s = issue_dom.results.issue_number
-            if not is_string(issue_num_s): issue_num_s = ''
-            issue_num_s = __cleanup_trailing_zeroes(issue_num_s) 
-            #coryhigh: here?
-            issue_refs.add(IssueRef(issue_num_s, issue.id, ""))
-            cancelled_b[0] =\
-               callback_function(float(len(issue_refs))/total_to_load_n)
-            return 1
-         else:
-            return 0
-      if total_to_load_n == 0:
-         pass # do nothing, see bug 174
-      elif total_to_load_n == 1:
-         loaded_from_web_n += _grab_issue(dom.results.issues.issue)
-      else:
-         # 5a. pre sort the issues in the results by issue id, as a proxy
-         # for issue number (which we can't have yet.)  this should 
-         # lead to the progress bar counting up mostly (see issue 82)
-         dom.results.issues.issue.sort(None, lambda iss : int(iss.id))
-         for issue in dom.results.issues.issue:
-            loaded_from_web_n += _grab_issue(issue)
-            if cancelled_b[0]:
-               break
-      # 5b. there could be obsolete values in the cache/already_found set.
-      #     if so, remove them from our results.
-      obsolete_issue_refs = set()
-      for ref in issue_refs:
-         if not ref.issue_key in expected_issue_keys:
-            log.debug("warning: ignoring obsolete issue: ", ref.issue_key)
-            obsolete_issue_refs.add(ref)
-      issue_refs = issue_refs - obsolete_issue_refs
+   log.debug("   ...found ", len(issue_refs), " issues at comicvine.com")
+   return issue_refs
 
-   # 6. update the cache file so next time this is operation is faster
-   #    even if we are cancelled, this could speed things up next time.
-   if loaded_from_web_n > 0:
-      with open(cache_file, 'w') as f:
-         for ref in issue_refs:
-            if is_number(ref.issue_num_s) and is_number(ref.issue_key):
-               f.write(sstr(ref.issue_key) + ',' + sstr(ref.issue_num_s) + '\n')
-
-   # 7. a little nice debug output...
-   #if not cancelled_b[0]:
-   #   log.debug("   ---> SAFE ISSUE QUERY found ", loaded_from_cache_n, " (of ",
-   #   loaded_from_cache_n + loaded_from_web_n, ") issues in the local cache")
-
-   return set() if cancelled_b[0] else issue_refs
-
-
-# =============================================================================
-def __get_cache_file_path(series_ref, extension = ''):
-   '''
-   Returns the correct cache file path for the given series_ref, with the
-   given extension.  There is no guarantee that this path points to a file 
-   or directory that actually exists.
-   
-   series_ref -> the SeriesRef that you want a cache file path for.
-   extension -> the extension to use in the filepath ('.cache', '.dat', etc)
-   '''
-   
-   series_id_n = int(series_ref.series_key)
-   cache_dir = Resources.LOCAL_CACHE_DIRECTORY + '\\comicvine\\'
-   
-   cache_file = ''
-   legacy_cache = cache_dir + sstr(series_id_n) + extension
-   if File.Exists(legacy_cache):
-      cache_file = legacy_cache
-   else:
-      sub_dir = cache_dir + (sstr(abs(series_id_n)).zfill(2))[0:2] + '/'
-      cache_file = sub_dir + sstr(series_id_n) + extension
-   return cache_file
-   
 
 # =============================================================================
 def _query_image(ref):
