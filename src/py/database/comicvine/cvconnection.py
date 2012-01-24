@@ -56,7 +56,6 @@ def _query_series_details_dom(seriesid_s):
    
    This method doesn't return null, but it may throw Exceptions.
    '''
-   
    # {0} is the series id, an integer.
    QUERY = 'http://api.comicvine.com/volume/{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=start_year,publisher'
@@ -67,49 +66,11 @@ def _query_series_details_dom(seriesid_s):
    return __get_dom( QUERY.format(sstr(seriesid_s) ) )
 
 
-
 # =============================================================================
-def _query_issue_ids_dom_fast(seriesname_s, skip_n=0):
-   
-   ''' 
-   Performs a query that will obtain a dom containing a portion of the issue IDs
-   for the given series name. You can also provide a second argument that 
-   specifies the number of results to skip over (i.e. 3 means skip results 0, 
-   1, and 2, so the first returned result is number 3.) 
-   
-   This method is called 'fast' because the returned dom contains issue and 
-   serial numbers, so the caller can save a LOT of time by not having to query
-   each issue id to find its issue number.  The downside is that many of the
-   returned issues may not belong to the right series (they must be filtered
-   out) and in some cases, the returned list of issues will be incomplete.
-   
-   See _query_issue_id_dom_safe for a slower, better behaved alternative.
-   
-   This method doesn't return null, but it may throw Exceptions.
-   '''
-   
-   # {0} is the series name (a search string), and skip_n is an integer     
-   QUERY = 'http://api.comicvine.com/search/?api_key=' + __API_KEY + \
-      '&format=xml&resources=issue&query={0}&offset={1}' + \
-      '&field_list=volume,issue_number,id'
-   
-   if seriesname_s is None or seriesname_s == '' or skip_n < 0:
-      raise ValueError('bad parameters')
-   return __get_dom( 
-      QUERY.format(sstr(seriesname_s), sstr(skip_n)))
-
-
-# =============================================================================
-def _query_issue_ids_dom_safe(seriesid_s):
+def _query_issue_ids_dom(seriesid_s):
    '''
    Performs a query that will obtain a dom containing all of the issue IDs
-   for the given series name. 
-   
-   This method is called 'safe' because the returned dom contains all issues ids
-   for the requested series id, and nothing else.  It is called 'slow', though,
-   because the caller must still query each issue id to find its issue number. 
-      
-   See _query_issue_id_dom_fast for a faster alternative.
+   for the given series name.
    
    This method doesn't return null, but it may throw Exceptions.
    '''
@@ -165,27 +126,6 @@ def _query_issue_details_page(issueid_s):
    else:
       raise DatabaseConnectionError('comicvine', url, 
          Exception('comicvine website returned an empty document'))
-
-
-
-# =============================================================================
-def _query_issue_number_dom(issueid_s):
-   '''
-   Performs a query that will grab a dom containing the issue number for a 
-   specific issue ID.
-   
-   This method doesn't return null, but it may throw Exceptions.
-   '''
-   
-   # {0} is the issue ID
-   QUERY = 'http://api.comicvine.com/issue/{0}/?api_key=' + __API_KEY + \
-      '&format=xml&field_list=issue_number,id' 
-      # parsing relies on 'field_list' specifying 2 or more elements!!
-   
-   if issueid_s is None or issueid_s == '':
-      raise ValueError('bad parameters')
-   return __get_dom( QUERY.format(sstr(issueid_s) ) )
-
 
 
 # =============================================================================
