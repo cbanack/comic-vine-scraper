@@ -101,7 +101,7 @@ class IssueForm(CVForm):
       # 2. --- configure this form, and add all the gui components to it      
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(730, 395)
-      self.Text = i18n.get("IssueFormTitle")
+      self.Text = i18n.get("IssueFormTitle") + " - '" + series_name_s + "'"
       self.FormClosed += self.__form_closed_fired
       self.KeyPreview = True;
       self.KeyDown += self.__key_was_pressed
@@ -161,17 +161,18 @@ class IssueForm(CVForm):
          
       # 2. --- build columns
       table.ColumnCount = 4
-      table.Columns[0].Name = i18n.get("IssueFormSeriesCol")
+      table.Columns[0].Name = i18n.get("IssueFormIssueCol")
       table.Columns[0].DefaultCellStyle.Alignment =\
-         DataGridViewContentAlignment.MiddleLeft
+         DataGridViewContentAlignment.MiddleCenter
       table.Columns[0].AutoSizeMode = \
+         DataGridViewAutoSizeColumnMode.AllCells
+         
+      table.Columns[1].Name = i18n.get("IssueFormTitleCol")
+      table.Columns[1].DefaultCellStyle.Alignment =\
+         DataGridViewContentAlignment.MiddleLeft
+      table.Columns[1].AutoSizeMode = \
          DataGridViewAutoSizeColumnMode.Fill
       
-      table.Columns[1].Name = i18n.get("IssueFormIssueCol")
-      table.Columns[1].DefaultCellStyle.Alignment =\
-         DataGridViewContentAlignment.MiddleCenter
-      table.Columns[1].AutoSizeMode = \
-         DataGridViewAutoSizeColumnMode.AllCells
          
       table.Columns[2].Name = "ID"
       table.Columns[2].Visible = False
@@ -189,19 +190,19 @@ class IssueForm(CVForm):
 
       # 3. --- copy model data into the table, each issue is a row
       for i in range(len(issue_refs)):
-         name = series_name_s
+         title_s = issue_refs[i].title_s
          key = issue_refs[i].issue_key
          issue_num_s = issue_refs[i].issue_num_s   
          
          table.Rows.Add()
-         table.Rows[i].Cells[0].Value = name
-         table.Rows[i].Cells[1].Value = issue_num_s if issue_num_s else ''
+         table.Rows[i].Cells[0].Value = issue_num_s if issue_num_s else ''
+         table.Rows[i].Cells[1].Value = '   ' + title_s if title_s else ''
          table.Rows[i].Cells[2].Value = key
          table.Rows[i].Cells[3].Value = i
 
       # 4. --- sort on the "Issue" column, and then preselect a row based on
       #    the give issue ID hint, or at least the first row if nothing else
-      table.Sort(table.Columns[1], ListSortDirection.Ascending)
+      table.Sort(table.Columns[0], ListSortDirection.Ascending)
       if issue_ref_hint: 
          for i in range(len(issue_refs)):
             if table.Rows[i].Cells[2].Value == issue_ref_hint.issue_key:
@@ -352,7 +353,7 @@ class IssueForm(CVForm):
       # instead of this:
       #    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
       
-      if args.Column.Index == 1: 
+      if args.Column.Index == 0: 
          a = args.CellValue1 # string NOT number
          b = args.CellValue2 # string NOT number
          a_isnum = is_number(a);

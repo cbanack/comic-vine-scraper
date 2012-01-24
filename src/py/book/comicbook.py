@@ -721,7 +721,9 @@ class ComicBook(object):
       doesn't seem like it's gonna happen, I'll patch up know problems in this
       method instead.
       '''
+      # corynorm: this should definitely figure out the volume
       # corynorm: this should figure out the format too?!?
+      #     -- both those changes will maybe affect pluginbookdata (shadows?)
       # corynorm: rename this to "parse_filename" or something
       
       # if these two values have been set in ComicRack, just use them

@@ -56,7 +56,7 @@ class IssueRef(object):
    issue_key = property( lambda self : self.__issue_key )
    
    # the title of this IssueRef's issue. not None, may be empty.
-   title_s = property( lambda self : self.__issue_key )
+   title_s = property( lambda self : self.__title_s )
       
       
    #===========================================================================
