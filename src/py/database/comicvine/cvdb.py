@@ -348,8 +348,9 @@ def __query_issue_refs_fast(series_ref, callback_function=lambda x : False):
                   sstr(ctuple[1]) + ',' + sstr(ctuple[2]) + '\n')
                
    # 7. prune out the tuples that don't match the current series, and make
-   #    a list of IssueRefs out of the remaining tuples
-   issue_refs = set([ IssueRef(t[0], t[1]) \
+   #    a list of IssueRefs out of the remaining tuples 
+   # coryhigh: here?
+   issue_refs = set([ IssueRef(t[0], t[1], "") \
       for t in issues_to_tuples.values() if int(t[2])==series_key_n ])
 
    # 8. a little nice debug output...
@@ -400,7 +401,8 @@ def __query_issue_refs_safe( \
             if issue_data.strip():
                issue_key = issue_data.strip().split(",")[0]
                issue_num_s = issue_data.strip().split(",")[1]
-               newref = IssueRef(issue_num_s.strip(), issue_key.strip())
+               #coryhigh: here?
+               newref = IssueRef(issue_num_s.strip(), issue_key.strip(), "")
                if not newref in issue_refs:
                   issue_refs.add( newref );
             issue_data = f.readline()
@@ -433,7 +435,8 @@ def __query_issue_refs_safe( \
             issue_num_s = issue_dom.results.issue_number
             if not is_string(issue_num_s): issue_num_s = ''
             issue_num_s = __cleanup_trailing_zeroes(issue_num_s) 
-            issue_refs.add(IssueRef(issue_num_s, issue.id))
+            #coryhigh: here?
+            issue_refs.add(IssueRef(issue_num_s, issue.id, ""))
             cancelled_b[0] =\
                callback_function(float(len(issue_refs))/total_to_load_n)
             return 1

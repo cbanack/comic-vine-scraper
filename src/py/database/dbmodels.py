@@ -8,6 +8,7 @@ methods.
 
 from utils import sstr
 import re
+import utils
 
 #==============================================================================
 class IssueRef(object):
@@ -19,7 +20,7 @@ class IssueRef(object):
    '''
    
    #===========================================================================
-   def __init__(self, issue_num_s, issue_key):
+   def __init__(self, issue_num_s, issue_key, title_s):
       ''' 
       Initializes a newly created IssueRef, checking the given parameters to
       make sure they are legal, and then storing them as read-only properties.
@@ -41,6 +42,7 @@ class IssueRef(object):
       
       self.__issue_key = issue_key
       self.__issue_num_s = issue_num_s.strip()
+      self.__title_s = title_s if utils.is_string(title_s) else ""
       
       # used only for comparisons
       self._cmpkey_s = sstr(self.issue_key)
@@ -52,6 +54,9 @@ class IssueRef(object):
    
    # the db key (i.e. a memento object) of this IssueRef's issue. not None.
    issue_key = property( lambda self : self.__issue_key )
+   
+   # the title of this IssueRef's issue. not None, may be empty.
+   title_s = property( lambda self : self.__issue_key )
       
       
    #===========================================================================
