@@ -32,6 +32,7 @@ from configform import ConfigForm
 from utils import sstr
 from comicbook import ComicBook
 from resources import Resources
+import cPickle
 
 clr.AddReference('System')
 from System.Threading import ThreadExceptionEventHandler
@@ -68,6 +69,9 @@ def cvs_scrape(books):
    # create a launch a delegate that scrapes the given books
    def delegate():
       if books:
+      # uncomment this to create a pickled load file for my pydev launcher
+#         with open("k:/sample.pickled", "w") as f:
+#            cPickle.dump(books, f);
          engine = ScrapeEngine(ComicRack)
          comic_books = [ ComicBook(book, engine) for book in books ]
          engine.scrape(comic_books)
@@ -132,7 +136,7 @@ def __validate_environment():
    # the minimum versions required for a valid environment
    REQUIRED_MAJOR=0
    REQUIRED_MINOR=9
-   REQUIRED_BUILD=129
+   REQUIRED_BUILD=151
    
    valid_environment = True
    try:
