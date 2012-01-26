@@ -26,9 +26,6 @@ from System.Drawing import Image
 # memory leak (until the main app shuts down), but it is small and worth it.
 __series_details_cache = {}
 
-# coryhigh: implement a fast local issueref cache for the last series that was 
-# scraped or perhaps it should be in a file?
-
 # =============================================================================
 def _get_db_name_s():
    ''' ComicVine implementation of the identically named method in the db.py '''

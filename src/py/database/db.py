@@ -16,12 +16,16 @@ source, and therefore may be quite slow and occassionally unreliable.
 
 import cvdb
 import utils
+import log
 
 
 # a limited-size cache for storing the results of SeriesRef searches
 # maps 'search terms string' -> 'list of SeriesRefs objects'
 __series_ref_cache = {}
 
+# this cache is used to speed up query_issue_refs.  it is a memory leak (until
+# the main app shuts down) but it is limited in size a well worth the speedup
+__issue_refs_cache = {}
 
 
 # =============================================================================
@@ -84,8 +88,9 @@ def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
    stop immediately and return an empty set of results.
    '''
    
-   # An internal implementation of query_series_refs that caches results
-   # for faster repeat lookups.
+   # use caching here for when this method gets called repeatedly with the same
+   # search term, which happens often if the user is jumping back and forth 
+   # between the series and issues dialogs, for example.
    global __series_ref_cache
    if search_terms_s in __series_ref_cache:
       return list(__series_ref_cache[search_terms_s])
@@ -116,7 +121,20 @@ def query_issue_refs(series_ref, callback_function=lambda x,y : False):
    the query.   If this returned value is true, the query should stop
    immediately and return an empty set of results.
    '''
-   return cvdb._query_issue_refs(series_ref, callback_function)  
+   
+   # use caching here for when this method is called serveral times in a row
+   # for the same series ref.  this happens all the time if the user is 
+   # scraping a bunch of comics from the same series all at once.
+   global __issue_refs_cache
+   issue_refs = set()
+   if series_ref in __issue_refs_cache:
+      issue_refs = set(__issue_refs_cache[series_ref]) 
+      log.debug("   ...found ", len(issue_refs), " issues in internal cache")
+   else: 
+      __issue_refs_cache = {} # only keep one element in cache (else too big!)
+      issue_refs = cvdb._query_issue_refs(series_ref, callback_function)
+      __issue_refs_cache[series_ref] = set(issue_refs) 
+   return issue_refs
 
 
 # =============================================================================
