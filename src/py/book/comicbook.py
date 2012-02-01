@@ -13,6 +13,7 @@ import fnameparser
 import log
 import re
 import utils
+from bookdata import BookData
 
 #==============================================================================
 class ComicBook(object):
@@ -36,7 +37,7 @@ class ComicBook(object):
       '''
       self.__scraper = scraper;
       self.__bookdata = PluginBookData(crbook, scraper)
-      self.__set_series_and_issuenum()
+      self.__parse_extra_details_from_filename()
 
    
    #===========================================================================
@@ -713,30 +714,26 @@ class ComicBook(object):
    
    
    # ==========================================================================
-   def __set_series_and_issuenum(self):
+   def __parse_extra_details_from_filename(self):
       ''' 
-      Occasionally the ComicRack parser doesn't do a good job parsing in the
-      series name and issue number (both critical bits of data for our
-      purposes!).  Ideally, this would be fixed in ComicRack, but since that
-      doesn't seem like it's gonna happen, I'll patch up know problems in this
-      method instead.
+      Series name, issue number, and volume year are all critical bits of data 
+      for scraping purposes--yet fresh, unscraped files often do not have them.
+      So when some or all of these values are missing, this method tries to fill
+      them in by parsing them out of the comic's filename.
       '''
-      # corynorm: this should definitely figure out the volume
-      # corynorm: this should figure out the format too?!?
-      #     -- both those changes will maybe affect pluginbookdata (shadows?)
-      # corynorm: rename this to "parse_filename" or something
       
-      # if these two values have been set in ComicRack, just use them
-      # directly. if this is a Fileless book, these will ALWAYS be set.
-      # f we have no values (as will often be the case with fresh, unscraped
-      # comicbooks) we'll find them with our own filename parsing routine.
       bd  = self.__bookdata
-      if not bd.series_s or not bd.issue_num_s:
+      no_series = BookData.blank("series_s") == bd.series_s
+      no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
+      no_volyear = BookData.blank("volume_year_n") == bd.volume_year_n
+      if no_series or no_issuenum or no_volyear:
          if bd.filename_s:
             extracted = fnameparser.extract(bd.filename_s)
-            if not bd.series_s:
+            if no_series:
                bd.series_s = extracted[0]
-            if not bd.issue_num_s:
+            if no_issuenum:
                bd.issue_num_s = extracted[1]
+            if no_volyear:
+               bd.volume_year_n = extracted[2]
                
                

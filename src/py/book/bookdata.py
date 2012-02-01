@@ -36,7 +36,7 @@ class BookData(object):
    #===========================================================================   
    def __init__(self):
       self.__series_s = ""
-      self.__issue_num_s = "blank"
+      self.__issue_num_s = ""
       self.__volume_year_n = -1 # -1 is a blank value
       self.__year_n =  -1 # -1 is a blank value
       self.__month_n = -1 # -1 is a blank value
@@ -204,7 +204,8 @@ class BookData(object):
 
    #===========================================================================   
    def __set_year_n(self, year_n = None):
-      self.__year_n = int(year_n) if year_n >= 0 else BookData.blank("year_n")
+      year_n = -1 if year_n is None else int(year_n)
+      self.__year_n = year_n if year_n >= 0 else BookData.blank("year_n")
       
    year_n = property( lambda self : self.__year_n, __set_year_n, __set_year_n, 
       "Publication year of this book, as an int >= -1, where -1 is unknown" )
@@ -215,7 +216,7 @@ class BookData(object):
       remap={ 1:1, 26:1, 2:2, 19:2, 3:3, 13:3, 27:3, 4:4, 20:4, 5:5, 28:5, \
               6:6, 14:6, 21:6, 7:7, 29:7, 8:8, 22:8, 9:9, 15:9, 30:9, 10:10,\
               23:10, 11:11, 31:11, 12:12, 16:12, 24:12, 25:12, 18:-1, 17:-1 }
-      month_n = None if month_n is None else int(month_n)
+      month_n = -1 if month_n is None else int(month_n)
       if month_n in remap:
          month_n = remap[month_n]
       self.__month_n = month_n if month_n <= 12 \
@@ -239,7 +240,8 @@ class BookData(object):
    
    #===========================================================================   
    def __set_volume_year_n(self, volume_year_n = None):
-      self.__volume_year_n = int(volume_year_n) \
+      volume_year_n = -1 if volume_year_n is None else int(volume_year_n)
+      self.__volume_year_n = volume_year_n \
          if volume_year_n >= 0 else BookData.blank("volume_year_n")
       
    volume_year_n = property( lambda self : self.__volume_year_n, 
@@ -428,7 +430,8 @@ class BookData(object):
 
    #===========================================================================   
    def __set_rating_n(self, rating_n = None):
-      self.__rating_n = float(rating_n) \
+      rating_n = -1 if rating_n is None else float(rating_n)
+      self.__rating_n = rating_n \
          if rating_n <= 5.0 and rating_n >= 0.0 else BookData.blank("rating_n");
 
    rating_n = property( lambda self : self.__rating_n, 
@@ -448,7 +451,8 @@ class BookData(object):
    
    #===========================================================================   
    def __set_page_count_n(self, page_count_n = None):
-      self.__page_count_n = int(page_count_n) \
+      page_count_n = -1 if page_count_n is None else int(page_count_n)
+      self.__page_count_n = page_count_n \
          if page_count_n >= 0 else BookData.blank("page_count_n")
    page_count_n = property( lambda self : self.__page_count_n,
       __set_page_count_n, __set_page_count_n, 
