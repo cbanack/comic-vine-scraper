@@ -41,7 +41,9 @@ def __load_testdata(file):
                   data = re.findall(r'"(.*?)"', line)
                else:
                   data = re.findall(r"'(.*?)'", line)
-               if len(data) != 3:
+               if len(data) == 3:
+                  data.append("")
+               if len(data) != 4:
                   raise Exception("badly formatted test data");
                retval.append( data ) 
             line = sr.ReadLine()
@@ -57,8 +59,6 @@ class TestFnameParser(TestCase):
       Constructs a new testcase, based on the given testdata list:
           [ filname, expected series name, expected issue number string ]
       '''
-      #TestCase.__init__(self);
-      #super(TestFnameParser, self).__init__()
       super(TestFnameParser, self).__init__()
       self.__testdata = testdata
             
@@ -66,13 +66,16 @@ class TestFnameParser(TestCase):
    def runTest(self):
       ''' Checks to see if the filename for this test parses correctly. '''
       
-      expectedSeries = self.__testdata[1]
-      expectedIssueNum = self.__testdata[2]
+      expected_series = self.__testdata[1] 
+      expected_issue_num = self.__testdata[2]
+      expected_year = self.__testdata[3]
       filename = self.__testdata[0]
-      actualSeries, actualIssueNum = extract(filename)
+      actual_series, actual_issue_num, actual_year = extract(filename)
       error = 'error parsing filename "' + filename + '"\n   -->' +\
-         'got series "' + actualSeries + '" and issue "' + actualIssueNum + '"'
+         'got series "' + actual_series + '", issue "' + actual_issue_num +\
+         '" and year "' + actual_year + '"'
       
-      self.assertEqual(expectedSeries, actualSeries, error) 
-      self.assertEqual(expectedIssueNum, actualIssueNum, error) 
+      self.assertEqual(expected_series, actual_series, error) 
+      self.assertEqual(expected_issue_num, actual_issue_num, error) 
+      self.assertEqual(expected_year, actual_year, error) 
       

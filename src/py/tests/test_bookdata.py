@@ -44,6 +44,10 @@ class TestBookData(TestCase):
       self.assertEquals(book.volume_year_n, BookData.blank("volume_year_n"))
       book.volume_year_n = 1934
       self.assertEquals(book.volume_year_n, 1934)
+      book.volume_year_n = "2015"
+      self.assertEquals(book.volume_year_n, 2015)
+      book.volume_year_n = None
+      self.assertEquals(book.volume_year_n, BookData.blank("volume_year_n"))
       del book.volume_year_n
       self.assertEquals(book.volume_year_n, BookData.blank("volume_year_n"))
       
@@ -54,6 +58,10 @@ class TestBookData(TestCase):
       self.assertEquals(book.year_n, BookData.blank("year_n"))
       book.year_n = 2012
       self.assertEquals(book.year_n, 2012)
+      book.year_n = "2013"
+      self.assertEquals(book.year_n, 2013)
+      book.year_n = None
+      self.assertEquals(book.year_n, BookData.blank("year_n"))
       del book.year_n
       self.assertEquals(book.year_n, BookData.blank("year_n"))
       
@@ -64,6 +72,10 @@ class TestBookData(TestCase):
       self.assertEquals(book.month_n, BookData.blank("month_n"))
       book.month_n = 15
       self.assertEquals(book.month_n, 9)
+      book.month_n = " 11 "
+      self.assertEquals(book.month_n, 11)
+      book.month_n = None
+      self.assertEquals(book.month_n, BookData.blank("month_n"))
       del book.month_n
       self.assertEquals(book.month_n, BookData.blank("month_n"))
       
@@ -286,6 +298,10 @@ class TestBookData(TestCase):
       self.assertEquals(book.rating_n, BookData.blank("rating_n"))
       book.rating_n = 3.4
       self.assertEquals(book.rating_n, 3.4)
+      book.rating_n = "2.42"
+      self.assertEquals(book.rating_n, 2.42)
+      book.rating_n = None
+      self.assertEquals(book.rating_n, BookData.blank("rating_n"))
       del book.rating_n
       self.assertEquals(book.rating_n, BookData.blank("rating_n"))
       
@@ -296,6 +312,10 @@ class TestBookData(TestCase):
       self.assertEquals(book.page_count_n, BookData.blank("page_count_n"))
       book.page_count_n = 3.4
       self.assertEquals(book.page_count_n, 3)
+      book.page_count_n = "44"
+      self.assertEquals(book.page_count_n, 44)
+      book.page_count_n = None
+      self.assertEquals(book.page_count_n, BookData.blank("page_count_n"))
       del book.page_count_n
       self.assertEquals(book.page_count_n, BookData.blank("page_count_n"))
       
