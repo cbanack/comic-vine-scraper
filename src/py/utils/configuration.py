@@ -22,6 +22,7 @@ class Configuration(object):
    __UPDATE_NUMBER = 'updateNumber'
    __UPDATE_MONTH = 'updateMonth'
    __UPDATE_TITLE = 'updateTitle'
+   __UPDATE_STORYARC = 'updateStoryArc'
    __UPDATE_ALT_SERIES = 'updateAltSeries'
    __UPDATE_WRITER = 'updateWriter'
    __UPDATE_PENCILLER = 'updatePenciller'
@@ -78,6 +79,7 @@ class Configuration(object):
       self.update_month_b = True # scrape comic's publication month metadata
       self.update_year_b = True # scrape comic's publication year metadata
       self.update_title_b = True # scrape comic's issue title metadata
+      self.update_storyarc_b = True # scrape comic's issue storyarc metadata
       self.update_alt_series_b = True # scrape comic's alternate series metadata
       self.update_writer_b = True # scrape comic's writer metadata
       self.update_penciller_b = True # scrape comic's penciller metadata
@@ -129,6 +131,9 @@ class Configuration(object):
          
       if Configuration.__UPDATE_TITLE in loaded:
          self.update_title_b = loaded[Configuration.__UPDATE_TITLE]
+         
+      if Configuration.__UPDATE_STORYARC in loaded:
+         self.update_storyarc_b = loaded[Configuration.__UPDATE_STORYARC]
          
       if Configuration.__UPDATE_ALT_SERIES in loaded:
          self.update_alt_series_b = loaded[Configuration.__UPDATE_ALT_SERIES]
@@ -237,6 +242,7 @@ class Configuration(object):
       defaults[Configuration.__UPDATE_NUMBER] = self.update_number_b
       defaults[Configuration.__UPDATE_MONTH] = self.update_month_b
       defaults[Configuration.__UPDATE_TITLE] = self.update_title_b
+      defaults[Configuration.__UPDATE_STORYARC] = self.update_storyarc_b
       defaults[Configuration.__UPDATE_ALT_SERIES] = self.update_alt_series_b
       defaults[Configuration.__UPDATE_WRITER] = self.update_writer_b
       defaults[Configuration.__UPDATE_PENCILLER] = self.update_penciller_b
@@ -303,6 +309,7 @@ class Configuration(object):
       self.update_number_b == other.update_number_b and \
       self.update_month_b == other.update_month_b and \
       self.update_title_b == other.update_title_b and \
+      self.update_storyarc_b == other.update_storyarc_b and \
       self.update_alt_series_b == other.update_alt_series_b and \
       self.update_writer_b == other.update_writer_b and \
       self.update_penciller_b == other.update_penciller_b and \
@@ -337,29 +344,30 @@ class Configuration(object):
       "[{0}] Month".format(x(self.update_month_b)).ljust(20) +\
       "\n" + \
       "[{0}] Title".format(x(self.update_title_b)).ljust(20) +\
+      "[{0}] StoryArc".format(x(self.update_storyarc_b)).ljust(20) +\
       "[{0}] Alt Series".format(x(self.update_alt_series_b)).ljust(20) +\
-      "[{0}] Writer".format(x(self.update_writer_b)).ljust(20) +\
       "\n" + \
+      "[{0}] Writer".format(x(self.update_writer_b)).ljust(20) +\
       "[{0}] Penciller".format(x(self.update_penciller_b)).ljust(20) +\
       "[{0}] Inker".format(x(self.update_inker_b)).ljust(20) +\
-      "[{0}] Cover Art".format(x(self.update_cover_artist_b)).ljust(20) +\
       "\n" + \
+      "[{0}] Cover Art".format(x(self.update_cover_artist_b)).ljust(20) +\
       "[{0}] Colorist".format(x(self.update_colorist_b)).ljust(20) +\
       "[{0}] Letterer".format(x(self.update_letterer_b)).ljust(20) +\
-      "[{0}] Editor".format(x(self.update_editor_b)).ljust(20) +\
       "\n" + \
+      "[{0}] Editor".format(x(self.update_editor_b)).ljust(20) +\
       "[{0}] Summary".format(x(self.update_summary_b)).ljust(20) +\
       "[{0}] Imprint".format(x(self.update_imprint_b)).ljust(20) +\
-      "[{0}] Year".format(x(self.update_year_b)).ljust(20) +\
       "\n" + \
+      "[{0}] Year".format(x(self.update_year_b)).ljust(20) +\
       "[{0}] Publisher".format(x(self.update_publisher_b)).ljust(20) +\
       "[{0}] Volume".format(x(self.update_volume_b)).ljust(20) +\
-      "[{0}] Characters".format(x(self.update_characters_b)).ljust(20) +\
       "\n" + \
+      "[{0}] Characters".format(x(self.update_characters_b)).ljust(20) +\
       "[{0}] Teams".format(x(self.update_teams_b)).ljust(20) +\
       "[{0}] Locations".format(x(self.update_locations_b)).ljust(20) +\
-      "[{0}] Webpage".format(x(self.update_webpage_b)).ljust(20) +\
       "\n" + \
+      "[{0}] Webpage".format(x(self.update_webpage_b)).ljust(20) +\
       "[{0}] Rating".format(x(self.update_rating_b)).ljust(20) +\
       "\n" +\
       "-------------------------------------------------------------------\n"+\

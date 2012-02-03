@@ -15,6 +15,7 @@ import utils
 from utils import is_string, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
 import cvimprints
+import storyarcparser
 
 clr.AddReference('System')
 from System.Net import WebRequest
@@ -293,6 +294,7 @@ def __issue_parse_simple_stuff(issue, dom):
       issue.series_name_s = dom.results.volume.name.strip()
    if is_string(dom.results.name):
       issue.title_s = dom.results.name.strip()
+      issue.storyarc_s = storyarcparser.extract(issue.title_s)
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
    if is_string(dom.results.issue_number):

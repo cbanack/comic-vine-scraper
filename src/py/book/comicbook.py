@@ -9,8 +9,8 @@ from pluginbookdata import PluginBookData
 from time import strftime
 from utils import sstr
 import db
-import fnameparser
-import log
+import fnameparser 
+import log 
 import re
 import utils
 from bookdata import BookData
@@ -219,6 +219,13 @@ class ComicBook(object):
          config.update_title_b, config.ow_existing_b, config.ignore_blanks_b )
       if value is None: bd.dont_update("title_s") 
       else: bd.title_s = value
+      
+      # storyarc -------------------
+      value = self.__massage_new_string("Story Arc", issue.storyarc_s, 
+         bd.storyarc_s, config.update_storyarc_b, config.ow_existing_b, 
+         config.ignore_blanks_b )
+      if value is None: bd.dont_update("storyarc_s") 
+      else: bd.storyarc_s = value
          
       # alternate series -----------
       value = self.__massage_new_string_list("Alt/Arc", issue.alt_series_names,\
