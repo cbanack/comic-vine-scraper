@@ -100,6 +100,16 @@ class TestBookData(TestCase):
       self.assertEquals(book.title_s, BookData.blank("title_s"))
       
    # --------------------------------------------------------------------------
+   def test_storyarc_s(self):
+      ''' Checks to see if the BookData's storyarc_s property works. '''
+      book = BookData()
+      self.assertEquals(book.storyarc_s, BookData.blank("storyarc_s"))
+      book.storyarc_s = "God in the Bowl "
+      self.assertEquals(book.storyarc_s, "God in the Bowl")
+      del book.storyarc_s
+      self.assertEquals(book.storyarc_s, BookData.blank("storyarc_s"))
+      
+   # --------------------------------------------------------------------------
    def test_alt_series_sl(self):
       ''' Checks to see if the BookData's alt_series_sl property works. '''
       book = BookData()

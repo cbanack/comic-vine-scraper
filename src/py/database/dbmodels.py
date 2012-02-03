@@ -235,6 +235,7 @@ class Issue(object):
       
       self.issue_num_s = ''
       self.title_s = ''
+      self.storyarc_s = ''
       self.series_name_s = ''
       self.publisher_s = ''
       self.imprint_s = ''
@@ -285,6 +286,12 @@ class Issue(object):
       ''' called when you assign a value to 'self.title_s' '''   
       self.__title_s = '' if title_s == None else sstr(title_s)
    title_s = property( lambda self : self.__title_s, __set_title_s )
+   
+   # the storyarc name of this Issue, as a string. not None. maybe empty.
+   def __set_storyarc_s(self, storyarc_s):
+      ''' called when you assign a value to 'self.storyarc_s' '''   
+      self.__storyarc_s = '' if storyarc_s == None else sstr(storyarc_s).strip()
+   storyarc_s = property( lambda self : self.__storyarc_s, __set_storyarc_s )
 
       
    # the series name of this Issue, as a string. not None. maybe empty.

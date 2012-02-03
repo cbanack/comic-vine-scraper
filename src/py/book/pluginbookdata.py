@@ -35,6 +35,7 @@ class PluginBookData(BookData):
       self.month_n = crbook.Month
       self.format_s = crbook.ShadowFormat
       self.title_s = crbook.Title
+      self.storyarc_s = crbook.StoryArc
       self.alt_series_sl = crbook.AlternateSeries.split(",")
       self.summary_s = crbook.Summary
       self.publisher_s = crbook.Publisher
@@ -117,6 +118,10 @@ class PluginBookData(BookData):
       if "title_s" in ok_to_update:
          self.__crbook.Title = self.title_s
          ok_to_update.remove("title_s")
+         
+      if "storyarc_s" in ok_to_update:
+         self.__crbook.StoryArc = self.storyarc_s
+         ok_to_update.remove("storyarc_s")
          
       if "alt_series_sl" in ok_to_update:
          self.__crbook.AlternateSeries = \
