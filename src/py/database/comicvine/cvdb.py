@@ -231,6 +231,7 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
          issue_refs.add(IssueRef(issue_num_s, issue.id, title_s))
 
    log.debug("   ...found ", len(issue_refs), " issues at comicvine.com")
+   storyarcparser.prime_arcs(issue_refs)
    return issue_refs
 
 
