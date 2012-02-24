@@ -109,7 +109,7 @@ def query_issue_refs(series_ref, callback_function=lambda x,y : False):
    query the database for all comic book issues in that series.   
    
    Each issue is encoded as a IssueRef object; this method returns 
-   an set of them.  The set may be empty if the series has no 
+   a set of them.  The set may be empty if the series has no 
    issues, or if the query is cancelled (see below).
    
    You can pass in an optional callback function, which MAY be called 
