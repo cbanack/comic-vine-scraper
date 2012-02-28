@@ -25,7 +25,22 @@ from System.Drawing import Image
 
 # this cache is used to speed up __issue_parse_series_details.  it is a 
 # memory leak (until the main app shuts down), but it is small and worth it.
-__series_details_cache = {}
+__series_details_cache = None
+
+# =============================================================================
+def _initialize():
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   global __series_details_cache
+   __series_details_cache = {}
+   storyarcparser.initialize()
+   
+# =============================================================================
+def _shutdown():
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   global __series_details_cache
+   __series_details_cache = None
+   storyarcparser.shutdown()
+      
 
 # =============================================================================
 def _get_db_name_s():
@@ -231,7 +246,7 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
          issue_refs.add(IssueRef(issue_num_s, issue.id, title_s))
 
    log.debug("   ...found ", len(issue_refs), " issues at comicvine.com")
-   storyarcparser.prime_arcs(issue_refs)
+   storyarcparser.prime(issue_refs)
    return issue_refs
 
 
@@ -295,6 +310,7 @@ def __issue_parse_simple_stuff(issue, dom):
       issue.series_name_s = dom.results.volume.name.strip()
    if is_string(dom.results.name):
       issue.title_s = dom.results.name.strip()
+      # if there is a crossover/alt series, this story arc will get deleted
       issue.storyarc_s = storyarcparser.extract(issue.title_s)
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
@@ -366,6 +382,9 @@ def __issue_parse_series_details(issue, dom):
    # accessed them once this session) use the cached values.  else
    # grab those values from comicvine, and cache em so we don't have to
    # hit comic vine for them again (at least not in this session)
+   global __series_details_cache
+   if __series_details_cache == None:
+      raise Exception(__name__ + " module isn't initialized!")
    cache = __series_details_cache
    if series_id in cache:
       start_year_n = cache[series_id][0]
@@ -410,16 +429,17 @@ def __issue_parse_story_credits(issue, dom):
    credits from the DOM. 
    '''
 
-   story_arcs = []
+   crossovers = []
    if ("story_arc_credits" in dom.results.__dict__) and \
       ("story_arc" in dom.results.story_arc_credits.__dict__) :
       if type(dom.results.story_arc_credits.story_arc) == type([]):
          for arc in dom.results.story_arc_credits.story_arc:
-            story_arcs.append(arc.name)
+            crossovers.append(arc.name)
       elif is_string(dom.results.story_arc_credits.story_arc.name):
-         story_arcs.append(dom.results.story_arc_credits.story_arc.name)
-      if len(story_arcs) > 0:
-         issue.alt_series_names = story_arcs
+         crossovers.append(dom.results.story_arc_credits.story_arc.name)
+      if len(crossovers) > 0:
+         issue.storyarc_s = None # don't allow story arcs when crossover exists
+         issue.alt_series_names = crossovers
 
    # get any character details that might exist
    characters = []

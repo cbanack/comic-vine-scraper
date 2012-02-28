@@ -228,9 +228,9 @@ class ComicBook(object):
       else: bd.storyarc_s = value
          
       # alternate series -----------
-      value = self.__massage_new_string_list("Alt/Arc", issue.alt_series_names,\
-         bd.alt_series_sl, config.update_alt_series_b, config.ow_existing_b, \
-         config.ignore_blanks_b )
+      value = self.__massage_new_string_list("Crossover", 
+         issue.alt_series_names, bd.alt_series_sl, config.update_alt_series_b,
+         config.ow_existing_b, config.ignore_blanks_b )
       if value is None: bd.dont_update("alt_series_sl")
       else: bd.alt_series_sl = value
       

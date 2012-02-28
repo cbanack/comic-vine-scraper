@@ -33,6 +33,7 @@ from utils import sstr
 from comicbook import ComicBook
 from resources import Resources
 import cPickle
+import db
 
 clr.AddReference('System')
 from System.Threading import ThreadExceptionEventHandler
@@ -102,6 +103,9 @@ def __launch(delegate):
          
       # fire up the localization/internationalization system
       i18n.install(ComicRack)
+      
+      # fire up our database connection
+      db.initialize() 
 
       # see if we're in a valid environment
       if __validate_environment():
@@ -111,6 +115,9 @@ def __launch(delegate):
       log.handle_error(ex)
          
    finally:
+      
+      # shut down our database connection
+      db.shutdown()
       
       # shut down the localization/internationalization system
       i18n.uninstall()
