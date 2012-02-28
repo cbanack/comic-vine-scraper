@@ -21,12 +21,36 @@ import log
 
 # a limited-size cache for storing the results of SeriesRef searches
 # maps 'search terms string' -> 'list of SeriesRefs objects'
-__series_ref_cache = {}
+__series_ref_cache = None
 
-# this cache is used to speed up query_issue_refs.  it is a memory leak (until
-# the main app shuts down) but it is limited in size a well worth the speedup
-__issue_refs_cache = {}
+# this cache is used to speed up query_issue_refs.
+__issue_refs_cache = None
 
+
+# =============================================================================
+def initialize():
+   ''' 
+   Initializes this database connection.  Call this method once when the 
+   application/script starts up (before using this module for anything else)
+   and remember to call "shutdown()" at application shutdown.
+   '''
+   
+   global __series_ref_cache, __issue_refs_cache
+   __series_ref_cache = {}
+   __issue_refs_cache = {}
+   cvdb._initialize()
+   
+# =============================================================================
+def shutdown():
+   '''
+   Undoes the "initialize()" method, clearing up any permanent resources that 
+   this module might be holding onto.  Be sure to call this method before 
+   shutting down the application, and don't use this module after shutting down!
+   '''
+   global __series_ref_cache, issue_refs_cache
+   __series_ref_cache = None
+   __issue_refs_cache = None
+   cvdb._shutdown()
 
 # =============================================================================
 def get_db_name_s():
@@ -92,6 +116,9 @@ def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
    # search term, which happens often if the user is jumping back and forth 
    # between the series and issues dialogs, for example.
    global __series_ref_cache
+   if __series_ref_cache == None: 
+      raise Exception(__name__ + " module isn't initialized!")
+   
    if search_terms_s in __series_ref_cache:
       return list(__series_ref_cache[search_terms_s])
    else:
@@ -126,6 +153,9 @@ def query_issue_refs(series_ref, callback_function=lambda x,y : False):
    # for the same series ref.  this happens all the time if the user is 
    # scraping a bunch of comics from the same series all at once.
    global __issue_refs_cache
+   if __issue_refs_cache == None:
+      raise Exception(__name__ + " module isn't initialized!")
+   
    issue_refs = set()
    if series_ref in __issue_refs_cache:
       issue_refs = set(__issue_refs_cache[series_ref]) 
