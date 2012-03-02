@@ -86,12 +86,10 @@ def prime(issuerefs, return_arcs = False ):
       
    arcs_sl = [strictmap[i] for i in strictmap 
         if at_least_two(i, strictmap[i])]
-   log.debug()   
-   log.debug("================= FOUND ARCS =================") # coryhigh:delete
+
    initialize() # this resets the __arcmap after each priming
    # add each found arc to the list; retain those that weren't already there
    arcs_sl = [ x for x in arcs_sl if __save_primed_arc(x) ]
-   log.debug("============================================") # coryhigh:delete
    
    return arcs_sl if return_arcs else None
 
@@ -140,7 +138,6 @@ def __save_primed_arc(arc_s):
          arcset.add(arc_s)
          __arcmap["size"] = __arcmap["size"] + 1
          newarc = True
-         log.debug(arc_s, ": ", __arcmap["size"]) # coryhigh: delete
    return newarc
 
  
