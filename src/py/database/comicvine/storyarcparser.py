@@ -15,9 +15,6 @@ import log
 import re
 import utils
 
-#coryhigh: deal with things the may or may not start with "the", or end with "!"
-# maybe look at ditching the "lenient" stuff
-
 # the primed arcs; maps single characters (lower case) to sets of primed (known)
 # arc names.  we try to match up issue titles with primed arc names. 
 __arcmap = None
@@ -29,7 +26,7 @@ def initialize():
    is used.   Call 'shutdown' when finished to free up resources.
    '''
    global __arcmap
-   __arcmap = {"size":0}  # coryhigh: make methods blow up if not called
+   __arcmap = {"size":0}
 
 
 #==============================================================================
@@ -78,7 +75,6 @@ def prime(issuerefs, return_arcs = False ):
       arc_s = _ex_strict(issuerefs[i].title_s)
       if arc_s:
          strictmap[i] = arc_s
-   # coryhigh: use comprehensions for these      
    
    # 4. find at least one other nearby issue that starts with each arc name,
    #    otherwise it's not an arc name at all.
@@ -88,14 +84,11 @@ def prime(issuerefs, return_arcs = False ):
             return True
       return False
       
-   arcs_sl = sorted(set([strictmap[i] for i in strictmap 
-        if at_least_two(i, strictmap[i])]))
-   log.debug()   
-   log.debug("================= FOUND ARCS =================") # coryhigh:delete
+   arcs_sl = [strictmap[i] for i in strictmap 
+        if at_least_two(i, strictmap[i])]
    initialize() # this resets the __arcmap after each priming
    # add each found arc to the list; retain those that weren't already there
    arcs_sl = [ x for x in arcs_sl if __save_primed_arc(x) ]
-   log.debug("============================================") # coryhigh:delete
    
    return arcs_sl if return_arcs else None
 
@@ -144,7 +137,6 @@ def __save_primed_arc(arc_s):
          arcset.add(arc_s)
          __arcmap["size"] = __arcmap["size"] + 1
          newarc = True
-         log.debug(arc_s, ": ", __arcmap["size"]) # coryhigh: delete
    return newarc
 
  
@@ -155,12 +147,18 @@ def __title_matches_arc_b(title_s, arc_s):
    roughly means the title 'starts with' the arc name.
    '''
 
-   # coryhigh: improve this with looser punctuation handling, i.e.
-   #  "destinys hand" vs. "destiny's hand", plus maybe others (unit tests)
-   
-   # strip arc's trailing '!' for the comparison   
-   arc_s = arc_s.lower().rstrip('! ').strip()
-   title_s = title_s.lower().rstrip('! ').strip()
+   # strip out punctuation and extra spaces that could confound our comparison 
+   space = r"[-:;,.!]"
+   nothing = r"[`'\"]"
+   andd = r"\s\&\s"
+   arc_s = re.sub(andd,' and ',arc_s, 99)
+   arc_s = re.sub(space,' ',arc_s, 99)
+   arc_s = re.sub(nothing,'',arc_s, 99)
+   arc_s = re.sub(" {2,}",' ', arc_s, 99).lower().strip();   
+   title_s = re.sub(andd,' and ', title_s, 99)
+   title_s = re.sub(space,' ', title_s, 99)
+   title_s = re.sub(nothing,'', title_s, 99)
+   title_s = re.sub(" {2,}",' ', title_s, 99).lower().strip();   
    
    if title_s.startswith(arc_s):
       # looks like a match, but check the unmatched second part of the 

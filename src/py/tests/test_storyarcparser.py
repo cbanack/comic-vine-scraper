@@ -356,7 +356,7 @@ class TestStoryArcParser(TestCase):
    def test_prime_simple2(self):
       ''' Test basic issue title parsing in the prime() function. '''
       initialize()
-      self.assertEquals(["Death", "Purgatory"], prime([
+      self.assertEquals(["Purgatory", "Death"], prime([
          IssueRef("9", "1009", "Purgatory Part One"),                                                
          IssueRef("10", "1010", "Purgatory Part iv"),                                                
          IssueRef("11", "1011", "Death, Prelude"),                                                
@@ -448,8 +448,8 @@ class TestStoryArcParser(TestCase):
    def test_prime_mishmash(self):
       ''' tests a more complicated collection of issue titles in prime() '''
       initialize()
-      self.assertEquals(["Bigger", "Dark Knight", "Death",
-                          "Rage", "White Knight"], prime([
+      self.assertEquals(["White Knight", "Dark Knight", "Death",
+            "Bigger", "Rage"], prime([
          IssueRef("3", "1003", "White Knight part 1 of 4"),                                                
          IssueRef("4", "1004", "Dark Knight part 1 of 4"),                                                
          IssueRef("5", "1005", "Dark Knight part 2 of 4"),                                                
@@ -487,6 +487,8 @@ class TestStoryArcParser(TestCase):
       prime([ IssueRef("5", "1005", "Dark Knight part 1 of 4"),                                                 
               IssueRef("6", "1006", "Dark Knight part 2 of 4") ] ) 
       self.assertEquals("Dark Knight", extract(r"  dark knight conclusion"))
+      self.assertEquals("Dark Knight", extract(r"Dark knight Part 3"))
+      self.assertEquals("Dark Knight", extract(r"DARK KNIGHT ep. 5"))
                                                                                                 
       # prime with "Death"
       prime([ IssueRef("7", "1007", "blah"),                                                
@@ -496,8 +498,8 @@ class TestStoryArcParser(TestCase):
               IssueRef("11", "1011", "Death, Prelude"),                                                
               IssueRef("12", "1012", " Death pt I"),                                                
               IssueRef("13", "1013", "'Death' ep II") ] )
-      self.assertEquals("Dark Knight", extract(r"Dark knight Part 3"))
       self.assertEquals("Death", extract(r"Death part 1"))
+      self.assertEquals("Death", extract(r"Death episode V"))
                                                          
       # prime with "Bigger" and "Rage"
       prime([ IssueRef("14", "1014", "'Death' Conclusion"),                                                
@@ -507,8 +509,6 @@ class TestStoryArcParser(TestCase):
               IssueRef("18", "1018", "Bigger Book Two"),
               IssueRef("19", "1019", "Bigger Book One"),
               IssueRef("20", "1020", "Rage, ep. 1") ] )
-      self.assertEquals("Dark Knight", extract(r"DARK KNIGHT ep. 5"))
-      self.assertEquals("Death", extract(r"Death episode V"))
       self.assertEquals("Bigger", extract(r"Bigger, part 3"))
       
       shutdown()
@@ -525,11 +525,11 @@ class TestStoryArcParser(TestCase):
       
       # prime with "Dark Knight", "Death", "Bigger", and "Rage"
       prime([ IssueRef("5", "1005", "Dark Knight part 1 of 4"),                                                 
-              IssueRef("6", "1006", "Dark Knight part 2 of 4") ] ) 
-      prime([ IssueRef("11", "1011", "Death, Prelude"),                                                
+              IssueRef("6", "1006", "Dark Knight part 2 of 4"),
+              IssueRef("11", "1011", "Death, Prelude"),                                                
               IssueRef("12", "1012", " Death pt I"),                                                
-              IssueRef("13", "1013", "'Death' ep II") ] )
-      prime([ IssueRef("14", "1014", "'Death' Conclusion"),                                                
+              IssueRef("13", "1013", "'Death' ep II"),
+              IssueRef("14", "1014", "'Death' Conclusion"),                                                
               IssueRef("15", "1015", "'Life' Prelude"),                                                
               IssueRef("16", "1016", "'Life' Conclusion"),
               IssueRef("17", "1017", "The One"),
@@ -549,8 +549,8 @@ class TestStoryArcParser(TestCase):
       self.assertEquals("", extract(r"dark knight: is cool"))
       self.assertEquals("Dark Knight", extract(r"dark knight"))
       self.assertEquals("Dark Knight", extract(r"   dark knight     "))
-      self.assertEquals("", extract(r"dark knight: "))
-      self.assertEquals("", extract(r"dark knight - "))
+      self.assertEquals("Dark Knight", extract(r"dark knight: "))
+      self.assertEquals("Dark Knight", extract(r"dark knight - "))
                                                                                                 
       self.assertEquals("", extract(r"Death in the Family"))
       self.assertEquals("", extract(r"Death : whatever"))
@@ -603,5 +603,178 @@ class TestStoryArcParser(TestCase):
       self.assertEquals("Bigger", extract(r"Bigger; epilogue"))
       
       shutdown()   
+      
+   # --------------------------------------------------------------------------
+   def test_matching_despite_punctuation(self):
+      ''' tests that matching issues works even if punctuation differs a bit '''
+      initialize()
+      
+      # prime with "I am Vampire"
+      prime([ IssueRef("5", "1005", "I am Vampire part 1 of 4"),                                                 
+              IssueRef("6", "1006", "I. Am. Vampire part 2 of 4"),
+              IssueRef("7", "1007", "Kid and Play book 1"),                                                 
+              IssueRef("8", "1008", "Kid & Play ep. 2") ] )
+      
+      self.assertEquals("I am Vampire", extract(r"I am Vampire"))
+      self.assertEquals("I am Vampire", extract(r"I  am  Vampire"))
+      self.assertEquals("I am Vampire", extract(r"I. am Vampire"))
+      self.assertEquals("I am Vampire", extract(r"I.am Vampire"))
+      self.assertEquals("I am Vampire", extract(r"I am V'ampire"))
+      self.assertEquals("I am Vampire", extract(r"I am: Vampire"))
+      self.assertEquals("I am Vampire", extract(r"I, am Vampire"))
+      self.assertEquals("I am Vampire", extract(r"I am- Vampire"))
+      self.assertEquals("I am Vampire", extract(r"i am vampire!"))
+      self.assertEquals("I am Vampire", extract(r"i am 'vampire'"))
+      self.assertEquals("I am Vampire", extract(r'i "am vampire"'))
+      self.assertEquals("I am Vampire", extract(r'i am `vampire`'))
+      self.assertEquals("Kid and Play", extract(r'Kid, and Play'))
+      self.assertEquals("Kid and Play", extract(r'Kid & Play'))
+      self.assertEquals("Kid and Play", extract(r'Kid & Play!'))
+      
+      shutdown()   
    
-   # coryhigh: make more unit tests
+   # --------------------------------------------------------------------------
+   def test_matching_from_forum1(self):
+      ''' tests matching issues that were suggested in the comicrack forum '''
+      initialize()
+      
+      prime([ IssueRef("55", "10055", "A Great Story Part 1"),                                                 
+              IssueRef("56", "10056", "A Great Story!!, Part 2"),                                                 
+              IssueRef("57", "10057", "A Great Story!: Part 3") ])
+                                                             
+      self.assertEquals("A Great Story", extract(r"A Great Story Part 1"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story, Part 2"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: Part 3"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story - Part 4"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story Pt 5"))                                              
+      self.assertEquals("A Great Story", extract(r"A Great Story, Pt. 6"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: #7"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story- number 8"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story no. 9"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: Part 10of12"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: #11 (of 17)"))                                                 
+      
+      shutdown()
+         
+   # --------------------------------------------------------------------------
+   def test_matching_from_forum2(self):
+      ''' tests matching issues that were suggested in the comicrack forum '''
+      initialize()
+      
+      prime([ IssueRef("55", "10055", "A Great Story Part 1 of 15"),                                                 
+              IssueRef("56", "10056", "A Great Story. chapter x"),                                                 
+              IssueRef("57", "10057", "A Great Story. chapter xi") ])
+                                                             
+      self.assertEquals("A Great Story", extract(r"A Great Story Introduction"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story, Conclusion"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: Prologue"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story - Vol IV"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story Pt iii"))                                              
+      self.assertEquals("A Great Story", extract(r"A Great Story, Chapter X"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: #VII"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story- book XI"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story no. ii"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: Part i of v"))                                                 
+      self.assertEquals("A Great Story", extract(r"A Great Story: #iii (of 6)"))                                                 
+      
+      shutdown()
+      
+         
+   # --------------------------------------------------------------------------
+   def test_matching_from_forum3(self):
+      ''' tests matching issues that were suggested in the comicrack forum '''
+      initialize()
+      
+      prime([ IssueRef("65", "1001", "Healing Factor - Prologue"),                                                 
+              IssueRef("66", "1002", "Healing Factor chapter 1"),                                                 
+              IssueRef("67", "1003", "Healing Factor chapter 2"),                                                 
+              IssueRef("68", "1004", "Healing Factor chapter 3"),                                                 
+              IssueRef("69", "1005", "Healing Factor chapter 4 (finale)") ])
+                                                             
+      self.assertEquals("Healing Factor",
+         extract(r"Healing Factor - Prologue"))                                                 
+      self.assertEquals("Healing Factor",
+         extract(r"Healing Factor chapter 1"))                                                 
+      self.assertEquals("Healing Factor",
+         extract(r"Healing Factor chapter 2"))                                                 
+      self.assertEquals("Healing Factor",
+         extract(r"Healing Factor chapter 3"))                                                 
+      self.assertEquals("Healing Factor",
+         extract(r"Healing Factor chapter 4 (finale)"))                                              
+      
+      shutdown()
+         
+   # --------------------------------------------------------------------------
+   def test_matching_from_forum4(self):
+      ''' tests matching issues that were suggested in the comicrack forum '''
+      initialize()
+      
+      prime([ IssueRef("504", "11", "Fear Itself, Part 1: City of Light"),                                                 
+              IssueRef("505", "12", "Fear Itself, Part 2: Cracked Actor"),                                                 
+              IssueRef("506", "13", "Fear Itself, Part 3- The Apostate"),                                                 
+              IssueRef("507", "14", "Fear Itself Part 4 Fog of War"),                                                 
+              IssueRef("508", "15", "Fear Itself, Part 5: If I Ever Get Out"),                                                 
+              IssueRef("509", "16", "Fear Itself, Part 6: Mercy") ])
+                                                             
+      self.assertEquals("Fear Itself",
+         extract(r"Fear Itself, Part 1: City of Light"))                                                 
+      self.assertEquals("Fear Itself",
+         extract(r"Fear Itself, Part 2: Cracked Actor"))                                                 
+      self.assertEquals("Fear Itself",
+         extract(r"Fear Itself, Part 3- The Apostate"))                                                 
+      self.assertEquals("Fear Itself",
+         extract(r"Fear Itself Part 4 Fog of War"))                                                 
+      self.assertEquals("Fear Itself",
+         extract(r"Fear Itself, Part 5: If I Ever Get Out"))                                              
+      self.assertEquals("Fear Itself",
+         extract(r"Fear, Itself, Part 6: Mercy"))                                              
+      
+      shutdown()
+         
+   # --------------------------------------------------------------------------
+   def test_matching_from_forum5(self):
+      ''' tests matching issues that were suggested in the comicrack forum '''
+      initialize()
+      
+      prime([ IssueRef("36", "11", "Monstrous, Part 1"),                                                 
+              IssueRef("37", "12", "Monstrous, Part 2"),                                                 
+              IssueRef("38", "13", '"Meanwhile" Part One'),                                                 
+              IssueRef("39", "14", "Monstrous, Part 3"),                                                 
+              IssueRef("40", "15", '"Meanwhile" Part Two'),                                                 
+              IssueRef("41", "16", "Monstrous, Conclusion"),
+              IssueRef("42", "17", "'Meanwhile', Conclusion") ])
+                                                             
+      self.assertEquals("Monstrous", extract(r"Monstrous, Part 1"))                                                 
+      self.assertEquals("Monstrous", extract(r"Monstrous, Part 2"))                                                 
+      self.assertEquals("Meanwhile", extract(r'"Meanwhile" Part One'))                                                 
+      self.assertEquals("Monstrous", extract(r"Monstrous, Part 3"))                                                 
+      self.assertEquals("Meanwhile", extract(r'"Meanwhile" Part Two'))                                              
+      self.assertEquals("Monstrous", extract(r"Monstrous, Conclusion"))                                              
+      self.assertEquals("Meanwhile", extract(r"'Meanwhile', Conclusion"))                                              
+      
+      shutdown()   
+      
+   # --------------------------------------------------------------------------
+   def test_matching_from_forum6(self):
+      ''' tests matching issues that were suggested in the comicrack forum '''
+      initialize()
+      
+      prime([ IssueRef("31", "11", "Exogenetic, Part 1"),                                                 
+              IssueRef("32", "12", "Exogenetic, Part 2"),                                                 
+              IssueRef("33", "13", 'Exogenetic, Part 3'),                                                 
+              IssueRef("34", "14", "Exogenetic, Part 4"),                                                 
+              IssueRef("35", "15", 'Exogenetic, Conclusion'),                                                 
+              IssueRef("44", "17", '"Exalted" Part 1'),
+              IssueRef("45", "18", "Exalted, Part Two"),
+              IssueRef("46", "19", "Exalted, Part Three") ])
+                                                             
+      self.assertEquals("Exogenetic", extract(r"Exogenetic, Part 1"))                                                 
+      self.assertEquals("Exogenetic", extract(r"Exogenetic, Part 2"))                                                 
+      self.assertEquals("Exogenetic", extract(r'Exogenetic, Part 3'))                                                 
+      self.assertEquals("Exogenetic", extract(r"Exogenetic, Part 4"))                                                 
+      self.assertEquals("Exogenetic", extract(r'Exogenetic, Conclusion'))                                              
+      self.assertEquals("Exalted", extract(r'"Exalted" Part 1'))                                              
+      self.assertEquals("Exalted", extract(r"Exalted, Part Two"))                                              
+      self.assertEquals("Exalted", extract(r"Exalted, Part Three"))                                              
+      
+      shutdown()  

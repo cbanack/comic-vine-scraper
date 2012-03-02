@@ -7,7 +7,7 @@ from ComicRack that we are scraping data into.
 from dbmodels import IssueRef
 from pluginbookdata import PluginBookData
 from time import strftime
-from utils import sstr
+from utils import sstr, is_number
 import db
 import fnameparser 
 import log 
@@ -741,6 +741,8 @@ class ComicBook(object):
             if no_issuenum:
                bd.issue_num_s = extracted[1]
             if no_volyear:
-               bd.volume_year_n = extracted[2]
+               bd.volume_year_n = int(extracted[2]) \
+                  if is_number(extracted[2])\
+                     else BookData.blank("volume_year_n")
                
                
