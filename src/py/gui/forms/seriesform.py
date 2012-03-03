@@ -4,13 +4,12 @@ This module is home to the SeriesForm and SeriesFormResult classes.
 @author: Cory Banack
 '''
 
-import re
 import clr
 from buttondgv import ButtonDataGridView
 from cvform import CVForm
 from dbpicturebox import DBPictureBox
 from utils import sstr
-import datetime
+from matchscore import MatchScore
 import i18n
 
 clr.AddReference('System')
@@ -53,6 +52,9 @@ class SeriesForm(CVForm):
       # row, where each SeriesRef represents a series the user can pick
       self.__series_refs = list(series_refs)
       
+      # the MatchScore object that we use to compute series match scores
+      self.__matchscore = MatchScore()
+      
       # true when the user is pressing the control key, false otherwise
       self.__pressing_controlkey = False;
       
@@ -76,6 +78,7 @@ class SeriesForm(CVForm):
       
       # the index (in self.__series_refs) of the currently selected SeriesRef
       self.__chosen_index = None
+      
       
       
       if len(series_refs) <= 0:
@@ -216,7 +219,7 @@ class SeriesForm(CVForm):
          table.Rows[i].Cells[2].Value = ref.issue_count_n
          table.Rows[i].Cells[3].Value = ref.publisher_s
          table.Rows[i].Cells[4].Value = ref.series_key
-         table.Rows[i].Cells[5].Value = self.__compute_match_score_n(book, ref)
+         table.Rows[i].Cells[5].Value = self.__matchscore.compute_n(book, ref)
          table.Rows[i].Cells[6].Value = i
 
       # 4. --- sort on the "match" colum
@@ -321,92 +324,6 @@ class SeriesForm(CVForm):
       checkbox.CheckedChanged += self.__toggle_checkbox_fired
       return checkbox
    
-   #===========================================================================
-   def __compute_match_score_n(self, book, series_ref):
-      '''
-      Computes a score for the given SeriesRef, which describes how closely
-      that ref matches the given book.   The higher the score, the closer
-      the match.  Scores can be negative.
-      '''
-      
-      # this function splits up the given comic book series name into
-      # separate words, so we can compare different series names word-by-word
-      def split( name_s ):
-         if name_s is None: name_s = ''
-         name_s = re.sub('\'','', name_s).lower()
-         name_s = re.sub(r'\W+',' ', name_s)
-         name_s = re.sub(r'giant[- ]*sized?', r'giant size', name_s)
-         name_s = re.sub(r'king[- ]*sized?', r'king size', name_s)
-         name_s = re.sub(r'one[- ]*shot', r'one shot', name_s)
-         return name_s.split()
-      
-      # 1. first, compute the 'namescore', which is based on how many words in
-      #    our book name match words in the series' name (usually comes up with 
-      #    a value on the range [5, 20], approximately.)
-      bookname_s = '' if not book.series_s else book.series_s
-      if bookname_s and book.format_s:
-         bookname_s += ' ' + book.format_s
-      bookwords = split(bookname_s)   
-      serieswords = split(series_ref.series_name_s)
-      
-      namescore_n = 0
-      for word in bookwords:
-         if word in serieswords:
-            namescore_n += 5
-            serieswords.remove(word)
-      namescore_n -= len(serieswords)
-      
-      
-      # 2. get the 'bookscore', which compares our book's issue number
-      #    with the number of issues in the series.  a step function that 
-      #    returns a very high number (100) if the number of issues in the 
-      #    series is compatible, and a very low one (-100) if it is not.  
-      booknumber_n = book.issue_num_s if book.issue_num_s else '-1000'
-      booknumber_n = re.sub('[^\d.-]+', '', booknumber_n)
-      try:
-         booknumber_n = float(booknumber_n)
-      except:
-         booknumber_n = -999
-      series_count_n = series_ref.issue_count_n
-      if series_count_n > 100:
-         # all large series have a "good" bookscore, cause they are very 
-         # long-running and popular. Also, we might overlook them in the 
-         # bookscore because and databases will often not have all of issues, 
-         # so their issue count will not be high enough.
-         bookscore_n = 100
-      else:    
-         # otherwise, if we get a good score only if we have the right
-         # number of books in the series to match the booknumber (-1 for
-         # delayed updates of the database).
-         bookscore_n = 100 if booknumber_n-1 <= series_count_n else -100
-      
-
-      # 3. get the 'yearscore', which severely penalizes (-500) any series 
-      #    that started after the year that the current book was published.
-      current_year_n = datetime.datetime.now().year
-      def valid_year_b(year_n):
-         return year_n > 1900 and year_n <= current_year_n+1
-      
-      series_year_n = series_ref.start_year_n
-      yearscore_n = 0
-      if valid_year_b(book.year_n):
-         if not valid_year_b(series_year_n):
-            yearscore_n = -100
-         elif series_year_n > book.year_n:
-            yearscore_n = -500
-            
-      # 4. get the 'recency score', which is a tiny negative value (usually
-      #    around on the range [-0.50, 0]) that gets worse (smaller) the older 
-      #    the series is.   this is really a tie-breaker for series with 
-      #    otherwise identical scores. 
-      if valid_year_b(series_year_n):
-         recency_score_n = -(current_year_n - series_year_n) / 100.0;
-      else:
-         recency_score_n = -1.0
-         
-      # 5. add up and return all the scores
-      return bookscore_n + namescore_n + yearscore_n + recency_score_n
-   
    
    # ==========================================================================
    def show_form(self):
@@ -419,11 +336,11 @@ class SeriesForm(CVForm):
       dialogAnswer = self.ShowDialog(self.Owner) # blocks
       
       if dialogAnswer == DialogResult.OK:
-         result = SeriesFormResult( 
-            "OK", self.__series_refs[self.__chosen_index] )
+         series = self.__series_refs[self.__chosen_index] 
+         result = SeriesFormResult( "OK", series )
       elif dialogAnswer == DialogResult.Yes:
-         result = SeriesFormResult( 
-            "SHOW", self.__series_refs[self.__chosen_index] )
+         series = self.__series_refs[self.__chosen_index] 
+         result = SeriesFormResult( "SHOW", series )
       elif dialogAnswer == DialogResult.Cancel: 
          result = SeriesFormResult( "CANCEL")
       elif dialogAnswer == DialogResult.Ignore:

@@ -18,6 +18,7 @@ import db
 from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
+from matchscore import MatchScore
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -446,10 +447,15 @@ class ScrapeEngine(object):
             # ignore users previous series selection
             del scrape_cache[key]
          else:
-            # we've the right issue!  copy it's data into the book.
+            # we've got the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
             issue = db.query_issue( issue_form_result.get_ref() )
             book.update(issue)
+            
+            # record the users choice.  this allows the SeriesForm to give this
+            # choice a higher priority (sort order) in the future
+            MatchScore().record_choice(scraped_series.series_ref)
+            
             return BookStatus("SCRAPED")
 
       raise Exception("should never get here")
