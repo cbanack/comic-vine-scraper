@@ -29,6 +29,9 @@ class Resources(object):
    # the location of the app's geometry settings file.
    GEOMETRY_FILE = None
    
+   # the location of the app's chosen series file.
+   SERIES_FILE = None
+   
    # the location of the app's localization default strings file
    I18N_DEFAULTS_FILE = None
    
@@ -102,6 +105,7 @@ class Resources(object):
          # mode (including when running directly out of the IDE) 
          cls.SETTINGS_FILE = profile_dir + r'\settings.dat'
          cls.GEOMETRY_FILE = profile_dir + r'\geometry.dat'
+         cls.SERIES_FILE = profile_dir + r'\series.dat'
          cls.I18N_DEFAULTS_FILE = script_dir + r"\en.zip"
          
          # do a special trick to make standalone mode run from within the IDE,
@@ -117,6 +121,7 @@ class Resources(object):
          # set the standard locations for when we are running in plugin mode
          cls.SETTINGS_FILE = script_dir + r'\settings.dat'
          cls.GEOMETRY_FILE = script_dir + r'\geometry.dat'
+         cls.SERIES_FILE = script_dir + r'\series.dat'
          cls.I18N_DEFAULTS_FILE = script_dir + r'\en.zip'
          
       # the cache directory is the same regardless of which mode we're running
