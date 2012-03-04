@@ -32,7 +32,6 @@ from configform import ConfigForm
 from utils import sstr
 from comicbook import ComicBook
 from resources import Resources
-import cPickle
 import db
 
 clr.AddReference('System')
