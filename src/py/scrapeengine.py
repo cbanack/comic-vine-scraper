@@ -74,6 +74,11 @@ class ScrapeEngine(object):
       # scrape engine has scraped, the second tells how many it has skipped.
       # it becomes valid as soon as the main processing loop starts running.
       self.__status = [0,0]
+      
+      # an object that we use to keep (and add to) a persistent list of which 
+      # series' the user has chosen while scraping.  it can then be used to
+      # help present better sorted choices to the user in the future.
+      self.__matchscore = MatchScore()
 
 
 
@@ -454,7 +459,7 @@ class ScrapeEngine(object):
             
             # record the users choice.  this allows the SeriesForm to give this
             # choice a higher priority (sort order) in the future
-            MatchScore().record_choice(scraped_series.series_ref)
+            self.__matchscore.record_choice(scraped_series.series_ref)
             
             return BookStatus("SCRAPED")
 

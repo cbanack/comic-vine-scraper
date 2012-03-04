@@ -7,7 +7,9 @@ Created on Mar 3, 2012
 '''
 import re
 import datetime
-import log
+import utils
+from resources import Resources
+from utils import sstr
 
 #==============================================================================
 class MatchScore(object):
@@ -21,8 +23,8 @@ class MatchScore(object):
    #=========================================================================== 
    def __init__(self):
       ''' Initializes a new Configuration object with default settings '''
-      # coryhigh: read in prior series here
-      pass
+      self.__prior_series_sl = set(utils.load_map(Resources.SERIES_FILE).keys())
+      
    
    
    #===========================================================================
@@ -46,7 +48,7 @@ class MatchScore(object):
       
       # 1. first, compute the 'namescore', which is based on how many words in
       #    our book name match words in the series' name (usually comes up with 
-      #    a value on the range [5, 20], approximately.)
+      #    a value on the range [5, 20], approximately.)  
       bookname_s = '' if not book.series_s else book.series_s
       if bookname_s and book.format_s:
          bookname_s += ' ' + book.format_s
@@ -58,12 +60,15 @@ class MatchScore(object):
          if word in serieswords:
             namescore_n += 5
             serieswords.remove(word)
+         else:
+            namescore_n -= 1
       namescore_n -= len(serieswords)
       
       # 2. if the series was one that the user has chosen in the past, give it's
       #    score a very small boost (about the equivalent of it matching one 
       #    more word on the namescore  
-      priorscore_n = 0
+      priorscore_n = 6 if sstr(series_ref.series_key) \
+          in self.__prior_series_sl else 0
       
       # 3. get the 'bookscore', which compares our book's issue number
       #    with the number of issues in the series.  a step function that 
@@ -125,6 +130,9 @@ class MatchScore(object):
       Future MatchScore objects will have this information, which they can
       use to compute more accurate scores.
       '''
-      # coryhigh: implement this!
-      log.debug("RECORDED: ", series_ref)
+      series_sl = self.__prior_series_sl
+      key_s = sstr(series_ref.series_key) if series_ref else ""
+      if key_s and not key_s in series_sl:
+         series_sl.add(key_s)
+         utils.persist_map({x:x for x in series_sl}, Resources.SERIES_FILE)
 
