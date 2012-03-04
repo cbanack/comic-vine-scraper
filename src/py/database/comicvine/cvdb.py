@@ -167,7 +167,7 @@ def __cleanup_search_terms(search_terms_s, alt_b):
               replacing numerical digits with their corresponding english words
               and vice versa (i.e. "8" <-> "eight")
    '''
-   # All of the symbols below cause inconsistency in title searches
+   # all of the symbols below cause inconsistency in title searches
    search_terms_s = search_terms_s.lower()
    search_terms_s = search_terms_s.replace('.', '')
    search_terms_s = search_terms_s.replace('_', ' ')
@@ -189,7 +189,7 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = \
       re.sub(r"(\b[a-z]+)(\d+)([a-z]+\b)", r"\1\\\2\3", search_terms_s)
    
-   # of the alternate search terms is requested, try to expand single number
+   # if the alternate search terms is requested, try to expand single number
    # words, and if that fails, try to contract them.
    orig_search_terms_s = search_terms_s
    if alt_b:

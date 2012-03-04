@@ -19,6 +19,7 @@ from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
 from matchscore import MatchScore
+from dbmodels import SeriesRef
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -326,8 +327,7 @@ class ScrapeEngine(object):
 
       issue_ref = book.issue_ref
       if issue_ref and fast_rescrape_b:
-         log.debug("found rescrape tag in book, " + 
-            "scraping details directly: " + sstr(issue_ref));
+         log.debug("found rescraping details in book, using: "+sstr(issue_ref));
          try:
             issue = db.query_issue(issue_ref)
             book.update(issue)
@@ -337,20 +337,30 @@ class ScrapeEngine(object):
             log.debug("we'll retry scraping this book again at the end.")
             return BookStatus("DELAYED")
 
+
       # 2. search for all the series in the database that match the current
       #    book.  if info for this book's series has already been cached, we 
       #    can skip this step.  METHOD EXIT: if we show the user the 'search' 
       #    dialog, she may use it to skip this book or cancel the whole scrape.
-      log.debug("no CVDB tag found in book, beginning search...")
       search_terms_s = None
       series_refs = None
       key = book.unique_series_s
       if key in scrape_cache and not self.config.scrape_in_groups_b:
          # uncaching this key forces the scraper to treat this comic series
          # as though this was the first time we'd seen it
-         del scrape_cache[key] 
+         del scrape_cache[key]
+   
+      # 3. check to see if this book has an special file in it's folder that
+      #    tells us what series the book belongs to.  if so, add the series to 
+      #    our scrape_cache, which causes us to skip the "Choose Series" form.      
+      scraped_series = self.__check_folder(book)
+      if scraped_series:        
+         log.debug("an external file identified book series as: '",
+              scraped_series.series_ref, "'")
+         scrape_cache[key] = scraped_series
+          
       if key not in scrape_cache: 
-         # get serach terms for the book that we're scraping
+         # get search terms for the book that we're scraping
          search_terms_s = book.series_s
          if manual_search_b or not search_terms_s:
             # show dialog asking the user for the right search terms
@@ -379,7 +389,7 @@ class ScrapeEngine(object):
             # include failed search terms here, so search dialog mentions them
             return BookStatus("UNSCRAPED", search_terms_s)
 
-      # 3. now that we have a set if series_refs that match this book, 
+      # 4. now that we have a set if series_refs that match this book, 
       #    show the user the 'series dialog' so they can pick the right one.  
       #    put the chosen series into the cache so the user won't have to 
       #    pick it again for any future books that are in this book's series.
@@ -414,7 +424,7 @@ class ScrapeEngine(object):
          scraped_series = scrape_cache[key]
 
 
-         # 4. now that we know the right series for this book, query the 
+         # 5. now that we know the right series for this book, query the 
          #    database for the issues in that series. then try to pick one, 
          #    either  automatically, or by showing the use the "issues dialog".
          #    also, cache the issue data, so we don't have to query again if we 
@@ -465,6 +475,13 @@ class ScrapeEngine(object):
 
       raise Exception("should never get here")
 
+
+   # ==========================================================================
+   def __check_folder(self, book):
+      # coryhigh: make this load a proper series ref from cvinfo and comicvine
+      series = ScrapedSeries()
+      series.series_ref = SeriesRef("8525", "Mit", 1900, "error", 0, "rror")
+      return None
 
    # ==========================================================================
    def __sort_books(self, books):
@@ -571,7 +588,7 @@ class ScrapeEngine(object):
             counts[ref.issue_num_s] = counts.get(ref.issue_num_s, 0) + 1
          if issue_num_s in counts and counts[issue_num_s] > 1:
             # the same issue number appears more than once! user must pick.
-            log.debug("found more than one issue number ", issue_num_s, )
+            log.debug("   ...found more than one issue number ", issue_num_s, )
             issue_refs = \
                [ref for ref in issue_refs if ref.issue_num_s == issue_num_s]
          else:
@@ -579,7 +596,7 @@ class ScrapeEngine(object):
                # strip leading zeroes (see issue 81)
                if ref.issue_num_s.lstrip('0') == issue_num_s.lstrip('0'):
                   result = IssueFormResult("OK", ref) # found it!
-                  log.debug("found info for issue number ", issue_num_s, )
+                  log.debug("   ...identified issue number ", issue_num_s, )
                   break
 
       # 2. if we don't know the issue number, and there is only one issue in 
@@ -597,12 +614,13 @@ class ScrapeEngine(object):
          i18n.get("NoIssuesAvailableTitle"), MessageBoxButtons.OK, 
          MessageBoxIcon.Warning)
          result = IssueFormResult("BACK")
-         log.debug("no issues in this series; forcing user to go back...")
+         log.debug("   ...no issues in this series; forcing user to go back")
       elif force_b or not result:
          # 4. if we are forced to, or we have no result yet, display IssueForm
-         forcing_s = ' (forced)' if force_b else ''
+         if not force_b:
+            log.debug("   ...could not identify issue number automatically")
          hint = result.get_ref() if result else None
-         log.debug("displaying the issue selection dialog", forcing_s, "...")
+         log.debug("displaying the issue selection dialog...")
          with IssueForm(self, hint, issue_refs, series_name_s) as issue_form:
             result = issue_form.show_form()
             result = result if result else IssueFormResult("BACK")
