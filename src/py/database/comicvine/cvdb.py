@@ -97,25 +97,14 @@ def __query_series_refs(search_terms_s, callback_function):
    
    if num_results_n > 0:
 
-      # a helpful function that turns a 'volume' into a 'SeriesRef'      
-      def _makeref(volume):
-         publisher = '' if len(volume.publisher.__dict__) <= 1 else \
-            volume.publisher.name
-         thumb = None if len(volume.image.__dict__) <= 1 else \
-            volume.image.thumb_url.replace(r'thumb', "large")
-         return SeriesRef( int(volume.id), sstr(volume.name), 
-            sstr(volume.start_year), sstr(publisher), 
-            sstr(volume.count_of_issues), thumb)
-         
-         
       # 2. convert the results of the initial query to SeriesRefs and then add
       #    them to the returned list. notice that the dom could contain single 
       #    volume OR a list of volumes in its 'volume' variable.  
       if not isinstance(dom.results.volume, list):
-         series_refs.add( _makeref(dom.results.volume) )
+         series_refs.add( __volume_to_seriesref(dom.results.volume) )
       else:
          for volume in dom.results.volume:
-            series_refs.add( _makeref(volume) )
+            series_refs.add( __volume_to_seriesref(volume) )
 
          # 3. if there were more than 20 results, we'll have to do some more 
          #    queries now to get the rest of them
@@ -145,13 +134,25 @@ def __query_series_refs(search_terms_s, callback_function):
                   #    and then add them to the returned list.  Again, the dom
                   #    could contain a single volume, OR a list.
                   if not isinstance(dom.results.volume, list):
-                     series_refs.add( _makeref(dom.results.volume) )
+                     series_refs.add(__volume_to_seriesref(dom.results.volume))
                   else:
                      for volume in dom.results.volume:
-                        series_refs.add( _makeref(volume) )
+                        series_refs.add( __volume_to_seriesref(volume) )
    
    # 6. Done!  We've gone through and gathered all results.
    return set() if cancelled_b[0] else series_refs   
+
+
+# ==========================================================================   
+def __volume_to_seriesref(volume):
+   ''' Converts a cvdb "volume" dom element into a SeriesRef. '''
+   publisher = '' if len(volume.publisher.__dict__) <= 1 else \
+      volume.publisher.name
+   thumb = None if len(volume.image.__dict__) <= 1 else \
+      volume.image.thumb_url.replace(r'thumb', "large")
+   return SeriesRef( int(volume.id), sstr(volume.name), 
+      sstr(volume.start_year), sstr(publisher), 
+      sstr(volume.count_of_issues), thumb)
 
 
 # ==========================================================================   
@@ -589,4 +590,10 @@ def __issue_scrape_extra_details(issue, page):
          except:
             log.debug_exc("Error parsing rating for " + sstr(issue) + ": ")
             
-            
+                                
+#===========================================================================         
+def _make_seriesref(serieskey):
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   dom = cvconnection._query_series_details_dom(utils.sstr(serieskey))
+   num_results_n = int(dom.number_of_total_results)
+   return __volume_to_seriesref(dom.results) if num_results_n == 1 else None          
