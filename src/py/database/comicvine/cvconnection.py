@@ -58,7 +58,7 @@ def _query_series_details_dom(seriesid_s):
    '''
    # {0} is the series id, an integer.
    QUERY = 'http://api.comicvine.com/volume/{0}/?api_key=' + __API_KEY + \
-      '&format=xml&field_list=start_year,publisher'
+     '&format=xml&field_list=name,start_year,publisher,image,count_of_issues,id'
       # parsing relies on 'field_list' specifying 2 or more elements!!
       
    if seriesid_s is None or seriesid_s == '':

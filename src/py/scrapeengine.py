@@ -19,12 +19,13 @@ from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
 from matchscore import MatchScore
-from dbmodels import SeriesRef
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
     MessageBoxButtons, MessageBoxIcon
     
+clr.AddReference('System')
+from System.IO import Path
     
 # =============================================================================
 class ScrapeEngine(object):
@@ -479,8 +480,10 @@ class ScrapeEngine(object):
    # ==========================================================================
    def __check_folder(self, book):
       # coryhigh: make this load a proper series ref from cvinfo and comicvine
-      series = ScrapedSeries()
-      series.series_ref = SeriesRef("8525", "Mit", 1900, "error", 0, "rror")
+      log.debug(book.filename_s)
+      log.debug(Path.GetDirectoryName(book.filename_s))
+      #series = ScrapedSeries()
+      #series.series_ref = db.make_seriesref("852asdfasfs5")
       return None
 
    # ==========================================================================

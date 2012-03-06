@@ -191,4 +191,11 @@ def query_image(ref):
    '''
    return utils.strip_back_cover( cvdb._query_image(ref) )
 
-
+# =============================================================================
+def make_seriesref(serieskey):
+   '''
+   This method takes a series_key memento (see the SeriesRef object) and uses
+   it to query the database and construct a complete SeriesRef.   If the 
+   series_key is invalid, this method returns null.  
+   '''
+   return cvdb._make_seriesref(serieskey)

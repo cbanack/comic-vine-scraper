@@ -52,7 +52,8 @@ class PluginBookData(BookData):
       self.editors_sl = crbook.Editor.split(",")
       self.tags_sl = crbook.Tags.split(",") 
       self.notes_s = crbook.Notes
-      self.filename_s = crbook.FileNameWithExtension
+      # coryhigh: STARTHERE use filepath here instead
+      self.filename_s = crbook.FileNameWithExtension 
       self.webpage_s = crbook.Web
       self.rating_n = crbook.CommunityRating
       self.page_count_n = crbook.PageCount
