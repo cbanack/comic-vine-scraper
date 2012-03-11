@@ -24,9 +24,6 @@ clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
     MessageBoxButtons, MessageBoxIcon
     
-clr.AddReference('System')
-from System.IO import Path
-    
 # =============================================================================
 class ScrapeEngine(object):
    '''
@@ -354,9 +351,9 @@ class ScrapeEngine(object):
       # 3. check to see if this book has an special file in it's folder that
       #    tells us what series the book belongs to.  if so, add the series to 
       #    our scrape_cache, which causes us to skip the "Choose Series" form.      
-      scraped_series = self.__check_folder(book)
+      scraped_series = db.check_magic_file(book.filename_s)
       if scraped_series:        
-         log.debug("an external file identified book series as: '",
+         log.debug("a 'magic' file identified this book's series as: '",
               scraped_series.series_ref, "'")
          scrape_cache[key] = scraped_series
           
@@ -476,15 +473,6 @@ class ScrapeEngine(object):
 
       raise Exception("should never get here")
 
-
-   # ==========================================================================
-   def __check_folder(self, book):
-      # coryhigh: make this load a proper series ref from cvinfo and comicvine
-      log.debug(book.filename_s)
-      log.debug(Path.GetDirectoryName(book.filename_s))
-      #series = ScrapedSeries()
-      #series.series_ref = db.make_seriesref("852asdfasfs5")
-      return None
 
    # ==========================================================================
    def __sort_books(self, books):

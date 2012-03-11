@@ -151,6 +151,9 @@
 "4 Conan.cbz" "Conan" "4"
 "4.2a Conan the Man.cbr" "Conan the Man" "4.2a"
 
+# coryhigh: can we improve on parsing lines like  this (crossover numbering)?
+#"015 The Mighty Thor v1 411" "The Mighty Thor" "411"
+
 # test the extraction of year (volume) from the names
 "Conan is Cool (2006  ).cbz" "Conan is Cool" "" "2006"
 "Conan is Cool [2006  ].cbz" "Conan is Cool" "" "2006"
