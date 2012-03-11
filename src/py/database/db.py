@@ -88,8 +88,24 @@ def parse_key_tag(text_s):
    
    This method does not perform any database reads or writes, i.e. it's fast.
    '''
-   return cvdb._parse_key_tag(text_s) if text_s else None  
+   return cvdb._parse_key_tag(text_s) if text_s else None
 
+# =============================================================================
+def check_magic_file(path_s):
+   ''' 
+   Looks at the given directory so see if it contains a 'magic' file that tells
+   us what the SeriesRef for this directory is.  The name and format of this 
+   magic file are known only to specific db implementations.
+   
+   If the magic file exists and is formatted correctly, this function converts 
+   it into a SeriesRef object and returns it.  Otherwise, it returns None.
+   
+   The given path_s can be the full path to a directory, or to any file within
+   the directory (whether that file exists or not.)
+   
+   This fuction may need to access the db in order to create a SeriesRef object.
+   '''
+   return cvdb._check_magic_file(path_s)
 
 # =============================================================================
 def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
@@ -190,12 +206,3 @@ def query_image(ref):
    to prevent memory leaks.
    '''
    return utils.strip_back_cover( cvdb._query_image(ref) )
-
-# =============================================================================
-def make_seriesref(serieskey):
-   '''
-   This method takes a series_key memento (see the SeriesRef object) and uses
-   it to query the database and construct a complete SeriesRef.   If the 
-   series_key is invalid, this method returns null.  
-   '''
-   return cvdb._make_seriesref(serieskey)

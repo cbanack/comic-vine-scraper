@@ -19,6 +19,8 @@ import storyarcparser
 
 clr.AddReference('System')
 from System.Net import WebRequest
+from System.IO import Directory, File, Path, StreamReader
+from System.Text import Encoding
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Image
@@ -66,6 +68,54 @@ def _parse_key_tag(text_s):
    if not tag_found:
       tag_found = re.search(r'(?i)ComicVine.?\[(\d{1,})', text_s); # old format!
    return int(tag_found.group(1).lower()) if tag_found else None
+
+
+# =============================================================================
+def _check_magic_file(path_s):
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   series_key_s = None
+   file_s = None
+   try:
+      # 1. get the directory to search for a cvinfo file in, or None
+      dir_s = path_s if path_s and Directory.Exists(path_s) else \
+         Path.GetDirectoryName(path_s) if path_s else None
+      dir_s = dir_s if dir_s and Directory.Exists(dir_s) else None
+      
+      if dir_s:
+         # 2. search in that directory for a properly named cvinfo file
+         #    note that Windows filenames are not case sensitive.
+         for f in [dir_s + "\\" + x for x in ["cvinfo.txt", "cvinfo"]]:
+            if File.Exists(f):
+               file_s = f 
+            
+         # 3. if we found a file, read it's contents in, and parse the 
+         #    comicvine series id out of it, if possible.
+         if file_s:
+            with StreamReader(file_s, Encoding.UTF8, False) as sr:
+               line = sr.ReadToEnd()
+               line = line.strip() if line else line
+               match = re.match(r"^.*?\b49-(\d{2,})\b.*$", line)
+               line = match.group(1) if match else line
+               if utils.is_number(line):
+                  series_key_s = utils.sstr(int(line))
+   except:
+      log.debug_exc("bad cvinfo file: " + sstr(file_s))
+      
+   # 4. did we find a series key?  if so, query comicvine to build a proper
+   #    SeriesRef object for that series key.
+   series_ref = None
+   if series_key_s:
+      try:
+         dom = cvconnection._query_series_details_dom(utils.sstr(series_key_s))
+         num_results_n = int(dom.number_of_total_results)
+         series_ref =\
+            __volume_to_seriesref(dom.results) if num_results_n==1 else None
+      except:
+         log.debug_exc("error getting SeriesRef for: " + sstr(series_key_s))
+         
+   if file_s and not series_ref:
+      log.debug("ignoring bad cvinfo file: ", sstr(file_s))
+   return series_ref # may be None!
 
 
 # =============================================================================
@@ -590,10 +640,4 @@ def __issue_scrape_extra_details(issue, page):
          except:
             log.debug_exc("Error parsing rating for " + sstr(issue) + ": ")
             
-                                
-#===========================================================================         
-def _make_seriesref(serieskey):
-   ''' ComicVine implementation of the identically named method in the db.py '''
-   dom = cvconnection._query_series_details_dom(utils.sstr(serieskey))
-   num_results_n = int(dom.number_of_total_results)
-   return __volume_to_seriesref(dom.results) if num_results_n == 1 else None          
+         
