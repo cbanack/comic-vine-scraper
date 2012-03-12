@@ -4,16 +4,21 @@ from ComicRack that we are scraping data into.
 
 @author: Cory Banack
 '''
+
 from dbmodels import IssueRef
 from pluginbookdata import PluginBookData
 from time import strftime
 from utils import sstr, is_number
+import clr
 import db
 import fnameparser 
 import log 
 import re
 import utils
 from bookdata import BookData
+
+clr.AddReference('System')
+from System.IO import Path
 
 #==============================================================================
 class ComicBook(object):
@@ -37,7 +42,7 @@ class ComicBook(object):
       '''
       self.__scraper = scraper;
       self.__bookdata = PluginBookData(crbook, scraper)
-      self.__parse_extra_details_from_filename()
+      self.__parse_extra_details_from_path()
 
    
    #===========================================================================
@@ -57,9 +62,9 @@ class ComicBook(object):
    # The format of this book (giant, annual, etc.)  Not None, may be empty.
    format_s = property( lambda self : self.__bookdata.format_s )
    
-   # The underlying filename for this book, or "" if it is a fileless book.
-   # Will never be None.
-   filename_s = property(lambda self : self.__bookdata.filename_s )
+   # The underlying path for this book (full path, including extension), 
+   # or "" if it is a fileless book.  Will never be None.
+   path_s = property(lambda self : self.__bookdata.path_s )
    
    # The number of pages in this book, an integer >= 0.
    page_count_n = property( lambda self : self.__bookdata.page_count_n )
@@ -721,12 +726,12 @@ class ComicBook(object):
    
    
    # ==========================================================================
-   def __parse_extra_details_from_filename(self):
+   def __parse_extra_details_from_path(self):
       ''' 
       Series name, issue number, and volume year are all critical bits of data 
       for scraping purposes--yet fresh, unscraped files often do not have them.
       So when some or all of these values are missing, this method tries to fill
-      them in by parsing them out of the comic's filename.
+      them in by parsing them out of the comic's path.
       '''
       
       bd  = self.__bookdata
@@ -734,8 +739,8 @@ class ComicBook(object):
       no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
       no_volyear = BookData.blank("volume_year_n") == bd.volume_year_n
       if no_series or no_issuenum or no_volyear:
-         if bd.filename_s:
-            extracted = fnameparser.extract(bd.filename_s)
+         if bd.path_s:
+            extracted = fnameparser.extract(Path.GetFileName(bd.path_s))
             if no_series:
                bd.series_s = extracted[0]
             if no_issuenum:

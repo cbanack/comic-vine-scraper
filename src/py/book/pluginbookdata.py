@@ -52,8 +52,7 @@ class PluginBookData(BookData):
       self.editors_sl = crbook.Editor.split(",")
       self.tags_sl = crbook.Tags.split(",") 
       self.notes_s = crbook.Notes
-      # coryhigh: STARTHERE use filepath here instead
-      self.filename_s = crbook.FileNameWithExtension 
+      self.path_s = crbook.FilePath 
       self.webpage_s = crbook.Web
       self.rating_n = crbook.CommunityRating
       self.page_count_n = crbook.PageCount
@@ -65,7 +64,7 @@ class PluginBookData(BookData):
    def create_image_of_page(self, page_index):
       ''' Overridden to implement the superclass method of the same name. '''
       
-      fileless = not self.filename_s
+      fileless = not self.path_s
       page_image = None
       if fileless or page_index < 0 or page_index >= self.page_count_n:
          page_image = None
@@ -213,7 +212,7 @@ class PluginBookData(BookData):
       # even then, only if the user's prefs indicate that they want us to      
       if "cover_url_s" in ok_to_update:
          already_has_thumb = self.__crbook.CustomThumbnailKey
-         book_is_fileless = not self.filename_s
+         book_is_fileless = not self.path_s
          config = self.__scraper.config
    
          if not self.cover_url_s or not book_is_fileless or \

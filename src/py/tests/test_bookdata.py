@@ -272,14 +272,14 @@ class TestBookData(TestCase):
       self.assertEquals(book.notes_s, BookData.blank("notes_s"))
       
    # --------------------------------------------------------------------------
-   def test_filename_s(self):
-      ''' Checks to see if the BookData's filename_s property works. '''
+   def test_path_s(self):
+      ''' Checks to see if the BookData's path_s property works. '''
       book = BookData()
-      self.assertEquals(book.filename_s, BookData.blank("filename_s"))
-      book.filename_s = "d:\file.cbz"
-      self.assertEquals(book.filename_s, "d:\file.cbz")
-      del book.filename_s
-      self.assertEquals(book.filename_s, BookData.blank("filename_s"))
+      self.assertEquals(book.path_s, BookData.blank("path_s"))
+      book.path_s = "d:\bob\bob2\file.cbz"
+      self.assertEquals(book.path_s, "d:\bob\bob2\file.cbz")
+      del book.path_s
+      self.assertEquals(book.path_s, BookData.blank("path_s"))
       
    # --------------------------------------------------------------------------
    def test_webpage_s(self):
