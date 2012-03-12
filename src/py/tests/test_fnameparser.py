@@ -8,6 +8,7 @@ import clr
 import re
 from unittest import TestCase, TestSuite
 from fnameparser import extract
+import utils
 
 clr.AddReference('System')
 from System.IO import File, StreamReader
@@ -70,11 +71,15 @@ class TestFnameParser(TestCase):
       expected_issue_num = self.__testdata[2]
       expected_year = self.__testdata[3]
       filename = self.__testdata[0]
-      actual_series, actual_issue_num, actual_year = extract(filename)
+      try:
+         actual_series, actual_issue_num, actual_year = extract(filename)
+      except Exception as e:
+         self.assertFalse(True, "Unexpected error parsing: "
+             + filename + "\n" + utils.sstr(e) )
+         
       error = 'error parsing filename "' + filename + '"\n   -->' +\
          'got series "' + actual_series + '", issue "' + actual_issue_num +\
          '" and year "' + actual_year + '"'
-      
       self.assertEqual(expected_series, actual_series, error) 
       self.assertEqual(expected_issue_num, actual_issue_num, error) 
       self.assertEqual(expected_year, actual_year, error) 

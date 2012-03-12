@@ -16,6 +16,7 @@ clr.AddReference('IronPython')
 
 clr.AddReference('System')
 from System import GC
+from System.IO import Path
 
 clr.AddReference('System.Drawing')
 from System.Drawing import GraphicsUnit, Point, Rectangle, Size
@@ -184,7 +185,7 @@ class ComicForm(CVForm):
       '''
 
       # 1. obtain a nice filename string to put into out Label    
-      book_name = book.filename_s.strip() # filename is never None
+      book_name = Path.GetFileName(book.path_s.strip()) # path_s is never None
       fileless = book_name == ""
       if fileless:
          # 1a. this is a fileless book, so build up a nice, detailed name

@@ -23,6 +23,9 @@ from matchscore import MatchScore
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
     MessageBoxButtons, MessageBoxIcon
+
+clr.AddReference('System')
+from System.IO import Path
     
 # =============================================================================
 class ScrapeEngine(object):
@@ -206,7 +209,7 @@ class ScrapeEngine(object):
             
             log.debug("======> scraping next comic book: '",
                'FILELESS ("' + book.series_s +" #"+ book.issue_num_s+ ''")"
-               if book.filename_s.strip() == "" else book.filename_s,"'")
+               if book.path_s == "" else Path.GetFileName(book.path_s),"'")
             num_remaining = len(books) - i
             for start_scrape in self.start_scrape_listeners:
                start_scrape(book, num_remaining)
@@ -351,10 +354,12 @@ class ScrapeEngine(object):
       # 3. check to see if this book has an special file in it's folder that
       #    tells us what series the book belongs to.  if so, add the series to 
       #    our scrape_cache, which causes us to skip the "Choose Series" form.      
-      scraped_series = db.check_magic_file(book.filename_s)
-      if scraped_series:        
+      magic_series_ref = db.check_magic_file(book.path_s)
+      if magic_series_ref:        
          log.debug("a 'magic' file identified this book's series as: '",
-              scraped_series.series_ref, "'")
+              magic_series_ref, "'")
+         scraped_series = ScrapedSeries()
+         scraped_series.series_ref = magic_series_ref
          scrape_cache[key] = scraped_series
           
       if key not in scrape_cache: 

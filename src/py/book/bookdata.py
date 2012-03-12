@@ -59,7 +59,7 @@ class BookData(object):
       self.__editors_sl = []
       self.__tags_sl = [] 
       self.__notes_s = ""
-      self.__filename_s = ""
+      self.__path_s = ""
       self.__webpage_s = ""
       self.__cover_url_s = ""
       self.__rating_n = 0.0 # 0.0 to 5.0
@@ -67,7 +67,7 @@ class BookData(object):
       
       self.__updated_properties = BookData.all_properties();
       self.dont_update("page_count_n")
-      self.dont_update("filename_s")
+      self.dont_update("path_s")
       
       
    #===========================================================================
@@ -91,7 +91,7 @@ class BookData(object):
       ''' 
       Returns a set containing all of the properties ("series_s", etc) that will
       be updated when this BookData is "updated".   By default, it contains
-      everything except read-only attributes like filename_s and page_count_n.
+      everything except read-only attributes like path_s and page_count_n.
       ''' 
       return set(self.__updated_properties) 
    
@@ -451,12 +451,12 @@ class BookData(object):
 
 
    #===========================================================================   
-   def __set_filename_s(self, filename_s = None ):
-      self.__filename_s = BookData.blank("filename_s") \
-         if filename_s is None else filename_s.strip();
+   def __set_path_s(self, path_s = None ):
+      self.__path_s = BookData.blank("path_s") \
+         if path_s is None else path_s.strip();
 
-   filename_s = property( lambda self : self.__filename_s, __set_filename_s, 
-      __set_filename_s, 'The underlying filename for this book,' +
+   path_s = property( lambda self : self.__path_s, __set_path_s, 
+      __set_path_s, 'The underlying path (incl. extension) for this book,' +
       ' or "" if it is a fileless book.  Will never be None.')
    
    

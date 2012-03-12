@@ -5,9 +5,13 @@ of comic book filenames.
 Created on Oct 23, 2011
 @author: cbanack
 '''
+import clr
 import re
 import utils
 import log
+
+clr.AddReference('System')
+from System.IO import Path
 
 #==============================================================================
 def extract( filename_s ):
@@ -20,7 +24,7 @@ def extract( filename_s ):
    ''' 
    
    # remove the file extension, unless it's the whole filename
-   name_s = filename_s.strip()
+   name_s = Path.GetFileName(filename_s.strip())
    last_period = name_s.rfind(r".")
    name_s = name_s if last_period <= 0 else name_s[0:last_period]
    
@@ -31,7 +35,7 @@ def extract( filename_s ):
       if retval[0].strip() == "":
          raise Exception("parsed blank series name")
    except:
-      log.debug_exc("Recoverable error extracting from '" + filename_s + "':")
+      log.debug_exc("Recoverable error extracting from '" + name_s + "':")
       retval = name_s, "", ""
    return retval
       
