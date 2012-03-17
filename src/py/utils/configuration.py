@@ -6,7 +6,7 @@ This module contoins the Configuration object.
 
 import clr
 from resources import Resources
-from utils import persist_map, load_map
+from utils import persist_map, load_map, persist_string, load_string
 
 clr.AddReference('System')
 from System.IO import File
@@ -98,6 +98,17 @@ class Configuration(object):
       self.update_webpage_b = True # scrape comic's webpage metadata
       self.update_rating_b = True # scrape comic's community rating metadata
       
+      # the contents of the advanced settings file.  this value gets persisted
+      # and reloaded when we save and load a Configuration object.
+      self.advanced_settings_s = ""
+      
+      # coryhigh: START HERE: clearer comments, parse settings string
+      # this is a general purpose map for storing the advanced settings, in a 
+      # map of strings to objects.  the contents of this map do not get saved 
+      # or reloaded directly, though the advanced settings string that they are
+      # based on does.
+      self.advanced_map = {}
+      
       # this is a general purpose map for saving ad-hoc data in a highly 
       # flexible, unstructured fashion.  this data only lasts as long as this
       # Configuration object is around, and it DOES NOT get saved or reloaded.
@@ -110,8 +121,8 @@ class Configuration(object):
    #===========================================================================
    def load_defaults(self):
       ''' 
-      Loads any settings that are saved in the user's settings file (if there 
-      is one) and stores them in this Configuration object.
+      Loads any settings that are saved in the user's settings files (if there 
+      are any) and stores them in this Configuration object.
       '''
 
       # load the loaded dict out of the serialized file
@@ -227,14 +238,17 @@ class Configuration(object):
          
       if Configuration.__SUMMARY_DIALOG in loaded:
          self.summary_dialog_b = loaded[Configuration.__SUMMARY_DIALOG]
-         
+      
+      # grab the contents of the advanced settings file, too   
+      if File.Exists(Resources.ADVANCED_FILE): 
+         self.advanced_settings_s = load_string(Resources.ADVANCED_FILE)
          
          
    #===========================================================================
    def save_defaults(self):
       ''' 
-      Saves the settings in this Configuration object to the users settings 
-      file, replacing the current contents of that file (if there is one).
+      Saves the settings in this Configuration object to the user's settings 
+      files, replacing the current contents of those files (if there are any).
       '''
       
       defaults = {}
@@ -277,6 +291,7 @@ class Configuration(object):
       defaults[Configuration.__SUMMARY_DIALOG] = self.summary_dialog_b
    
       persist_map(defaults, Resources.SETTINGS_FILE)
+      persist_string(self.advanced_settings_s, Resources.ADVANCED_FILE)
    
    
    #===========================================================================
@@ -337,7 +352,7 @@ class Configuration(object):
       def x(x):
          return 'X' if x else ' '
              
-      return \
+      retval = \
       "--------------------------------------------------------------------\n"+\
       "[{0}] Series".format(x(self.update_series_b)).ljust(20) +\
       "[{0}] Number".format(x(self.update_number_b)).ljust(20) +\
@@ -392,3 +407,12 @@ class Configuration(object):
       "[{0}] Show Covers".format(x(self.show_covers_b)).ljust(30)+\
       "\n" + \
       "-------------------------------------------------------------------"
+      
+      # coryhigh: a better solution here, list the parsed values
+      # then he user can see what was parsed correctly
+      advanced_s = self.advanced_settings_s.strip()
+      if advanced_s:
+         retval += "\n"+ advanced_s +"\n" +\
+         "-------------------------------------------------------------------"
+   
+      return retval   
