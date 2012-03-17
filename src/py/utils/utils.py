@@ -171,7 +171,7 @@ def persist_map(map, file):
    Writes the given map of strings-to-values into a file, by converting all of 
    its values into strings.  Any key value pair that contains the ':' 
    character will not be written out.  All other contents that were in the 
-   given file will be destroyed. 
+   given file will be destroyed.  Returns True on success, False on failure.
    """
    
    try:
@@ -189,8 +189,10 @@ def persist_map(map, file):
                          key, " -> ", value)
             else:
                sw.Write(key + ' : ' + value + "\n")
+      return True
    except:
-      log.debug_exc("problem saving mapfile: " + sstr(file)) 
+      log.debug_exc("problem persisting map to file: " + sstr(file))
+      return False 
          
          
 #==============================================================================
@@ -200,7 +202,8 @@ def load_map(file):
    function.  All keys in the returned map will be strings, but the values will
    be converted to integers, booleans and floats where possible.
    
-   If this given file doesn't exist, this method returns an empty map.
+   If this given file doesn't exist or an error occurs, this method returns
+   an empty map.
    """
    retval = {}
    try:
@@ -226,8 +229,42 @@ def load_map(file):
                line = sr.ReadLine()
    except:
       import log
-      log.debug_exc("problem loading mapfile " + sstr(file))
+      log.debug_exc("problem loading map from file " + sstr(file))
       retval = {}
+   return retval
+
+#==============================================================================
+def persist_string(s, file):
+   """
+   Writes the given stringsinto a file. All other contents that were in the 
+   given file will be destroyed.  Returns True on success, False on failure.
+   """
+   
+   try:
+      import log
+      with StreamWriter(file, False, Encoding.UTF8) as sw:
+         sw.Write(s)
+      return True
+   except:
+      log.debug_exc("problem persiting string to file: " + sstr(file))
+      return False 
+         
+         
+#==============================================================================
+def load_string(file):
+   """
+   Reads a string containing the contents of the given file. If this given file 
+   doesn't exist, or an error occurs, this method returns an empty string.
+   """
+   retval = ""
+   try:
+      if File.Exists(file): 
+         with StreamReader(file, Encoding.UTF8, False) as sr:
+            retval = sr.ReadToEnd()
+   except:
+      import log
+      log.debug_exc("problem loading string from file " + sstr(file))
+      retval = ""
    return retval
 
 

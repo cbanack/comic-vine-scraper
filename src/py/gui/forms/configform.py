@@ -11,7 +11,7 @@ import i18n
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
-    CheckedListBox, DialogResult, FlatStyle, Label, \
+    CheckedListBox, DialogResult, FlatStyle, Label, RichTextBox, \
     SelectionMode, TabControl, TabPage
 
 clr.AddReference('System.Drawing')
@@ -84,6 +84,8 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb = None
       self.__rescrape_notes_cb = None
       
+      # "advanced settings" textbox
+      self.__advanced_tbox = None
       
       # "data" checkbox list
       self.__update_checklist = None
@@ -174,6 +176,7 @@ class ConfigForm(CVForm):
       tabcontrol.Controls.Add( self.__build_behaviourtab() )
       tabcontrol.Controls.Add( self.__build_datatab() )
       tabcontrol.Controls.Add( self.__build_rescrapetab() )
+      tabcontrol.Controls.Add( self.__build_advancedtab() )
       
       return tabcontrol
 
@@ -189,7 +192,7 @@ class ConfigForm(CVForm):
       # 1. --- a description label for this tabpage
       label = Label()
       label.AutoSize = True
-      label.Location = Point(9, 25)
+      label.Location = Point(14, 25)
       label.Size = Size(299, 17)
       label.Text = i18n.get("ConfigFormDetailsText")
       
@@ -418,6 +421,38 @@ class ConfigForm(CVForm):
       tabpage.Controls.Add(self.__rescrape_notes_cb)
       
       return tabpage
+   
+   # ==========================================================================
+   def __build_advancedtab(self):
+      ''' builds and returns the "Advanced" Tab for the TabControl '''
+      
+      tabpage = TabPage()
+      # coryhigh: fix
+      #tabpage.Text = i18n.get("ConfigFormAdvancedTab")
+      tabpage.Text = "Advanced"
+      
+      # 1. --- a description label for this tabpage
+      label = Label()
+      label.AutoSize = True
+      label.Location = Point(14, 25)
+      label.Size = Size(299, 17)
+      # coryhigh: fix
+      #label.Text = i18n.get("ConfigFormAdvancedText")
+      label.Text = "Enter advanced settings in the space below:"
+      
+      # 2. --- build the update checklist (contains all the 'data' checkboxes)
+      self.__advanced_tbox = RichTextBox()
+      self.__advanced_tbox.Multiline=True
+      self.__advanced_tbox.MaxLength=1024
+      self.__advanced_tbox.WordWrap = True
+      self.__advanced_tbox.Location = Point(15, 50)
+      self.__advanced_tbox.Size = Size(355, 200)
+      
+      # 3. --- add 'em all to the tabpage 
+      tabpage.Controls.Add(label)
+      tabpage.Controls.Add(self.__advanced_tbox)
+      
+      return tabpage
          
    # ==========================================================================
    def show_form(self):
@@ -500,6 +535,10 @@ class ConfigForm(CVForm):
       config.rescrape_tags_b = self.__rescrape_tags_cb.Checked
       config.welcome_dialog_b = self.__welcome_dialog_cb.Checked
       config.summary_dialog_b = self.__summary_dialog_cb.Checked
+      
+      # 3. --- then get the string out of the advanced settings textbox
+      config.advanced_settings_s = self.__advanced_tbox.Text
+      
       return config
  
  
@@ -554,6 +593,9 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb.Checked = config.rescrape_tags_b
       self.__welcome_dialog_cb.Checked = config.welcome_dialog_b
       self.__summary_dialog_cb.Checked = config.summary_dialog_b
+      
+      # 3. --- finally, set the contents in the advanced settings textbox
+      self.__advanced_tbox.Text = config.advanced_settings_s
       
       self.__fired_update_gui()
       

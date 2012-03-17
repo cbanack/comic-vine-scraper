@@ -26,6 +26,9 @@ class Resources(object):
    # the location of the app's settings file.
    SETTINGS_FILE = None
    
+   # the location of the app's advanced settings file.
+   ADVANCED_FILE = None
+   
    # the location of the app's geometry settings file.
    GEOMETRY_FILE = None
    
@@ -104,6 +107,7 @@ class Resources(object):
          # set the standard locations for when we are running in standalone
          # mode (including when running directly out of the IDE) 
          cls.SETTINGS_FILE = profile_dir + r'\settings.dat'
+         cls.ADVANCED_FILE = profile_dir + r'\advanced.dat'
          cls.GEOMETRY_FILE = profile_dir + r'\geometry.dat'
          cls.SERIES_FILE = profile_dir + r'\series.dat'
          cls.I18N_DEFAULTS_FILE = script_dir + r"\en.zip"
@@ -120,6 +124,7 @@ class Resources(object):
       elif not standalone:
          # set the standard locations for when we are running in plugin mode
          cls.SETTINGS_FILE = script_dir + r'\settings.dat'
+         cls.ADVANCED_FILE = script_dir + r'\advanced.dat'
          cls.GEOMETRY_FILE = script_dir + r'\geometry.dat'
          cls.SERIES_FILE = script_dir + r'\series.dat'
          cls.I18N_DEFAULTS_FILE = script_dir + r'\en.zip'
