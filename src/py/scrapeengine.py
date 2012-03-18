@@ -544,10 +544,21 @@ class ScrapeEngine(object):
       This method returns a SeriesFormResult object (from the SeriesForm). 
       '''
       
+      
       result = SeriesFormResult("SEARCH") # default
       if series_refs:
+         
+         # 1. before the series dialog, apply any filtering prefs
+         filtered_refs = set()
+         banned_publishers_sl = self.config.filtered_publishers_sl;
+         for series_ref in series_refs:
+            publisher_s = series_ref.publisher_s.lower().strip()
+            if publisher_s not in banned_publishers_sl:
+               filtered_refs.add(series_ref)
+         # coryhigh: START HERE
+               
          log.debug('displaying the series selection dialog...')
-         with  SeriesForm(self, book, series_refs, search_terms_s) as sform:
+         with  SeriesForm(self, book, filtered_refs, search_terms_s) as sform:
             result = sform.show_form() 
          log.debug('   ...user chose to ', result.get_debug_string())
       return result

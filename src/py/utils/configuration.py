@@ -7,6 +7,8 @@ This module contoins the Configuration object.
 import clr
 from resources import Resources
 from utils import persist_map, load_map, persist_string, load_string
+import re
+import utils
 
 clr.AddReference('System')
 from System.IO import File
@@ -17,7 +19,8 @@ class Configuration(object):
    This class contains the configuration details for the scraper, including
    methods for reading and writing those details to the filesystem.
    '''
-      
+   
+   # map names for basic boolean settings (checkboxes)   
    __UPDATE_SERIES = 'updateSeries'
    __UPDATE_NUMBER = 'updateNumber'
    __UPDATE_MONTH = 'updateMonth'
@@ -54,6 +57,13 @@ class Configuration(object):
    __RESCRAPE_TAGS = 'updateTags'
    __WELCOME_DIALOG = 'welcomeDialog'
    __SUMMARY_DIALOG = 'summaryDialog'
+   
+   # default values for advanced settings
+   __DEFAULT_FILTERED_PUBLISHERS = set()
+   __DEFAULT_FILTER_BEFORE_YEAR = 0
+   __DEFAULT_FILTER_AFTER_YEAR = 9999999
+   __DEFAULT_NEVER_FILTER_THRESHOLD = 9999999
+   __DEFAULT_ALT_SEARCH_REGEX = "" 
   
   
    #=========================================================================== 
@@ -98,25 +108,106 @@ class Configuration(object):
       self.update_webpage_b = True # scrape comic's webpage metadata
       self.update_rating_b = True # scrape comic's community rating metadata
       
-      # the contents of the advanced settings file.  this value gets persisted
-      # and reloaded when we save and load a Configuration object.
-      self.advanced_settings_s = ""
-      
-      # coryhigh: START HERE: clearer comments, parse settings string
-      # this is a general purpose map for storing the advanced settings, in a 
-      # map of strings to objects.  the contents of this map do not get saved 
-      # or reloaded directly, though the advanced settings string that they are
-      # based on does.
-      self.advanced_map = {}
-      
+            
       # this is a general purpose map for saving ad-hoc data in a highly 
       # flexible, unstructured fashion.  this data only lasts as long as this
       # Configuration object is around, and it DOES NOT get saved or reloaded.
       self.session_data_map = {}
       
+      # the contents of the advanced settings file (and the values parsed out
+      # of it.)  this advanced settings string value gets persisted and reloaded
+      # when we save and load a Configuration object, but the parsed values are
+      # tied to the string, and only change when it does.
+      self.__advanced_settings_s = None
+      self.__filtered_publishers_sl = None # filter publishers out of searches
+      self.__filter_before_year_n = None # filter series started before year
+      self.__filter_after_year_n = None # filter series started after year
+      self.__never_filter_threshold_n = None # min issues before we don't filter
+      self.__alt_search_regex_s = None # alternate filename parsing regex
+      self.__set_advanced_settings_s("")
+      
       return self
    
    
+   
+   #===========================================================================   
+   def __set_advanced_settings_s(self, advanced_settings_s = None):
+      ''' 
+      Changes the current advanced settings string, then reparses it to obtain
+      new values for all of the advanced settings.
+      '''
+      
+      self.__advanced_settings_s = "" if advanced_settings_s is None \
+         else advanced_settings_s.strip()
+      
+      # 1. reset to defaults
+      c = Configuration
+      self.__filtered_publishers_sl = c.__DEFAULT_FILTERED_PUBLISHERS
+      self.__filter_before_year_n = c.__DEFAULT_FILTER_BEFORE_YEAR
+      self.__filter_after_year_n = c.__DEFAULT_FILTER_AFTER_YEAR
+      self.__never_filter_threshold_n = c.__DEFAULT_NEVER_FILTER_THRESHOLD
+      self.__alt_search_regex_s = c.__DEFAULT_ALT_SEARCH_REGEX
+      
+      # 2. scan through the string looking at each line for advanced settings
+      lines_s = [ x.strip() for x in self.__advanced_settings_s.split("\n") \
+                 if x.strip() ]
+      pattern_s = r"^(?i){0}\s*=\s*['\"]?(.+?)['\"]?$"
+      for line_s in lines_s:
+         # 2a. parse the "FILTER_PUBLISHER=XXXX" line
+         match = re.match(pattern_s.format("FILTER_PUBLISHER"), line_s) 
+         if match: 
+            self.__filtered_publishers_sl.add(match.group(1).lower().strip())
+            
+         # 2b. parse the "FILTER_BEFORE_YEAR=XXXX" line
+         match = re.match(pattern_s.format("FILTER_BEFORE_YEAR"), line_s)
+         if match and utils.is_number(match.group(1)):
+            self.__filter_before_year_n = int(float(match.group(1)))
+            
+         # 2c. parse the "FILTER_AFTER_YEAR=XXXX" line
+         match = re.match(pattern_s.format("FILTER_AFTER_YEAR"), line_s)
+         if match and utils.is_number(match.group(1)):
+            self.__filter_after_year_n = int(float(match.group(1)))
+            
+         # 2d. parse the "NEVER_FILTER_THRESHOLD=XXXX" line
+         match = re.match(pattern_s.format("NEVER_FILTER_THRESHOLD"), line_s)
+         if match and utils.is_number(match.group(1)):
+            self.__never_filter_threshold_n = int(float(match.group(1)))
+            
+         # 2e. parse the "ALT_SEARCH_REGEX=XXXX" line
+         match = re.match(pattern_s.format("ALT_SEARCH_REGEX"), line_s)
+         if match:
+            try:
+               re.compile(match.group(1))
+               self.__alt_search_regex_s = match.group(1)
+            except:
+               pass # nope, looks like it's not a parsable regex
+      
+      
+   
+   advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
+      __set_advanced_settings_s, __set_advanced_settings_s,
+      "The advanced settings string for this Configuration. Not None." )
+   
+   filtered_publishers_sl = property( 
+      lambda self : list(self.__filtered_publishers_sl), None, None,
+      "List of publisher names to filter out of series searches. Not None.")
+   
+   filtered_before_year_n = property( 
+      lambda self : self.__filter_before_year_n, None, None,
+      "Filter out searched series first published before this year. Not None.")
+   
+   filtered_after_year_n = property( 
+      lambda self : self.__filter_after_year_n, None, None,
+      "Filter out searched series first published after this year. Not None.")
+   
+   never_filter_threshold_n = property( 
+      lambda self : self.__never_filter_threshold_n, None, None,
+      "Never filter series that have this many issues, or more. Not None.")
+   
+   alt_search_regex_s = property( 
+      lambda self : self.__alt_search_regex_s, None, None,
+      "Alternate regex for parsing issue/series/etc from filename. Not None.")
+      
    
    #===========================================================================
    def load_defaults(self):
@@ -352,6 +443,7 @@ class Configuration(object):
       def x(x):
          return 'X' if x else ' '
              
+      # display details about regular settings (which are all booleans)
       retval = \
       "--------------------------------------------------------------------\n"+\
       "[{0}] Series".format(x(self.update_series_b)).ljust(20) +\
@@ -407,12 +499,30 @@ class Configuration(object):
       "[{0}] Show Covers".format(x(self.show_covers_b)).ljust(30)+\
       "\n" + \
       "-------------------------------------------------------------------"
-      
-      # coryhigh: a better solution here, list the parsed values
-      # then he user can see what was parsed correctly
-      advanced_s = self.advanced_settings_s.strip()
-      if advanced_s:
-         retval += "\n"+ advanced_s +"\n" +\
+
+      # display details about any advanced settings that may be in effect      
+      lines_sl = []
+      c = Configuration
+      if self.filtered_publishers_sl !=c.__DEFAULT_FILTERED_PUBLISHERS:
+         for publisher_s in self.filtered_publishers_sl:
+            lines_sl.append("Filter out all series published by '{0}'\n"\
+               .format(publisher_s))
+      if self.filtered_before_year_n != c.__DEFAULT_FILTER_BEFORE_YEAR:
+         lines_sl.append("Filter out all series that start before {0}.\n"\
+             .format(self.filtered_before_year_n))
+      if self.filtered_after_year_n != c.__DEFAULT_FILTER_AFTER_YEAR:
+         lines_sl.append("Filter out all series that start after {0}.\n"\
+            .format(self.filtered_after_year_n))
+      if self.never_filter_threshold_n != c.__DEFAULT_NEVER_FILTER_THRESHOLD:
+         lines_sl.append("Don't filter series that have {0} or more issues.\n"\
+            .format(self.never_filter_threshold_n))
+      if self.alt_search_regex_s != c.__DEFAULT_ALT_SEARCH_REGEX:
+         lines_sl.append("Alternate Filename Search Regex:\n   {0}\n"\
+            .format(self.alt_search_regex_s))
+               
+      advanced_lines_s = "".join(lines_sl)
+      if advanced_lines_s:
+         retval += "\n" + advanced_lines_s + \
          "-------------------------------------------------------------------"
    
       return retval   
