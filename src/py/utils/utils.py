@@ -246,7 +246,7 @@ def persist_string(s, file):
          sw.Write(s)
       return True
    except:
-      log.debug_exc("problem persiting string to file: " + sstr(file))
+      log.debug_exc("problem persisting string to file: " + sstr(file))
       return False 
          
          

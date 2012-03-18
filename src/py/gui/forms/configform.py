@@ -427,18 +427,16 @@ class ConfigForm(CVForm):
       ''' builds and returns the "Advanced" Tab for the TabControl '''
       
       tabpage = TabPage()
-      # coryhigh: fix
-      #tabpage.Text = i18n.get("ConfigFormAdvancedTab")
-      tabpage.Text = "Advanced"
+      tabpage.Text = i18n.get("ConfigFormAdvancedTab")
+      
       
       # 1. --- a description label for this tabpage
       label = Label()
       label.AutoSize = True
       label.Location = Point(14, 25)
       label.Size = Size(299, 17)
-      # coryhigh: fix
-      #label.Text = i18n.get("ConfigFormAdvancedText")
-      label.Text = "Enter advanced settings in the space below:"
+      label.Text = i18n.get("ConfigFormAdvancedText")
+      
       
       # 2. --- build the update checklist (contains all the 'data' checkboxes)
       self.__advanced_tbox = RichTextBox()
