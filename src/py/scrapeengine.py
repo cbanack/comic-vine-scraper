@@ -547,18 +547,8 @@ class ScrapeEngine(object):
       
       result = SeriesFormResult("SEARCH") # default
       if series_refs:
-         
-         # 1. before the series dialog, apply any filtering prefs
-         filtered_refs = set()
-         banned_publishers_sl = self.config.filtered_publishers_sl;
-         for series_ref in series_refs:
-            publisher_s = series_ref.publisher_s.lower().strip()
-            if publisher_s not in banned_publishers_sl:
-               filtered_refs.add(series_ref)
-         # coryhigh: START HERE
-               
          log.debug('displaying the series selection dialog...')
-         with  SeriesForm(self, book, filtered_refs, search_terms_s) as sform:
+         with  SeriesForm(self, book, series_refs, search_terms_s) as sform:
             result = sform.show_form() 
          log.debug('   ...user chose to ', result.get_debug_string())
       return result
@@ -647,6 +637,7 @@ class ScrapeEngine(object):
       if not search_terms_s:
          raise Exception("cannot query for empty search terms")
       
+      # 1. query the database for series
       with ProgressBarForm(self.comicrack.MainWindow, self) as progbar:
          # this function gets called each time an series_ref is obtained
          def callback(num_matches_n, expected_callbacks_n):
@@ -663,12 +654,32 @@ class ScrapeEngine(object):
          log.debug("searching for series that match '", search_terms_s, "'...")
          series_refs = db.query_series_refs(search_terms_s, callback)
          
+      # 2. filter out any series that the user has specified
+      filtered_refs = set() 
+      banned_publishers_sl = self.config.filtered_publishers_sl
+      threshold_n = self.config.never_filter_threshold_n
+      filter_before_n = self.config.filtered_before_year_n
+      filter_after_n = self.config.filtered_after_year_n
+      for series_ref in series_refs:
+         passes_filter = True
+         if series_ref.issue_count_n < threshold_n:
+            publisher_s = series_ref.publisher_s.lower().strip()
+            passes_filter = True if publisher_s not in banned_publishers_sl \
+               and series_ref.start_year_n >= filter_before_n \
+               and series_ref.start_year_n <= filter_after_n else False
+         if passes_filter:    
+            filtered_refs.add(series_ref)
       
-      if len(series_refs) == 0:
-         log.debug("...no results found for this search.")
+      # 3. some userful debug output
+      filtered_n = len(series_refs) - len(filtered_refs) 
+      if filtered_n > 0:
+         log.debug("...filtered out ", filtered_n, " (of ", 
+            len(series_refs), ") results.")
+      if len(filtered_refs) == 0:
+         log.debug("...no results found for this search")
       else:
-         log.debug("...found {0} results".format(len(series_refs)))
-      return series_refs
+         log.debug("...found {0} results".format(len(filtered_refs)))
+      return filtered_refs
 
 
 

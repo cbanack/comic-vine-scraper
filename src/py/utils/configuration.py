@@ -153,23 +153,23 @@ class Configuration(object):
                  if x.strip() ]
       pattern_s = r"^(?i){0}\s*=\s*['\"]?(.+?)['\"]?$"
       for line_s in lines_s:
-         # 2a. parse the "FILTER_PUBLISHER=XXXX" line
-         match = re.match(pattern_s.format("FILTER_PUBLISHER"), line_s) 
+         # 2a. parse the "IGNORE_PUBLISHER=XXXX" line
+         match = re.match(pattern_s.format("IGNORE_PUBLISHER"), line_s) 
          if match: 
             self.__filtered_publishers_sl.add(match.group(1).lower().strip())
             
-         # 2b. parse the "FILTER_BEFORE_YEAR=XXXX" line
-         match = re.match(pattern_s.format("FILTER_BEFORE_YEAR"), line_s)
+         # 2b. parse the "IGNORE_BEFORE_YEAR=XXXX" line
+         match = re.match(pattern_s.format("IGNORE_BEFORE_YEAR"), line_s)
          if match and utils.is_number(match.group(1)):
             self.__filter_before_year_n = int(float(match.group(1)))
             
-         # 2c. parse the "FILTER_AFTER_YEAR=XXXX" line
-         match = re.match(pattern_s.format("FILTER_AFTER_YEAR"), line_s)
+         # 2c. parse the "IGNORE_AFTER_YEAR=XXXX" line
+         match = re.match(pattern_s.format("IGNORE_AFTER_YEAR"), line_s)
          if match and utils.is_number(match.group(1)):
             self.__filter_after_year_n = int(float(match.group(1)))
             
-         # 2d. parse the "NEVER_FILTER_THRESHOLD=XXXX" line
-         match = re.match(pattern_s.format("NEVER_FILTER_THRESHOLD"), line_s)
+         # 2d. parse the "NEVER_IGNORE_THRESHOLD=XXXX" line
+         match = re.match(pattern_s.format("NEVER_IGNORE_THRESHOLD"), line_s)
          if match and utils.is_number(match.group(1)):
             self.__never_filter_threshold_n = int(float(match.group(1)))
             
@@ -503,18 +503,18 @@ class Configuration(object):
       # display details about any advanced settings that may be in effect      
       lines_sl = []
       c = Configuration
-      if self.filtered_publishers_sl !=c.__DEFAULT_FILTERED_PUBLISHERS:
+      if self.filtered_publishers_sl != c.__DEFAULT_FILTERED_PUBLISHERS:
          for publisher_s in self.filtered_publishers_sl:
-            lines_sl.append("Filter out all series published by '{0}'\n"\
+            lines_sl.append("Ignore all series published by '{0}'\n"\
                .format(publisher_s))
       if self.filtered_before_year_n != c.__DEFAULT_FILTER_BEFORE_YEAR:
-         lines_sl.append("Filter out all series that start before {0}.\n"\
+         lines_sl.append("Ignore all series that start before {0}.\n"\
              .format(self.filtered_before_year_n))
       if self.filtered_after_year_n != c.__DEFAULT_FILTER_AFTER_YEAR:
-         lines_sl.append("Filter out all series that start after {0}.\n"\
+         lines_sl.append("Ignore all series that start after {0}.\n"\
             .format(self.filtered_after_year_n))
       if self.never_filter_threshold_n != c.__DEFAULT_NEVER_FILTER_THRESHOLD:
-         lines_sl.append("Don't filter series that have {0} or more issues.\n"\
+         lines_sl.append("Don't ignore series that have {0} or more issues.\n"\
             .format(self.never_filter_threshold_n))
       if self.alt_search_regex_s != c.__DEFAULT_ALT_SEARCH_REGEX:
          lines_sl.append("Alternate Filename Search Regex:\n   {0}\n"\
