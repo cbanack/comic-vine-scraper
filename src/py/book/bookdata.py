@@ -6,12 +6,6 @@ must have.  Various subclasses will implement the specific details.
 @author: Cory Banack
 '''
 
-# corynorm: BookData architecture
-# so BookData will be the superclass of PluginBookData and CRBookData.
-# CRBookData is for the ComicRack metadata format. (maybe more to come.)
-# CRBookData will have 3 subclasses, CBZBookData, CB7BookData, and CBRBookData
-# ComicBook merely has to contain and use a subclass of BookData.
-
 # corynorm: use this
 #   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
 #   from Ionic.Zip import ZipFile #@UnresolvedImport

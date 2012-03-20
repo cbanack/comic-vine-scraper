@@ -261,7 +261,7 @@ class ComicBook(object):
       else: bd.month_n = value
       
       # volume --------------------
-      value = self.__massage_new_number("Volume", issue.start_year_n, \
+      value = self.__massage_new_number("Volume", issue.volume_year_n, \
       bd.volume_year_n, config.update_volume_b, config.ow_existing_b, \
       config.ignore_blanks_b, -1, lambda x : x > 0 )
       if value is None: bd.dont_update("volume_year_n")
