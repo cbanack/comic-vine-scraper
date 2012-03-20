@@ -19,7 +19,6 @@ from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
 from matchscore import MatchScore
-from dbmodels import Issue, IssueRef
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -330,7 +329,7 @@ class ScrapeEngine(object):
       if issue_ref and fast_rescrape_b:
          log.debug("found rescraping details in book, using: "+sstr(issue_ref));
          try:
-            issue = db.query_issue(issue_ref)
+            issue = db.query_issue(issue_ref, self.config.update_rating_b)
             book.update(issue)
             return BookStatus("SCRAPED")
          except:
@@ -467,7 +466,8 @@ class ScrapeEngine(object):
          else:
             # we've got the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
-            issue = db.query_issue( issue_form_result.get_ref() )
+            issue = db.query_issue( issue_form_result.get_ref(), 
+               self.config.update_rating_b )
             book.update(issue)
             
             # record the users choice.  this allows the SeriesForm to give this
@@ -657,17 +657,17 @@ class ScrapeEngine(object):
          
       # 2. filter out any series that the user has specified
       filtered_refs = set() 
-      banned_publishers_sl = self.config.filtered_publishers_sl
-      threshold_n = self.config.never_filter_threshold_n
-      filter_before_n = self.config.filtered_before_year_n
-      filter_after_n = self.config.filtered_after_year_n
+      banned_publishers_sl = self.config.ignored_publishers_sl
+      threshold_n = self.config.never_ignore_threshold_n
+      ignored_before_n = self.config.ignored_before_year_n
+      ignored_after_n = self.config.ignored_after_year_n
       for series_ref in series_refs:
          passes_filter = True
          if series_ref.issue_count_n < threshold_n:
             publisher_s = series_ref.publisher_s.lower().strip()
             passes_filter = True if publisher_s not in banned_publishers_sl \
-               and series_ref.volume_year_n >= filter_before_n \
-               and series_ref.volume_year_n <= filter_after_n else False
+               and series_ref.volume_year_n >= ignored_before_n \
+               and series_ref.volume_year_n <= ignored_after_n else False
          if passes_filter:    
             filtered_refs.add(series_ref)
       

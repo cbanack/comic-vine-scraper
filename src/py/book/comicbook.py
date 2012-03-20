@@ -624,7 +624,7 @@ class ComicBook(object):
       #  3) we're not overwriting with a blank value unless we're allowed to
       retval = None;      
       if update and (overwrite or len(old_list)==0) and \
-            (not ignoreblanks or len(new_list > 0)):
+            (not ignoreblanks or len(new_list) > 0):
           
          retval = new_list
          

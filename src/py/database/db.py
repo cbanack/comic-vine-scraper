@@ -184,13 +184,17 @@ def query_issue_refs(series_ref, callback_function=lambda x,y : False):
 
 
 # =============================================================================
-def query_issue(issue_ref):
+def query_issue(issue_ref, slow_data=False):
    '''
    This method takes an IssueRef object (not None) and uses it to query the
    database for all of the details about that issue, which are returned 
-   in a new Issue object. 
+   in a new Issue object.
+   
+   If slow_data is True, the query MAY take extra time to attempt to retrieve 
+   additional OPTIONAL data and add it to the Issue. 
+   
    '''
-   return cvdb._query_issue(issue_ref)
+   return cvdb._query_issue(issue_ref, slow_data)
 
 
 # =============================================================================
