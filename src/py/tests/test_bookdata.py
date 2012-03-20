@@ -110,14 +110,14 @@ class TestBookData(TestCase):
       self.assertEquals(book.storyarc_s, BookData.blank("storyarc_s"))
       
    # --------------------------------------------------------------------------
-   def test_alt_series_sl(self):
-      ''' Checks to see if the BookData's alt_series_sl property works. '''
+   def test_crossovers_sl(self):
+      ''' Checks to see if the BookData's crossovers_sl property works. '''
       book = BookData()
-      self.assertEquals(book.alt_series_sl, BookData.blank("alt_series_sl"))
-      book.alt_series_sl = ["Killing Joke", None, "", "The Last Laugh"]
-      self.assertEquals(book.alt_series_sl, ["Killing Joke", "The Last Laugh"])
-      del book.alt_series_sl
-      self.assertEquals(book.alt_series_sl, BookData.blank("alt_series_sl"))
+      self.assertEquals(book.crossovers_sl, BookData.blank("crossovers_sl"))
+      book.crossovers_sl = ["Killing Joke", None, "", "The Last Laugh"]
+      self.assertEquals(book.crossovers_sl, ["Killing Joke", "The Last Laugh"])
+      del book.crossovers_sl
+      self.assertEquals(book.crossovers_sl, BookData.blank("crossovers_sl"))
             
    # --------------------------------------------------------------------------
    def test_summary_s(self):

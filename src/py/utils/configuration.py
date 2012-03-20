@@ -26,7 +26,7 @@ class Configuration(object):
    __UPDATE_MONTH = 'updateMonth'
    __UPDATE_TITLE = 'updateTitle'
    __UPDATE_STORYARC = 'updateStoryArc'
-   __UPDATE_ALT_SERIES = 'updateAltSeries'
+   __UPDATE_CROSSOVERS = 'updateCrossovers'
    __UPDATE_WRITER = 'updateWriter'
    __UPDATE_PENCILLER = 'updatePenciller'
    __UPDATE_INKER = 'updateInker'
@@ -90,7 +90,7 @@ class Configuration(object):
       self.update_year_b = True # scrape comic's publication year metadata
       self.update_title_b = True # scrape comic's issue title metadata
       self.update_storyarc_b = True # scrape comic's issue storyarc metadata
-      self.update_alt_series_b = True # scrape comic's alternate series metadata
+      self.update_crossovers_b = True # scrape comic's crossovers metadata
       self.update_writer_b = True # scrape comic's writer metadata
       self.update_penciller_b = True # scrape comic's penciller metadata
       self.update_inker_b = True # scrape comic's inker metadata
@@ -237,8 +237,8 @@ class Configuration(object):
       if Configuration.__UPDATE_STORYARC in loaded:
          self.update_storyarc_b = loaded[Configuration.__UPDATE_STORYARC]
          
-      if Configuration.__UPDATE_ALT_SERIES in loaded:
-         self.update_alt_series_b = loaded[Configuration.__UPDATE_ALT_SERIES]
+      if Configuration.__UPDATE_CROSSOVERS in loaded:
+         self.update_crossovers_b = loaded[Configuration.__UPDATE_CROSSOVERS]
          
       if Configuration.__UPDATE_WRITER in loaded:
          self.update_writer_b = loaded[Configuration.__UPDATE_WRITER]
@@ -348,7 +348,7 @@ class Configuration(object):
       defaults[Configuration.__UPDATE_MONTH] = self.update_month_b
       defaults[Configuration.__UPDATE_TITLE] = self.update_title_b
       defaults[Configuration.__UPDATE_STORYARC] = self.update_storyarc_b
-      defaults[Configuration.__UPDATE_ALT_SERIES] = self.update_alt_series_b
+      defaults[Configuration.__UPDATE_CROSSOVERS] = self.update_crossovers_b
       defaults[Configuration.__UPDATE_WRITER] = self.update_writer_b
       defaults[Configuration.__UPDATE_PENCILLER] = self.update_penciller_b
       defaults[Configuration.__UPDATE_INKER] = self.update_inker_b
@@ -416,7 +416,7 @@ class Configuration(object):
       self.update_month_b == other.update_month_b and \
       self.update_title_b == other.update_title_b and \
       self.update_storyarc_b == other.update_storyarc_b and \
-      self.update_alt_series_b == other.update_alt_series_b and \
+      self.update_crossovers_b == other.update_crossovers_b and \
       self.update_writer_b == other.update_writer_b and \
       self.update_penciller_b == other.update_penciller_b and \
       self.update_inker_b == other.update_inker_b and \
@@ -452,7 +452,7 @@ class Configuration(object):
       "\n" + \
       "[{0}] Title".format(x(self.update_title_b)).ljust(20) +\
       "[{0}] StoryArc".format(x(self.update_storyarc_b)).ljust(20) +\
-      "[{0}] Alt Series".format(x(self.update_alt_series_b)).ljust(20) +\
+      "[{0}] Crossovers".format(x(self.update_crossovers_b)).ljust(20) +\
       "\n" + \
       "[{0}] Writer".format(x(self.update_writer_b)).ljust(20) +\
       "[{0}] Penciller".format(x(self.update_penciller_b)).ljust(20) +\

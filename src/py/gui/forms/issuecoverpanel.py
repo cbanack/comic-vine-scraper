@@ -248,9 +248,9 @@ class IssueCoverPanel(Panel):
                issue = db.query_issue(issueref)
                def add_refs():  # runs on application thread
                   bmodel.set_fully_updated()
-                  if issue and len(issue.image_urls) > 1:
-                     for i in range(1, len(issue.image_urls)):
-                        bmodel.add_new_ref(issue.image_urls[i])
+                  if issue and len(issue.image_urls_sl) > 1:
+                     for i in range(1, len(issue.image_urls_sl)):
+                        bmodel.add_new_ref(issue.image_urls_sl[i])
                   self.__update(); # recurse!
                   
                utils.invoke(self, add_refs, False)

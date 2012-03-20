@@ -6,7 +6,7 @@ must have.  Various subclasses will implement the specific details.
 @author: Cory Banack
 '''
 
-# corynorm: use this
+# corylow: use this
 #   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
 #   from Ionic.Zip import ZipFile #@UnresolvedImport
 #   from System.IO import Directory, File
@@ -37,7 +37,7 @@ class BookData(object):
       self.__format_s = ""
       self.__title_s =""
       self.__storyarc_s = ""
-      self.__alt_series_sl = [] 
+      self.__crossovers_sl = [] 
       self.__summary_s = ""
       self.__publisher_s = ""
       self.__imprint_s = ""
@@ -187,14 +187,14 @@ class BookData(object):
       
       
    #===========================================================================   
-   def __set_alt_series_sl(self, alt_series_sl = None ):
-      self.__alt_series_sl = \
-         BookData.blank("alt_series_sl") if alt_series_sl == None else \
-         [x.strip() for x in alt_series_sl if x != None and len(x.strip()) > 0] 
+   def __set_crossovers_sl(self, crossovers_sl = None ):
+      self.__crossovers_sl = \
+         BookData.blank("crossovers_sl") if crossovers_sl == None else \
+         [x.strip() for x in crossovers_sl if x != None and len(x.strip()) > 0] 
       
-   alt_series_sl = property( lambda self : list(self.__alt_series_sl),
-      __set_alt_series_sl, __set_alt_series_sl,
-      "A [] of alternate series names ('arcs') for this book.  May be empty." )
+   crossovers_sl = property( lambda self : list(self.__crossovers_sl),
+      __set_crossovers_sl, __set_crossovers_sl,
+      "A [] of crossover names ('alt storylines') for this book. May be empty.")
        
        
    #===========================================================================   

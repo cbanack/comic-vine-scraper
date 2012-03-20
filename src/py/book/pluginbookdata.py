@@ -36,7 +36,7 @@ class PluginBookData(BookData):
       self.format_s = crbook.ShadowFormat
       self.title_s = crbook.Title
       self.storyarc_s = crbook.StoryArc
-      self.alt_series_sl = crbook.AlternateSeries.split(",")
+      self.crossovers_sl = crbook.AlternateSeries.split(",")
       self.summary_s = crbook.Summary
       self.publisher_s = crbook.Publisher
       self.imprint_s = crbook.Imprint
@@ -123,10 +123,10 @@ class PluginBookData(BookData):
          self.__crbook.StoryArc = self.storyarc_s
          ok_to_update.remove("storyarc_s")
          
-      if "alt_series_sl" in ok_to_update:
+      if "crossovers_sl" in ok_to_update:
          self.__crbook.AlternateSeries = \
-            ', '.join([cleanup(x) for x in self.alt_series_sl])
-         ok_to_update.remove("alt_series_sl")
+            ', '.join([cleanup(x) for x in self.crossovers_sl])
+         ok_to_update.remove("crossovers_sl")
          
       if "summary_s" in ok_to_update:
          self.__crbook.Summary = self.summary_s
