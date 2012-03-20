@@ -43,7 +43,6 @@ class Configuration(object):
    __UPDATE_TEAMS = 'updateTeams'
    __UPDATE_LOCATIONS = 'updateLocations'
    __UPDATE_WEBPAGE = 'updateWebpage'
-   __UPDATE_RATING = 'updateRating'
    __OVERWRITE_EXISTING = 'overwriteExisting'
    __IGNORE_BLANKS = 'ignoreBlanks'
    __CONVERT_IMPRINTS = 'convertImprints'
@@ -59,10 +58,11 @@ class Configuration(object):
    __SUMMARY_DIALOG = 'summaryDialog'
    
    # default values for advanced settings
-   __DEFAULT_FILTERED_PUBLISHERS = set()
-   __DEFAULT_FILTER_BEFORE_YEAR = 0
-   __DEFAULT_FILTER_AFTER_YEAR = 9999999
-   __DEFAULT_NEVER_FILTER_THRESHOLD = 9999999
+   __DEFAULT_IGNORED_PUBLISHERS = set()
+   __DEFAULT_IGNORED_BEFORE_YEAR = 0
+   __DEFAULT_IGNORED_AFTER_YEAR = 9999999
+   __DEFAULT_NEVER_IGNORE_THRESHOLD = 9999999
+   __DEFAULT_UPDATE_RATING = False 
    __DEFAULT_ALT_SEARCH_REGEX = "" 
   
   
@@ -106,8 +106,6 @@ class Configuration(object):
       self.update_teams_b = True # scrape comic's teams metadata
       self.update_locations_b = True # scrape comic's location metadata
       self.update_webpage_b = True # scrape comic's webpage metadata
-      self.update_rating_b = True # scrape comic's community rating metadata
-      
             
       # this is a general purpose map for saving ad-hoc data in a highly 
       # flexible, unstructured fashion.  this data only lasts as long as this
@@ -119,10 +117,11 @@ class Configuration(object):
       # when we save and load a Configuration object, but the parsed values are
       # tied to the string, and only change when it does.
       self.__advanced_settings_s = None
-      self.__filtered_publishers_sl = None # filter publishers out of searches
-      self.__filter_before_year_n = None # filter series started before year
-      self.__filter_after_year_n = None # filter series started after year
-      self.__never_filter_threshold_n = None # min issues before we don't filter
+      self.__ignored_publishers_sl = None # ignore publishers out of searches
+      self.__ignored_before_year_n = None # filter series started before year
+      self.__ignored_after_year_n = None # filter series started after year
+      self.__never_ignore_threshold_n = None # min issues before we don't filter
+      self.__update_rating_b = None # whether to scrape the "rating" metadata
       self.__alt_search_regex_s = None # alternate filename parsing regex
       self.__set_advanced_settings_s("")
       
@@ -142,10 +141,11 @@ class Configuration(object):
       
       # 1. reset to defaults
       c = Configuration
-      self.__filtered_publishers_sl = c.__DEFAULT_FILTERED_PUBLISHERS
-      self.__filter_before_year_n = c.__DEFAULT_FILTER_BEFORE_YEAR
-      self.__filter_after_year_n = c.__DEFAULT_FILTER_AFTER_YEAR
-      self.__never_filter_threshold_n = c.__DEFAULT_NEVER_FILTER_THRESHOLD
+      self.__ignored_publishers_sl = c.__DEFAULT_IGNORED_PUBLISHERS
+      self.__ignored_before_year_n = c.__DEFAULT_IGNORED_BEFORE_YEAR
+      self.__ignored_after_year_n = c.__DEFAULT_IGNORED_AFTER_YEAR
+      self.__never_ignore_threshold_n = c.__DEFAULT_NEVER_IGNORE_THRESHOLD
+      self.__update_rating_b = c.__DEFAULT_UPDATE_RATING
       self.__alt_search_regex_s = c.__DEFAULT_ALT_SEARCH_REGEX
       
       # 2. scan through the string looking at each line for advanced settings
@@ -156,24 +156,29 @@ class Configuration(object):
          # 2a. parse the "IGNORE_PUBLISHER=XXXX" line
          match = re.match(pattern_s.format("IGNORE_PUBLISHER"), line_s) 
          if match: 
-            self.__filtered_publishers_sl.add(match.group(1).lower().strip())
+            self.__ignored_publishers_sl.add(match.group(1).lower().strip())
             
          # 2b. parse the "IGNORE_BEFORE_YEAR=XXXX" line
          match = re.match(pattern_s.format("IGNORE_BEFORE_YEAR"), line_s)
          if match and utils.is_number(match.group(1)):
-            self.__filter_before_year_n = int(float(match.group(1)))
+            self.__ignored_before_year_n = int(float(match.group(1)))
             
          # 2c. parse the "IGNORE_AFTER_YEAR=XXXX" line
          match = re.match(pattern_s.format("IGNORE_AFTER_YEAR"), line_s)
          if match and utils.is_number(match.group(1)):
-            self.__filter_after_year_n = int(float(match.group(1)))
+            self.__ignored_after_year_n = int(float(match.group(1)))
             
          # 2d. parse the "NEVER_IGNORE_THRESHOLD=XXXX" line
          match = re.match(pattern_s.format("NEVER_IGNORE_THRESHOLD"), line_s)
          if match and utils.is_number(match.group(1)):
-            self.__never_filter_threshold_n = int(float(match.group(1)))
+            self.__never_ignore_threshold_n = int(float(match.group(1)))
             
-         # 2e. parse the "ALT_SEARCH_REGEX=XXXX" line
+         # 2e. parse the "SCRAPE_RATING=XXXX" line
+         match = re.match(pattern_s.format("SCRAPE_RATING"), line_s)
+         if match:
+            self.__update_rating_b = match.group(1).strip().lower()=="true"
+            
+         # 2f. parse the "ALT_SEARCH_REGEX=XXXX" line
          match = re.match(pattern_s.format("ALT_SEARCH_REGEX"), line_s)
          if match:
             try:
@@ -188,21 +193,25 @@ class Configuration(object):
       __set_advanced_settings_s, __set_advanced_settings_s,
       "The advanced settings string for this Configuration. Not None." )
    
-   filtered_publishers_sl = property( 
-      lambda self : list(self.__filtered_publishers_sl), None, None,
+   ignored_publishers_sl = property( 
+      lambda self : list(self.__ignored_publishers_sl), None, None,
       "List of publisher names to filter out of series searches. Not None.")
    
-   filtered_before_year_n = property( 
-      lambda self : self.__filter_before_year_n, None, None,
+   ignored_before_year_n = property( 
+      lambda self : self.__ignored_before_year_n, None, None,
       "Filter out searched series first published before this year. Not None.")
    
-   filtered_after_year_n = property( 
-      lambda self : self.__filter_after_year_n, None, None,
+   ignored_after_year_n = property( 
+      lambda self : self.__ignored_after_year_n, None, None,
       "Filter out searched series first published after this year. Not None.")
    
-   never_filter_threshold_n = property( 
-      lambda self : self.__never_filter_threshold_n, None, None,
+   never_ignore_threshold_n = property( 
+      lambda self : self.__never_ignore_threshold_n, None, None,
       "Never filter series that have this many issues, or more. Not None.")
+   
+   update_rating_b = property( 
+      lambda self : self.__update_rating_b, None, None,
+      "Attempt to scrape (very slow) rating metadata for each issue. Not None.")
    
    alt_search_regex_s = property( 
       lambda self : self.__alt_search_regex_s, None, None,
@@ -288,9 +297,6 @@ class Configuration(object):
       if Configuration.__UPDATE_WEBPAGE in loaded:
          self.update_webpage_b = loaded[Configuration.__UPDATE_WEBPAGE]
          
-      if Configuration.__UPDATE_RATING in loaded:
-         self.update_rating_b = loaded[Configuration.__UPDATE_RATING]
-
       if Configuration.__OVERWRITE_EXISTING in loaded:
          self.ow_existing_b = loaded[Configuration.__OVERWRITE_EXISTING]
 
@@ -365,7 +371,6 @@ class Configuration(object):
       defaults[Configuration.__UPDATE_TEAMS] = self.update_teams_b
       defaults[Configuration.__UPDATE_LOCATIONS] = self.update_locations_b
       defaults[Configuration.__UPDATE_WEBPAGE] = self.update_webpage_b
-      defaults[Configuration.__UPDATE_RATING] = self.update_rating_b
       
       defaults[Configuration.__OVERWRITE_EXISTING] = self.ow_existing_b
       defaults[Configuration.__CONVERT_IMPRINTS] = self.convert_imprints_b
@@ -433,7 +438,7 @@ class Configuration(object):
       self.update_teams_b == other.update_teams_b and \
       self.update_locations_b == other.update_locations_b and \
       self.update_webpage_b == other.update_webpage_b and \
-      self.update_rating_b == other.update_rating_b
+      self.advanced_settings_s == other.advanced_settings_s
    
    
    #===========================================================================
@@ -503,19 +508,22 @@ class Configuration(object):
       # display details about any advanced settings that may be in effect      
       lines_sl = []
       c = Configuration
-      if self.filtered_publishers_sl != c.__DEFAULT_FILTERED_PUBLISHERS:
-         for publisher_s in self.filtered_publishers_sl:
+      if self.ignored_publishers_sl != c.__DEFAULT_IGNORED_PUBLISHERS:
+         for publisher_s in self.ignored_publishers_sl:
             lines_sl.append("Ignore all series published by '{0}'\n"\
                .format(publisher_s))
-      if self.filtered_before_year_n != c.__DEFAULT_FILTER_BEFORE_YEAR:
+      if self.ignored_before_year_n != c.__DEFAULT_IGNORED_BEFORE_YEAR:
          lines_sl.append("Ignore all series that start before {0}.\n"\
-             .format(self.filtered_before_year_n))
-      if self.filtered_after_year_n != c.__DEFAULT_FILTER_AFTER_YEAR:
+             .format(self.ignored_before_year_n))
+      if self.ignored_after_year_n != c.__DEFAULT_IGNORED_AFTER_YEAR:
          lines_sl.append("Ignore all series that start after {0}.\n"\
-            .format(self.filtered_after_year_n))
-      if self.never_filter_threshold_n != c.__DEFAULT_NEVER_FILTER_THRESHOLD:
+            .format(self.ignored_after_year_n))
+      if self.never_ignore_threshold_n != c.__DEFAULT_NEVER_IGNORE_THRESHOLD:
          lines_sl.append("Don't ignore series that have {0} or more issues.\n"\
-            .format(self.never_filter_threshold_n))
+            .format(self.never_ignore_threshold_n))
+      if self.update_rating_b != c.__DEFAULT_UPDATE_RATING:
+         lines_sl.append("Scrape Community Rating into each issue (slow).\n"\
+            .format(self.update_rating_b))
       if self.alt_search_regex_s != c.__DEFAULT_ALT_SEARCH_REGEX:
          lines_sl.append("Alternate Filename Search Regex:\n   {0}\n"\
             .format(self.alt_search_regex_s))

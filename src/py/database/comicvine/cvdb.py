@@ -335,7 +335,7 @@ def _query_image(ref):
 
 
 # =============================================================================
-def _query_issue(issue_ref):
+def _query_issue(issue_ref, slow_data):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
    issue = Issue(issue_ref)
@@ -347,8 +347,10 @@ def _query_issue(issue_ref):
    __issue_parse_summary(issue, dom)
    __issue_parse_roles(issue, dom)
    
-   page = cvconnection._query_issue_details_page(sstr(issue_ref.issue_key))
-   __issue_scrape_extra_details( issue, page )
+   if slow_data:
+      # grab extra cover images and a community rating score
+      page = cvconnection._query_issue_details_page(sstr(issue_ref.issue_key))
+      __issue_scrape_extra_details( issue, page )
    
    return issue
 

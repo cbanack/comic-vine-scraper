@@ -245,7 +245,7 @@ class IssueCoverPanel(Panel):
             bmodel = cache[issueref]
             
             def update_cache(): #runs on scheduler thread
-               issue = db.query_issue(issueref)
+               issue = db.query_issue(issueref, True)
                def add_refs():  # runs on application thread
                   bmodel.set_fully_updated()
                   if issue and len(issue.image_urls_sl) > 1:

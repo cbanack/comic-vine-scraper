@@ -9,7 +9,11 @@ from cvform import CVForm
 from configuration import Configuration
 import i18n
 
-clr.AddReference('System.Windows.Forms')
+
+# CORYHIGH: START HERE:
+# - get rid of "rating" and replace "scrape_slow_b" with "scrape_rating"
+# - remove rating entirely from gui.
+clr.AddReference('System.Windows.Forms') 
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
     CheckedListBox, DialogResult, FlatStyle, Label, RichTextBox, \
     SelectionMode, TabControl, TabPage
@@ -58,7 +62,6 @@ class ConfigForm(CVForm):
       ConfigForm.__TEAMS_CB = i18n.get("ConfigFormTeamsCB")
       ConfigForm.__LOCATIONS_CB = i18n.get("ConfigFormLocationsCB")
       ConfigForm.__WEBPAGE_CB = i18n.get("ConfigFormWebCB")
-      ConfigForm.__RATING_CB = i18n.get("ConfigFormRatingCB")
       
       # the ok button for this dialog
       self.__ok_button = None
@@ -243,7 +246,6 @@ class ConfigForm(CVForm):
       self.__update_checklist.Items.Add(ConfigForm.__TEAMS_CB)
       self.__update_checklist.Items.Add(ConfigForm.__LOCATIONS_CB)     
       self.__update_checklist.Items.Add(ConfigForm.__WEBPAGE_CB)
-      self.__update_checklist.Items.Add(ConfigForm.__RATING_CB)
    
       # 5. --- add 'em all to this tabpage
       tabpage.Controls.Add(label)
@@ -516,7 +518,6 @@ class ConfigForm(CVForm):
       config.update_teams_b = is_checked(ConfigForm.__TEAMS_CB)
       config.update_locations_b = is_checked(ConfigForm.__LOCATIONS_CB)
       config.update_webpage_b = is_checked(ConfigForm.__WEBPAGE_CB)
-      config.update_rating_b = is_checked(ConfigForm.__RATING_CB)
 
       
       # 2. --- then get the parts from the other checkboxes (options tab)
@@ -575,7 +576,6 @@ class ConfigForm(CVForm):
       set_checked(ConfigForm.__TEAMS_CB, config.update_teams_b)
       set_checked(ConfigForm.__LOCATIONS_CB, config.update_locations_b)
       set_checked(ConfigForm.__WEBPAGE_CB, config.update_webpage_b)
-      set_checked(ConfigForm.__RATING_CB, config.update_rating_b)
       
       # 2. --- then get the parts in the other checkboxes (options tab)
       self.__ow_existing_cb.Checked = config.ow_existing_b
