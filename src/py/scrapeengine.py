@@ -665,8 +665,8 @@ class ScrapeEngine(object):
          if series_ref.issue_count_n < threshold_n:
             publisher_s = series_ref.publisher_s.lower().strip()
             passes_filter = True if publisher_s not in banned_publishers_sl \
-               and series_ref.start_year_n >= filter_before_n \
-               and series_ref.start_year_n <= filter_after_n else False
+               and series_ref.volume_year_n >= filter_before_n \
+               and series_ref.volume_year_n <= filter_after_n else False
          if passes_filter:    
             filtered_refs.add(series_ref)
       

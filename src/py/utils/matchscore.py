@@ -100,7 +100,7 @@ class MatchScore(object):
       def valid_year_b(year_n):
          return year_n > 1900 and year_n <= current_year_n+1
       
-      series_year_n = series_ref.start_year_n
+      series_year_n = series_ref.volume_year_n
       yearscore_n = 0
       if valid_year_b(book.year_n):
          if not valid_year_b(series_year_n):

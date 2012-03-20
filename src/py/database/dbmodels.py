@@ -97,7 +97,7 @@ class SeriesRef(object):
    '''
    
    #===========================================================================
-   def __init__(self, series_key, series_name_s, start_year_n, publisher_s,
+   def __init__(self, series_key, series_name_s, volume_year_n, publisher_s,
          issue_count_n, thumb_url_s):
       ''' 
       Initializes a newly created SeriesRef, checking the given parameters to
@@ -113,8 +113,8 @@ class SeriesRef(object):
          (not recommended), the series_key will be converted to a string and 
          used as the name instead.
          
-      start_year_n --> the first year that this comic book series was published.
-         if the start year is unknown, pass in '-1' here.  this value can
+      volume_year_n --> the first year that this comic book series was published.
+         if the volume year is unknown, pass in '-1' here.  this value can
          also be a string, if so it will be automatically parsed.
          
       publisher_s --> the name of the publisher/imprint of this comic book
@@ -148,11 +148,11 @@ class SeriesRef(object):
       if self.__thumb_url_s == '':
          self.__thumb_url_s = None 
       
-      # start_year_n can be a string, as per method comment
+      # volume_year_n can be a string, as per method comment
       try:
-         self.__start_year_n = max(-1, int(start_year_n))
+         self.__volume_year_n = max(-1, int(volume_year_n))
       except:
-         self.__start_year_n = -1;
+         self.__volume_year_n = -1;
       
       # issue_count_n can be a string, as per method comment
       try:
@@ -177,9 +177,8 @@ class SeriesRef(object):
    # the url of this series's thumbnail, as a string. may be None.
    thumb_url_s = property( lambda self : self.__thumb_url_s )
    
-   # corylow: rename to volume_year_n
    # the first publication year of this series. an int >= -1; -1 means unknown.
-   start_year_n = property( lambda self : self.__start_year_n )
+   volume_year_n = property( lambda self : self.__volume_year_n )
    
    # the number of issues in this series. an int >= 0.
    issue_count_n = property( lambda self : self.__issue_count_n )
@@ -244,7 +243,7 @@ class Issue(object):
       
       self.month_n = -1
       self.year_n = -1
-      self.start_year_n = -1
+      self.volume_year_n = -1
       self.rating_n = 0.0
       
       # corylow: rename these with sl
@@ -356,15 +355,16 @@ class Issue(object):
    
    # the FIRST publication year for this Issue, as an int. not None. 
    # will always be >= 0 or else -1 for unknown.
-   def __set_start_year_n(self, start_year_n):
-      ''' called when you assign a value to 'self.start_year_n' '''
+   def __set_volume_year_n(self, volume_year_n):
+      ''' called when you assign a value to 'self.volume_year_n' '''
       try:
-         self.__start_year_n = int(start_year_n)
-         self.__start_year_n = self.__start_year_n \
-            if self.__start_year_n >= 0 else -1
+         self.__volume_year_n = int(volume_year_n)
+         self.__volume_year_n = self.__volume_year_n \
+            if self.__volume_year_n >= 0 else -1
       except:
-         self.__start_year_n = -1
-   start_year_n = property(lambda self: self.__start_year_n, __set_start_year_n)
+         self.__volume_year_n = -1
+   volume_year_n = property(
+      lambda self: self.__volume_year_n, __set_volume_year_n)
    
    
    # the (quality) rating for this Issue, as an float. not None. 

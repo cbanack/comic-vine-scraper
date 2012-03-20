@@ -438,7 +438,7 @@ def __issue_parse_series_details(issue, dom):
       raise Exception(__name__ + " module isn't initialized!")
    cache = __series_details_cache
    if series_id in cache:
-      start_year_n = cache[series_id][0]
+      volume_year_n = cache[series_id][0]
       publisher_s = cache[series_id][1]
    else: 
       # contact comicvine to extract details for this comic book 
@@ -447,11 +447,11 @@ def __issue_parse_series_details(issue, dom):
          raise Exception("can't get details about series " + series_id)
 
       # start year
-      start_year_n = -1
+      volume_year_n = -1
       if "start_year" in series_dom.results.__dict__ and \
             is_string(series_dom.results.start_year):
          try:
-            start_year_n = int(series_dom.results.start_year)
+            volume_year_n = int(series_dom.results.start_year)
          except:
             pass # bad start year format...just keep going
       
@@ -462,14 +462,14 @@ def __issue_parse_series_details(issue, dom):
          is_string(series_dom.results.publisher.name):
          publisher_s = series_dom.results.publisher.name
       
-      cache[series_id] = (start_year_n, publisher_s)
+      cache[series_id] = (volume_year_n, publisher_s)
    
    # check if there's the current publisher really is the true publisher, or
    # if it's really an imprint of another publisher.
    issue.publisher_s = cvimprints.find_parent_publisher(publisher_s)
    if issue.publisher_s != publisher_s:
       issue.imprint_s = publisher_s
-   issue.start_year_n = start_year_n
+   issue.volume_year_n = volume_year_n
 
 
             

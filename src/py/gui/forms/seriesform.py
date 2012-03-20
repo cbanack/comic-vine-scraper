@@ -214,8 +214,8 @@ class SeriesForm(CVForm):
          table.Rows.Add()
          ref = series_refs[i] 
          table.Rows[i].Cells[0].Value = ref.series_name_s
-         if ref.start_year_n >= 0:
-            table.Rows[i].Cells[1].Value = ref.start_year_n
+         if ref.volume_year_n >= 0:
+            table.Rows[i].Cells[1].Value = ref.volume_year_n
          table.Rows[i].Cells[2].Value = ref.issue_count_n
          table.Rows[i].Cells[3].Value = ref.publisher_s
          table.Rows[i].Cells[4].Value = ref.series_key
