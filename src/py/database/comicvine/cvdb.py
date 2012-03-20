@@ -389,7 +389,7 @@ def __issue_parse_simple_stuff(issue, dom):
    # in the list of issue urls.
    image_url_s = __issue_parse_image_url(dom)
    if image_url_s:
-      issue.image_urls.append(image_url_s)
+      issue.image_urls_sl.append(image_url_s)
          
 
 #===========================================================================
@@ -490,7 +490,7 @@ def __issue_parse_story_credits(issue, dom):
          crossovers.append(dom.results.story_arc_credits.story_arc.name)
       if len(crossovers) > 0:
          issue.storyarc_s = None # don't allow story arcs when crossover exists
-         issue.alt_series_names = crossovers
+         issue.crossovers_sl = crossovers
 
    # get any character details that might exist
    characters = []
@@ -502,7 +502,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.character_credits.character.name):
          characters.append( dom.results.character_credits.character.name )
       if len(characters) > 0:
-         issue.characters = characters
+         issue.characters_sl = characters
          
    # get any team details that might exist
    teams = []
@@ -514,7 +514,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.team_credits.team.name):
          teams.append( dom.results.team_credits.team.name )
       if len(teams) > 0:
-         issue.teams = teams
+         issue.teams_sl = teams
          
    # get any location details that might exist
    locations = []
@@ -526,7 +526,7 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.location_credits.location.name):
          locations.append( dom.results.location_credits.location.name )
       if len(locations) > 0:
-         issue.locations = locations 
+         issue.locations_sl = locations 
 
 
 #===========================================================================            
@@ -564,11 +564,11 @@ def __issue_parse_roles(issue, dom):
    # assign the associated values to.  so any comicvine person with the
    # 'cover' role will, for example, be assigned to the issue.cover_artists
    #  attribute.
-   ROLE_DICT = {'writer':['writers'], 'penciler':['pencillers'], \
-      'artist':['pencillers','inkers'], 'inker':['inkers'],\
-      'cover':['cover_artists'], 'editor':['editors'],\
-      'colorer':['colorists'], 'colorist':['colorists'],\
-      'letterer':['letterers']} 
+   ROLE_DICT = {'writer':['writers_sl'], 'penciler':['pencillers_sl'], \
+      'artist':['pencillers_sl','inkers_sl'], 'inker':['inkers_sl'],\
+      'cover':['cover_artists_sl'], 'editor':['editors_sl'],\
+      'colorer':['colorists_sl'], 'colorist':['colorists_sl'],\
+      'letterer':['letterers_sl']} 
    
    # a simple test to make sure that all the values in ROLE_DICT match up 
    # with members (symbols) in 'issue'.  this is to protect against renaming!
@@ -624,7 +624,7 @@ def __issue_scrape_extra_details(issue, page):
             image_url_s = inner_search_results.group(1)
             if image_url_s:
                image_url_s = re.sub(r"_super", r"_large", image_url_s)
-               issue.image_urls.append(image_url_s)
+               issue.image_urls_sl.append(image_url_s)
                
 
       # second pass:  find the community rating (stars) for this comic

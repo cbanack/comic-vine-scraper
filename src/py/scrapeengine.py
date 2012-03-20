@@ -19,6 +19,7 @@ from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
 from matchscore import MatchScore
+from dbmodels import Issue, IssueRef
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -163,7 +164,6 @@ class ScrapeEngine(object):
       # from now on (so that it can be used to report the status of this 
       # scrape, even if an error occurs.)
       self.__status = [0, len(books)];
-      
       # 1. load the currently saved configuration settings from disk
       self.config = Configuration()
       self.config.load_defaults()
@@ -472,6 +472,7 @@ class ScrapeEngine(object):
             
             # record the users choice.  this allows the SeriesForm to give this
             # choice a higher priority (sort order) in the future
+            
             self.__matchscore.record_choice(scraped_series.series_ref)
             
             return BookStatus("SCRAPED")

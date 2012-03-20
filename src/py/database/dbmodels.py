@@ -230,6 +230,8 @@ class Issue(object):
       Issue object will be based on.  Both objects share an issue_key.
       '''
       
+      # these all call the property setters defined below...
+      
       self.issue_key = issue_ref.issue_key
       
       self.issue_num_s = ''
@@ -246,19 +248,18 @@ class Issue(object):
       self.volume_year_n = -1
       self.rating_n = 0.0
       
-      # corylow: rename these with sl
-      self.alt_series_names = []
-      self.characters = []
-      self.teams = []
-      self.locations = []
-      self.writers = []
-      self.pencillers = []
-      self.inkers = []
-      self.cover_artists = []
-      self.editors = []
-      self.colorists = []
-      self.letterers = []
-      self.image_urls = []
+      self.crossovers_sl = []
+      self.characters_sl = []
+      self.teams_sl = []
+      self.locations_sl = []
+      self.writers_sl = []
+      self.pencillers_sl = []
+      self.inkers_sl = []
+      self.cover_artists_sl = []
+      self.editors_sl = []
+      self.colorists_sl = []
+      self.letterers_sl = []
+      self.image_urls_sl = []
       
 
    # the db key (i.e. a memento object) of this Issue. not None. must be unique
@@ -380,152 +381,153 @@ class Issue(object):
    rating_n = property(lambda self: self.__rating_n, __set_rating_n)
    
    
-   # the alternate series names for this Issue, as a [] of strings. not None.
+   # the crossover titles for this Issue, as a [] of strings. not None.
    # maybe empty. the strings in the [] will not be None or '', either.
-   def __set_alt_series_names(self, alt_series_names):
-      ''' called when you assign a value to 'self.alt_series_names' '''
+   def __set_crossovers_sl(self, crossovers_sl):
+      ''' called when you assign a value to 'self.crossovers_sl' '''
       try:
-         self.__alt_series_names = \
-            [sstr(x) for x in alt_series_names if x and len(sstr(x).strip())>0]
+         self.__crossovers_sl = \
+            [sstr(x) for x in crossovers_sl if x and len(sstr(x).strip())>0]
       except:
-         self.__alt_series_names = []
-   alt_series_names = property(lambda self: self.__alt_series_names,
-      __set_alt_series_names)
+         self.__crossovers_sl = []
+   crossovers_sl = property(lambda self: self.__crossovers_sl,
+      __set_crossovers_sl)
    
    
    # the characters in this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_characters(self, characters):
-      ''' called when you assign a value to 'self.characters' '''
+   def __set_characters_sl(self, characters_sl):
+      ''' called when you assign a value to 'self.characters_sl' '''
       try:
-         self.__characters =  [ re.sub(r',|;', '', sstr(x))
-            for x in characters if x and len(sstr(x).strip())>0 ]
+         self.__characters_sl =  [ re.sub(r',|;', '', sstr(x))
+            for x in characters_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__characters = []
-   characters = property(lambda self: self.__characters, __set_characters)
+         self.__characters_sl = []
+   characters_sl =\
+      property(lambda self: self.__characters_sl, __set_characters_sl)
    
    
    # the teams in this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_teams(self, teams):
-      ''' called when you assign a value to 'self.teams' '''
+   def __set_teams_sl(self, teams_sl):
+      ''' called when you assign a value to 'self.teams_sl' '''
       try:
-         self.__teams =  [ re.sub(r',|;', '', sstr(x)) 
-            for x in teams if x and len(sstr(x).strip())>0 ]
+         self.__teams_sl =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in teams_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__teams = []
-   teams = property(lambda self: self.__teams, __set_teams)
+         self.__teams_sl = []
+   teams_sl = property(lambda self: self.__teams_sl, __set_teams_sl)
    
    
-   # the location in this Issue, as a [] of strings. not None. maybe empty.
+   # the locations in this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_locations(self, locations):
-      ''' called when you assign a value to 'self.locations' '''
+   def __set_locations_sl(self, locations_sl):
+      ''' called when you assign a value to 'self.locations_sl' '''
       try:
-         self.__locations =  [ re.sub(r',|;', '', sstr(x)) 
-            for x in locations if x and len(sstr(x).strip())>0 ]
+         self.__locations_sl =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in locations_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__locations = []
-   locations = property(lambda self: self.__locations, __set_locations)
+         self.__locations_sl = []
+   locations_sl = property(lambda self: self.__locations_sl, __set_locations_sl)
    
    
    # the writers for this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_writers(self, writers):
-      ''' called when you assign a value to 'self.writers' '''
+   def __set_writers_sl(self, writers_sl):
+      ''' called when you assign a value to 'self.writers_sl' '''
       try:
-         self.__writers =  [ re.sub(r',|;', '', sstr(x))
-             for x in writers if x and len(sstr(x).strip())>0 ]
+         self.__writers_sl =  [ re.sub(r',|;', '', sstr(x))
+             for x in writers_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__writers = []
-   writers = property(lambda self: self.__writers, __set_writers)
+         self.__writers_sl = []
+   writers_sl = property(lambda self: self.__writers_sl, __set_writers_sl)
    
    
    # the pencillers for this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_pencillers(self, pencillers):
-      ''' called when you assign a value to 'self.pencillers' '''
+   def __set_pencillers_sl(self, pencillers_sl):
+      ''' called when you assign a value to 'self.pencillers_sl' '''
       try:
-         self.__pencillers =  [ re.sub(r',|;', '', sstr(x)) 
-            for x in pencillers if x and len(sstr(x).strip())>0 ]
+         self.__pencillers_sl =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in pencillers_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__pencillers = []
-   pencillers = property(lambda self: self.__pencillers, __set_pencillers)
+         self.__pencillers_sl = []
+   pencillers_sl = \
+      property(lambda self: self.__pencillers_sl, __set_pencillers_sl)
    
    
    # the inkers for this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_inkers(self, inkers):
-      ''' called when you assign a value to 'self.inkers' '''
+   def __set_inkers_sl(self, inkers_sl):
+      ''' called when you assign a value to 'self.inkers_sl' '''
       try:
-         self.__inkers =  [ re.sub(r',|;', '', sstr(x)) 
-            for x in inkers if x and len(sstr(x).strip())>0 ]
+         self.__inkers_sl =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in inkers_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__inkers = []
-   inkers = property(lambda self: self.__inkers, __set_inkers)
+         self.__inkers_sl = []
+   inkers_sl = property(lambda self: self.__inkers_sl, __set_inkers_sl)
    
    
    # the cover artists for this Issue, as a [] of strings. not None.
    # maybe empty. the strings in the [] will not be None or '', either.
-   def __set_cover_artists(self, cover_artists):
-      ''' called when you assign a value to 'self.cover_artists' '''
-      cover_artists.append("   ")
-      cover_artists.append("")
+   def __set_cover_artists_sl(self, cover_artists_sl):
+      ''' called when you assign a value to 'self.cover_artists_sl' '''
       try:
-         self.__cover_artists =  [ re.sub(r',|;', '', sstr(x)) 
-            for x in cover_artists if x and len(sstr(x).strip())>0 ]
+         self.__cover_artists_sl =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in cover_artists_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__cover_artists = []
-   cover_artists = property(lambda self: self.__cover_artists, 
-      __set_cover_artists)
+         self.__cover_artists_sl = []
+   cover_artists_sl = property(lambda self: self.__cover_artists_sl, 
+      __set_cover_artists_sl)
    
    
    # the editors for this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_editors(self, editors):
-      ''' called when you assign a value to 'self.editors' '''
+   def __set_editors_sl(self, editors_sl):
+      ''' called when you assign a value to 'self.editors_sl' '''
       try:
-         self.__editors =  [ re.sub(r',|;', '', sstr(x)) 
-            for x in editors if x and len(sstr(x).strip())>0 ]
+         self.__editors_sl =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in editors_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__editors = []
-   editors = property(lambda self: self.__editors, __set_editors)
+         self.__editors_sl = []
+   editors_sl = property(lambda self: self.__editors_sl, __set_editors_sl)
    
    
    # the colorists for this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_colorists(self, colorists):
-      ''' called when you assign a value to 'self.colorists' '''
+   def __set_colorists_sl(self, colorists_sl):
+      ''' called when you assign a value to 'self.colorists_sl' '''
       try:
-         self.__colorists =  [ re.sub(r',|;', '', sstr(x)) 
-            for x in colorists if x and len(sstr(x).strip())>0 ]
+         self.__colorists_sl =  [ re.sub(r',|;', '', sstr(x)) 
+            for x in colorists_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__colorists = []
-   colorists = property(lambda self: self.__colorists, __set_colorists)
+         self.__colorists_sl = []
+   colorists_sl = property(lambda self: self.__colorists_sl, __set_colorists_sl)
    
    
    # the letterers for this Issue, as a [] of strings. not None. maybe empty.
    # the strings in the [] will not be None or '', either.
-   def __set_letterers(self, letterers):
-      ''' called when you assign a value to 'self.letterers' '''
+   def __set_letterers_sl(self, letterers_sl):
+      ''' called when you assign a value to 'self.letterers_sl' '''
       try:
-         self.__letterers = [ re.sub(r',|;', '', sstr(x)) 
-            for x in letterers if x and len(sstr(x).strip())>0 ]
+         self.__letterers_sl = [ re.sub(r',|;', '', sstr(x)) 
+            for x in letterers_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__letterers = []
-   letterers = property(lambda self: self.__letterers, __set_letterers)
+         self.__letterers_sl = []
+   letterers_sl = property(lambda self: self.__letterers_sl, __set_letterers_sl)
    
    
    # the known cover image urls for this Issue, as a [] of strings. not None. 
    # maybe empty.  the strings in the [] will not be None or '', either.
-   def __set_image_urls(self, image_urls):
-      ''' called when you assign a value to 'self.image_urls' '''
+   def __set_image_urls_sl(self, image_urls_sl):
+      ''' called when you assign a value to 'self.image_urls_sl' '''
       try:
-         self.__image_urls =\
-            [ sstr(x) for x in image_urls if x and len(sstr(x).strip())>0 ]
+         self.__image_urls_sl =\
+            [ sstr(x) for x in image_urls_sl if x and len(sstr(x).strip())>0 ]
       except:
-         self.__image_urls = []
-   image_urls = property(lambda self: self.__image_urls, __set_image_urls)
+         self.__image_urls_sl = []
+   image_urls_sl = \
+      property(lambda self: self.__image_urls_sl, __set_image_urls_sl)
    
       
          

@@ -232,12 +232,12 @@ class ComicBook(object):
       if value is None: bd.dont_update("storyarc_s") 
       else: bd.storyarc_s = value
          
-      # alternate series -----------
-      value = self.__massage_new_string_list("Crossover", 
-         issue.alt_series_names, bd.alt_series_sl, config.update_alt_series_b,
+      # crossovers -----------
+      value = self.__massage_new_string_list("Crossovers", 
+         issue.crossovers_sl, bd.crossovers_sl, config.update_crossovers_b,
          config.ow_existing_b, config.ignore_blanks_b )
-      if value is None: bd.dont_update("alt_series_sl")
-      else: bd.alt_series_sl = value
+      if value is None: bd.dont_update("crossovers_sl")
+      else: bd.crossovers_sl = value
       
       # summary --------------------
       value = self.__massage_new_string("Summary", issue.summary_s, \
@@ -290,54 +290,54 @@ class ComicBook(object):
       
       # characters ----------------
       value = self.__massage_new_string_list("Characters", \
-         issue.characters, bd.characters_sl, config.update_characters_b, \
+         issue.characters_sl, bd.characters_sl, config.update_characters_b, \
          config.ow_existing_b, config.ignore_blanks_b )
       if value is None: bd.dont_update("characters_sl")
       else: bd.characters_sl = value
       
       # teams --------------------
-      value = self.__massage_new_string_list("Teams", issue.teams, bd.teams_sl,\
+      value = self.__massage_new_string_list("Teams", issue.teams_sl, bd.teams_sl,\
          config.update_teams_b, config.ow_existing_b, config.ignore_blanks_b )
       if value is None: bd.dont_update("teams_sl")
       else: bd.teams_sl = value
       
       # locations ----------------
-      value = self.__massage_new_string_list( "Locations", issue.locations, \
+      value = self.__massage_new_string_list( "Locations", issue.locations_sl, \
          bd.locations_sl, config.update_locations_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("locations_sl")
       else: bd.locations_sl = value
       
       # writer --------------------
-      value = self.__massage_new_string_list("Writers", issue.writers, \
+      value = self.__massage_new_string_list("Writers", issue.writers_sl, \
          bd.writers_sl, config.update_writer_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("writers_sl")
       else: bd.writers_sl = value
          
       # penciller -----------------
-      value = self.__massage_new_string_list("Pencillers", issue.pencillers, \
+      value = self.__massage_new_string_list("Pencillers", issue.pencillers_sl, \
          bd.pencillers_sl, config.update_penciller_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("pencillers_sl")
       else: bd.pencillers_sl = value
       
       # inker ---------------------
-      value = self.__massage_new_string_list("Inkers", issue.inkers, \
+      value = self.__massage_new_string_list("Inkers", issue.inkers_sl, \
          bd.inkers_sl, config.update_inker_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("inkers_sl")
       else: bd.inkers_sl = value
          
       # colorist -----------------
-      value = self.__massage_new_string_list("Colorists", issue.colorists, \
+      value = self.__massage_new_string_list("Colorists", issue.colorists_sl, \
          bd.colorists_sl, config.update_colorist_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("colorists_sl")
       else: bd.colorists_sl = value
          
       # letterer -----------------
-      value = self.__massage_new_string_list("Letterers", issue.letterers, \
+      value = self.__massage_new_string_list("Letterers", issue.letterers_sl, \
          bd.letterers_sl, config.update_letterer_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("letterers_sl")
@@ -345,14 +345,14 @@ class ComicBook(object):
          
       # coverartist --------------
       value = self.__massage_new_string_list("CoverArtists", 
-         issue.cover_artists, bd.cover_artists_sl, \
+         issue.cover_artists_sl, bd.cover_artists_sl, \
          config.update_cover_artist_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("cover_artists_sl")
       else: bd.cover_artists_sl = value
          
       # editor -------------------   
-      value = self.__massage_new_string_list("Editors", issue.editors, \
+      value = self.__massage_new_string_list("Editors", issue.editors_sl, \
          bd.editors_sl, config.update_editor_b, config.ow_existing_b, \
          config.ignore_blanks_b )
       if value is None: bd.dont_update("editors_sl")
@@ -407,8 +407,8 @@ class ComicBook(object):
       alt_cover_key = sstr(issue.issue_key)+"-altcover"
       if alt_cover_key in config.session_data_map:
          url_s = config.session_data_map[alt_cover_key]
-      if not url_s and len(issue.image_urls):  
-         url_s = issue.image_urls[0]
+      if not url_s and len(issue.image_urls_sl):  
+         url_s = issue.image_urls_sl[0]
          
       label = "Cover Art URL"
       if not url_s:
