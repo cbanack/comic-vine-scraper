@@ -738,7 +738,6 @@ class ComicBook(object):
       no_series = BookData.blank("series_s") == bd.series_s
       no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
       no_volyear = BookData.blank("volume_year_n") == bd.volume_year_n
-      no_series = no_issuenum = no_volyear = True # coryhigh: DELETE!
       if no_series or no_issuenum or no_volyear:
          if bd.path_s:
             # 1. at least one detail is missing, and we have a path name to

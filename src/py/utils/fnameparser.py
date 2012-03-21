@@ -98,7 +98,7 @@ def __extract(name_s):
    s = recurse_sub(r"\{[^\{]*?\}", s)
    s = recurse_sub(r"\[[^\[]*?\]", s)
    
-   # 4. remove of trace of volume from the name (like "vol. 2a" and "vol -3.1")
+   # 4. remove all trace of volume from the name (like "vol. 2a" and "vol -3.1")
    s = re.sub(r"(?i)((v|vol)\.?|volume)\s*-?\s*[0-9]+[.0-9a-z]*", "", s)
    
    # 5. if the name has things like "4 of 5", remove the " of 5" part
@@ -136,7 +136,7 @@ def __extract(name_s):
       series_s = s
 
    # 10. contract repeating whitespace, and strip bad chars off the ends      
-   series_s = re.sub(r"\s{2,}", " ", series_s).strip(" ,-_").strip() 
+   series_s = re.sub(r"\s{2,}", " ", series_s).strip(" ,-_") 
       
    return [series_s, issue_num_s, volume_year_s]
 
