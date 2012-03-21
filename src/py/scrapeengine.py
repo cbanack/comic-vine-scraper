@@ -19,6 +19,7 @@ from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
 from matchscore import MatchScore
+from comicbook import ComicBook
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -185,6 +186,7 @@ class ScrapeEngine(object):
       
       # 4. sort the ComicBooks in the order that we're gonna loop them in
       #    (sort AFTER config is loaded cause config affects the sort!)
+      books = [ ComicBook(book, self) for book in books ]
       books = self.__sort_books(books) 
 
       # 5. display the ComicForm dialog.  it is a special dialog that stays 
