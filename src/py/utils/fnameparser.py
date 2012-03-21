@@ -13,14 +13,51 @@ import log
 clr.AddReference('System')
 from System.IO import Path
 
+__failed_regex = None
+
+#==============================================================================
+def regex( filename_s, regex_s ):
+   '''
+   Takes the filename of a comic book, and extracts three strings out of it 
+   using the given regular expression, which must match the filename and create
+   regex groups called "series", "num", and "volyear".  The extracted details 
+   will be the series name, the issue number, and the volume year.  These three
+   details are returned as a triple, i.e. ("batman", "344", "2004").
+   
+   As long as AT LEAST a series name is found, this function will return the 
+   triple (missing values will be "").  Otherwise, it returns None.
+   '''
+   global __failed_regex
+   
+   results = None
+   if regex_s != __failed_regex:
+      try:
+         match = re.match(regex_s, filename_s)
+         if match:
+            founddict = { x : match.group(x) for x in match.groupdict() 
+               if match.group(x) and match.group(x).strip() }
+            if "series" in founddict:
+               results = ( match.group("series"), 
+                  match.group("num") if "num" in founddict else "",
+                  match.group("volyear") if "volyear" in founddict else "" )
+               log.debug(results)
+      except:
+         log.debug_exc("regex filename parsing failed:")
+         __failed_regex = regex_s
+         results = None 
+   return results
+    
+
 #==============================================================================
 def extract( filename_s ):
    '''
-   Takes the filename of a comic book, and extracts three strings out of it, the 
+   Takes the filename of a comic book, and extracts three strings out of it: the 
    series name, the issue number, and the volume year. These three pieces 
    of information are returned as a triple, i.e. ("batman", "344", "2004").
    
-   There will always be a series name, but the other two values might be "".
+   This function never returns None, and it will ALWAYS return the triple with
+   at least a non-empty series name (even if it is just "unknown"), but the 
+   issue number and volume year may be "" if they couldn't be determined.
    ''' 
    
    # remove the file extension, unless it's the whole filename

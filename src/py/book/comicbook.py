@@ -738,9 +738,24 @@ class ComicBook(object):
       no_series = BookData.blank("series_s") == bd.series_s
       no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
       no_volyear = BookData.blank("volume_year_n") == bd.volume_year_n
+      no_series = no_issuenum = no_volyear = True # coryhigh: DELETE!
       if no_series or no_issuenum or no_volyear:
          if bd.path_s:
-            extracted = fnameparser.extract(Path.GetFileName(bd.path_s))
+            # 1. at least one detail is missing, and we have a path name to
+            #    work with, so lets try to extract some details that way.
+            filename = Path.GetFileName(bd.path_s)
+            config = self.__scraper.config
+            regex = config.alt_search_regex_s
+            extracted = None
+            
+            # 2. first, extract using the user specified regex, if there is one
+            if regex:
+               extracted = fnameparser.regex(filename, regex) 
+            if not extracted:
+               extracted = fnameparser.extract(filename) # never fails
+               
+            # 3. now that we have some extracted data, use it to fill in
+            #    any gaps in our details.
             if no_series:
                bd.series_s = extracted[0]
             if no_issuenum:

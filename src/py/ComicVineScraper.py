@@ -73,8 +73,7 @@ def cvs_scrape(books):
 #         with open("k:/sample.pickled", "w") as f:
 #            cPickle.dump(books, f);
          engine = ScrapeEngine(ComicRack)
-         comic_books = [ ComicBook(book, engine) for book in books ]
-         engine.scrape(comic_books)
+         engine.scrape(books)
    __launch(delegate)
 
 
