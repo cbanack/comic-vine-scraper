@@ -19,7 +19,7 @@ clr.AddReference('System.Drawing')
 from System.Drawing import Point, Size
 
 clr.AddReference('System.Windows.Forms')
-from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
+from System.Windows.Forms import AutoScaleMode, Button, \
    DataGridViewAutoSizeColumnMode, DataGridViewContentAlignment, \
    DataGridViewSelectionMode, DialogResult, FlatStyle, Keys, Label
 
@@ -73,9 +73,6 @@ class SeriesForm(CVForm):
       # a PictureBox that displays the cover art for the current selected series
       self.__cover_image = None
       
-      # a checkbox for toggling the display of the cover image on/off
-      self.__checkbox = None
-      
       # the index (in self.__series_refs) of the currently selected SeriesRef
       self.__chosen_index = None
       
@@ -101,7 +98,6 @@ class SeriesForm(CVForm):
       self.__table = self.__build_table(
          self.__series_refs, book, self.__ok_button)
       self.__cover_image = self.__build_coverimage(self.__series_refs)
-      self.__checkbox = self.__build_checkbox(self.__config)
 
       # 2. --- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
@@ -120,19 +116,16 @@ class SeriesForm(CVForm):
       self.Controls.Add (search_button)
       self.Controls.Add (self.__issues_button)
       self.Controls.Add(self.__cover_image)
-      self.Controls.Add(self.__checkbox)
       
       # 3. --- define the keyboard focus tab traversal ordering
       self.__ok_button.TabIndex = 1
       self.__skip_button.TabIndex = 2
       search_button.TabIndex = 3
       self.__issues_button.TabIndex = 4
-      self.__checkbox.TabIndex = 5
-      self.__table.TabIndex = 6
+      self.__table.TabIndex = 5
       
       # 4. --- make sure the UI goes into a good initial state
       self.__change_table_selection_fired(None, None)
-      self.__toggle_checkbox_fired(None, None)
 
 
 
@@ -159,7 +152,8 @@ class SeriesForm(CVForm):
       table.AutoResizeColumns
 
       table.Location = Point(10, 60)
-      table.Size = Size(1,1) # gets updated by "__change_table_selection_fired"
+      table.Size = Size(500, 290) \
+         if self.__config.show_covers_b else Size(710, 290)
 
       # 2. --- build columns
       table.ColumnCount = 7
@@ -258,7 +252,8 @@ class SeriesForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Retry
-      button.Location = Point(275, 362)
+      button.Location = Point(275, 362) \
+         if self.__config.show_covers_b else Point(485, 362) 
       button.Size = Size(115, 24)
       button.Text = i18n.get("SeriesFormAgain")
       return button
@@ -269,7 +264,8 @@ class SeriesForm(CVForm):
       
       button = Button()
       button.DialogResult = DialogResult.Yes
-      button.Location = Point(395, 362)
+      button.Location = Point(395, 362) \
+         if self.__config.show_covers_b else Point(605, 362) 
       button.Size = Size(115, 24)
       button.Text = i18n.get("SeriesFormIssues")
       return button
@@ -300,30 +296,14 @@ class SeriesForm(CVForm):
       Builds and returns the cover image PictureBox for this form.
       'series_refs' -> a list with one SeriesRef object for each found series
       '''
-      
       cover = DBPictureBox()
-      cover.Location = Point(523, 31)
+      cover.Location = Point(523, 51)
       cover.Size = Size(195, 320)
+      if self.__config.show_covers_b:
+         cover.Show()
+      else:
+         cover.Hide()
       return cover
-
-   # ==========================================================================
-   def __build_checkbox(self, config):
-      ''' 
-      Builds and return the checkbox for toggling cover image display.
-      ''config' -> the shared global Configuration object 
-      '''
-      
-      checkbox = CheckBox()
-      checkbox.AutoSize = True
-      checkbox.Checked = config.show_covers_b
-      checkbox.FlatStyle = FlatStyle.System
-      checkbox.Location = Point(580, 365)
-      checkbox.Size = Size(100, 17)
-      checkbox.Text = i18n.get("SeriesFormShowArt")
-      checkbox.UseVisualStyleBackColor = True
-      checkbox.CheckedChanged += self.__toggle_checkbox_fired
-      return checkbox
-   
    
    # ==========================================================================
    def show_form(self):
@@ -365,19 +345,6 @@ class SeriesForm(CVForm):
       self.Closed -= self.__form_closed_fired
 
 
-   #===========================================================================
-   def __toggle_checkbox_fired(self, sender, args):
-      ''' this method is called when the form's checkbox is toggled '''
-      
-      self.__config.show_covers_b = self.__checkbox.Checked
-      if self.__config.show_covers_b:
-         self.__cover_image.Show()
-         self.__table.Size = Size(500, 290)
-      else:
-         self.__cover_image.Hide()
-         self.__table.Size = Size(710, 290)
-      
-      
    #===========================================================================         
    def __change_table_selection_fired(self, sender, args):
       ''' this method is called whenever the table's selected row changes. '''
