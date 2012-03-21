@@ -47,14 +47,12 @@ class Configuration(object):
    __IGNORE_BLANKS = 'ignoreBlanks'
    __CONVERT_IMPRINTS = 'convertImprints'
    __SPECIFY_SERIES = 'specifySeriesName'
-   __SHOW_COVERS = 'showCovers'
    __DOWNLOAD_THUMBS = 'downloadThumbs'
    __PRESERVE_THUMBS = 'preserveThumbs'
    __SCRAPE_IN_GROUPS = 'scrapeInGroups'
    __FAST_RESCRAPE = 'fastRescrape'
    __RESCRAPE_NOTES = 'updateNotes'
    __RESCRAPE_TAGS = 'updateTags'
-   __WELCOME_DIALOG = 'welcomeDialog'
    __SUMMARY_DIALOG = 'summaryDialog'
    
    # default values for advanced settings
@@ -62,7 +60,9 @@ class Configuration(object):
    __DEFAULT_IGNORED_BEFORE_YEAR = 0
    __DEFAULT_IGNORED_AFTER_YEAR = 9999999
    __DEFAULT_NEVER_IGNORE_THRESHOLD = 9999999
-   __DEFAULT_UPDATE_RATING = False 
+   __DEFAULT_UPDATE_RATING = False
+   __DEFAULT_SHOW_COVERS = True
+   __DEFAULT_WELCOME_DIALOG = True 
    __DEFAULT_ALT_SEARCH_REGEX = "" 
   
   
@@ -74,14 +74,12 @@ class Configuration(object):
       self.ignore_blanks_b = False  # ...unless the new metada is blank?
       self.convert_imprints_b = True # convert imprints to parent publishers
       self.specify_series_b = False # user specify series search terms
-      self.show_covers_b = True # show cover images when possible
       self.download_thumbs_b = True # download thumbnails for fileless comics
       self.preserve_thumbs_b = True # ...except when they already have thumbs
       self.scrape_in_groups_b = True # group comics by series when scraping
       self.fast_rescrape_b = True # use previous scrape choice when available
       self.rescrape_notes_b = True # store prev scrape choice in notes field
       self.rescrape_tags_b = True # store prev scrape choice in tags field
-      self.welcome_dialog_b = True # show the welcome dialog before scraping
       self.summary_dialog_b = True # show summary dialog after scrape finishes
 
       self.update_series_b = True # scrape comic's series metadata
@@ -122,11 +120,12 @@ class Configuration(object):
       self.__ignored_after_year_n = None # filter series started after year
       self.__never_ignore_threshold_n = None # min issues before we don't filter
       self.__update_rating_b = None # whether to scrape the "rating" metadata
+      self.__show_covers_b = None # whether to display issue covers by default
+      self.__welcome_dialog_b = None # whether to display the welcome dialog
       self.__alt_search_regex_s = None # alternate filename parsing regex
       self.__set_advanced_settings_s("")
       
       return self
-   
    
    
    #===========================================================================   
@@ -146,6 +145,8 @@ class Configuration(object):
       self.__ignored_after_year_n = c.__DEFAULT_IGNORED_AFTER_YEAR
       self.__never_ignore_threshold_n = c.__DEFAULT_NEVER_IGNORE_THRESHOLD
       self.__update_rating_b = c.__DEFAULT_UPDATE_RATING
+      self.__show_covers_b = c.__DEFAULT_SHOW_COVERS
+      self.__welcome_dialog_b = c.__DEFAULT_WELCOME_DIALOG
       self.__alt_search_regex_s = c.__DEFAULT_ALT_SEARCH_REGEX
       
       # 2. scan through the string looking at each line for advanced settings
@@ -178,7 +179,17 @@ class Configuration(object):
          if match:
             self.__update_rating_b = match.group(1).strip().lower()=="true"
             
-         # 2f. parse the "ALT_SEARCH_REGEX=XXXX" line
+         # 2f. parse the "SHOW_COVERS=XXXX" line
+         match = re.match(pattern_s.format("SHOW_COVERS"), line_s)
+         if match:
+            self.__show_covers_b = match.group(1).strip().lower()=="true"
+            
+         # 2g. parse the "WELCOME_DIALOG=XXXX" line
+         match = re.match(pattern_s.format("WELCOME_DIALOG"), line_s)
+         if match:
+            self.__welcome_dialog_b = match.group(1).strip().lower()=="true"
+            
+         # 2h. parse the "ALT_SEARCH_REGEX=XXXX" line
          match = re.match(pattern_s.format("ALT_SEARCH_REGEX"), line_s)
          if match:
             try:
@@ -212,6 +223,14 @@ class Configuration(object):
    update_rating_b = property( 
       lambda self : self.__update_rating_b, None, None,
       "Attempt to scrape (very slow) rating metadata for each issue. Not None.")
+   
+   show_covers_b = property( 
+      lambda self : self.__show_covers_b, None, None,
+      "Whether or not to show issue covers by default.  Not None.")
+   
+   welcome_dialog_b = property( 
+      lambda self : self.__welcome_dialog_b, None, None,
+      "Whether or not to show the Welcome Dialog when scraping. Not None.")
    
    alt_search_regex_s = property( 
       lambda self : self.__alt_search_regex_s, None, None,
@@ -309,9 +328,6 @@ class Configuration(object):
       if Configuration.__SPECIFY_SERIES in loaded:
          self.specify_series_b = loaded[Configuration.__SPECIFY_SERIES]
 
-      if Configuration.__SHOW_COVERS in loaded:
-         self.show_covers_b = loaded[Configuration.__SHOW_COVERS]
-         
       if Configuration.__DOWNLOAD_THUMBS in loaded:
          self.download_thumbs_b=loaded[Configuration.__DOWNLOAD_THUMBS]
          
@@ -329,9 +345,6 @@ class Configuration(object):
          
       if Configuration.__RESCRAPE_TAGS in loaded:
          self.rescrape_tags_b = loaded[Configuration.__RESCRAPE_TAGS]
-         
-      if Configuration.__WELCOME_DIALOG in loaded:
-         self.welcome_dialog_b = loaded[Configuration.__WELCOME_DIALOG]
          
       if Configuration.__SUMMARY_DIALOG in loaded:
          self.summary_dialog_b = loaded[Configuration.__SUMMARY_DIALOG]
@@ -376,14 +389,12 @@ class Configuration(object):
       defaults[Configuration.__CONVERT_IMPRINTS] = self.convert_imprints_b
       defaults[Configuration.__SPECIFY_SERIES] = self.specify_series_b
       defaults[Configuration.__IGNORE_BLANKS] = self.ignore_blanks_b
-      defaults[Configuration.__SHOW_COVERS] = self.show_covers_b
       defaults[Configuration.__DOWNLOAD_THUMBS] = self.download_thumbs_b
       defaults[Configuration.__PRESERVE_THUMBS] = self.preserve_thumbs_b
       defaults[Configuration.__SCRAPE_IN_GROUPS] = self.scrape_in_groups_b
       defaults[Configuration.__FAST_RESCRAPE] = self.fast_rescrape_b
       defaults[Configuration.__RESCRAPE_NOTES] = self.rescrape_notes_b
       defaults[Configuration.__RESCRAPE_TAGS] = self.rescrape_tags_b
-      defaults[Configuration.__WELCOME_DIALOG] = self.welcome_dialog_b
       defaults[Configuration.__SUMMARY_DIALOG] = self.summary_dialog_b
    
       persist_map(defaults, Resources.SETTINGS_FILE)
@@ -406,14 +417,12 @@ class Configuration(object):
       self.ignore_blanks_b == other.ignore_blanks_b and \
       self.convert_imprints_b == other.convert_imprints_b and \
       self.specify_series_b == other.specify_series_b and \
-      self.show_covers_b == other.show_covers_b and \
       self.download_thumbs_b == other.download_thumbs_b and \
       self.preserve_thumbs_b == other.preserve_thumbs_b and \
       self.scrape_in_groups_b == other.scrape_in_groups_b and \
       self.fast_rescrape_b == other.fast_rescrape_b and \
       self.rescrape_notes_b == other.rescrape_notes_b and \
       self.rescrape_tags_b == other.rescrape_tags_b and \
-      self.welcome_dialog_b == other.welcome_dialog_b and \
       self.summary_dialog_b == other.summary_dialog_b and \
                                                         \
       self.update_series_b == other.update_series_b and \
@@ -480,7 +489,6 @@ class Configuration(object):
       "[{0}] Locations".format(x(self.update_locations_b)).ljust(20) +\
       "\n" + \
       "[{0}] Webpage".format(x(self.update_webpage_b)).ljust(20) +\
-      "[{0}] Rating".format(x(self.update_rating_b)).ljust(20) +\
       "\n" +\
       "-------------------------------------------------------------------\n"+\
       "[{0}] Overwrite Existing".format(x(self.ow_existing_b)).ljust(30)+\
@@ -498,32 +506,43 @@ class Configuration(object):
       "[{0}] Fast Rescrape".format(x(self.fast_rescrape_b)).ljust(30)+\
       "[{0}] Rescraping: Tags".format(x(self.rescrape_tags_b)).ljust(30) +\
       "\n" + \
-      "[{0}] Welcome Dialog".format(x(self.welcome_dialog_b)).ljust(30)+\
       "[{0}] Summary Dialog".format(x(self.summary_dialog_b)).ljust(30)+\
-      "\n" + \
-      "[{0}] Show Covers".format(x(self.show_covers_b)).ljust(30)+\
       "\n" + \
       "-------------------------------------------------------------------"
 
       # display details about any advanced settings that may be in effect      
       lines_sl = []
       c = Configuration
+      
       if self.ignored_publishers_sl != c.__DEFAULT_IGNORED_PUBLISHERS:
          for publisher_s in self.ignored_publishers_sl:
             lines_sl.append("Ignore all series published by '{0}'\n"\
                .format(publisher_s))
+      
       if self.ignored_before_year_n != c.__DEFAULT_IGNORED_BEFORE_YEAR:
          lines_sl.append("Ignore all series that start before {0}.\n"\
              .format(self.ignored_before_year_n))
+      
       if self.ignored_after_year_n != c.__DEFAULT_IGNORED_AFTER_YEAR:
          lines_sl.append("Ignore all series that start after {0}.\n"\
             .format(self.ignored_after_year_n))
+      
       if self.never_ignore_threshold_n != c.__DEFAULT_NEVER_IGNORE_THRESHOLD:
          lines_sl.append("Don't ignore series that have {0} or more issues.\n"\
             .format(self.never_ignore_threshold_n))
+      
       if self.update_rating_b != c.__DEFAULT_UPDATE_RATING:
          lines_sl.append("Scrape Community Rating into each issue (slow).\n"\
             .format(self.update_rating_b))
+         
+      if self.show_covers_b != c.__DEFAULT_SHOW_COVERS:
+         lines_sl.append("Hide series and issue covers while scraping.\n"\
+            .format(self.show_covers_b))
+         
+      if self.welcome_dialog_b != c.__DEFAULT_WELCOME_DIALOG:
+         lines_sl.append("Do not show the initial 'Welcome Dialog'.\n"\
+            .format(self.welcome_dialog_b))
+      
       if self.alt_search_regex_s != c.__DEFAULT_ALT_SEARCH_REGEX:
          lines_sl.append("Alternate Filename Search Regex:\n   {0}\n"\
             .format(self.alt_search_regex_s))

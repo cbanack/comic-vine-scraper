@@ -9,10 +9,6 @@ from cvform import CVForm
 from configuration import Configuration
 import i18n
 
-
-# CORYHIGH: START HERE:
-# - get rid of "rating" and replace "scrape_slow_b" with "scrape_rating"
-# - remove rating entirely from gui.
 clr.AddReference('System.Windows.Forms') 
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
     CheckedListBox, DialogResult, FlatStyle, Label, RichTextBox, \
@@ -77,8 +73,6 @@ class ConfigForm(CVForm):
       self.__ignore_blanks_cb = None                                          
       self.__specify_series_cb = None
       self.__convert_imprints_cb = None
-      self.__show_covers_cb = None
-      self.__welcome_dialog_cb = None
       self.__summary_dialog_cb = None
       self.__download_thumbs_cb = None
       self.__preserve_thumbs_cb = None
@@ -178,7 +172,6 @@ class ConfigForm(CVForm):
       tabcontrol.Controls.Add( self.__build_detailstab() )
       tabcontrol.Controls.Add( self.__build_behaviourtab() )
       tabcontrol.Controls.Add( self.__build_datatab() )
-      tabcontrol.Controls.Add( self.__build_rescrapetab() )
       tabcontrol.Controls.Add( self.__build_advancedtab() )
       
       return tabcontrol
@@ -277,30 +270,39 @@ class ConfigForm(CVForm):
       self.__specify_series_cb = CheckBox()
       self.__specify_series_cb.AutoSize = False
       self.__specify_series_cb.FlatStyle = FlatStyle.System
-      self.__specify_series_cb.Location = Point(52, 81)
+      self.__specify_series_cb.Location = Point(52, 76)
       self.__specify_series_cb.Size = Size(300, 34)
       self.__specify_series_cb.Text = i18n.get("ConfigFormConfirmSeriesCB")
       self.__specify_series_cb.CheckedChanged += self.__fired_update_gui
       
-      # 3. --- build the 'display cover art' checkbox
-      self.__show_covers_cb = CheckBox()
-      self.__show_covers_cb.AutoSize = False
-      self.__show_covers_cb.FlatStyle = FlatStyle.System
-      self.__show_covers_cb.Location = Point(52, 126)
-      self.__show_covers_cb.Size = Size(300, 34)
-      self.__show_covers_cb.Text = i18n.get("ConfigFormDisplayCoversCB")
-      self.__show_covers_cb.CheckedChanged += self.__fired_update_gui
+      # 3. -- build the 'use fast rescrape' checkbox
+      self.__fast_rescrape_cb = CheckBox()
+      self.__fast_rescrape_cb.AutoSize = False
+      self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
+      self.__fast_rescrape_cb.Location = Point(52, 121)
+      self.__fast_rescrape_cb.Size = Size(300, 34)
+      self.__fast_rescrape_cb.Text = i18n.get("ConfigFormRescrapeCB")
+      self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
       
-      # 4. --- build the 'specify series name' checkbox
-      self.__welcome_dialog_cb = CheckBox()
-      self.__welcome_dialog_cb.AutoSize = False
-      self.__welcome_dialog_cb.FlatStyle = FlatStyle.System
-      self.__welcome_dialog_cb.Location = Point(52, 171)
-      self.__welcome_dialog_cb.Size = Size(300, 34)
-      self.__welcome_dialog_cb.Text = i18n.get("ConfigFormShowWelcomeCB");
-      self.__welcome_dialog_cb.CheckedChanged += self.__fired_update_gui
-       
-      # 5. --- build the 'specify series name' checkbox
+      # 4. -- build the 'add rescrape hints to tags' checkbox
+      self.__rescrape_tags_cb = CheckBox()
+      self.__rescrape_tags_cb.AutoSize = False
+      self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
+      self.__rescrape_tags_cb.Location = Point(82, 156)
+      self.__rescrape_tags_cb.Size = Size(270, 17)
+      self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
+      self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
+      
+      # 5. -- build the 'add rescrape hints to notes' checkbox
+      self.__rescrape_notes_cb = CheckBox()
+      self.__rescrape_notes_cb.AutoSize = False
+      self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
+      self.__rescrape_notes_cb.Location = Point(82, 186)
+      self.__rescrape_notes_cb.Size = Size(270, 17)
+      self.__rescrape_notes_cb.Text = i18n.get("ConfigFormRescrapeNotesCB")
+      self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
+   
+      # 6. --- build the 'specify series name' checkbox
       self.__summary_dialog_cb = CheckBox()
       self.__summary_dialog_cb.AutoSize = False
       self.__summary_dialog_cb.FlatStyle = FlatStyle.System
@@ -309,12 +311,13 @@ class ConfigForm(CVForm):
       self.__summary_dialog_cb.Text = i18n.get("ConfigFormShowSummaryCB")
       self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
             
-      # 6. --- add 'em all to the tabpage 
+      # 7. --- add 'em all to the tabpage 
       tabpage.Controls.Add(self.__scrape_in_groups_cb)
       tabpage.Controls.Add(self.__specify_series_cb)
-      tabpage.Controls.Add(self.__welcome_dialog_cb)
+      tabpage.Controls.Add(self.__fast_rescrape_cb)
+      tabpage.Controls.Add(self.__rescrape_tags_cb)
+      tabpage.Controls.Add(self.__rescrape_notes_cb)
       tabpage.Controls.Add(self.__summary_dialog_cb)
-      tabpage.Controls.Add(self.__show_covers_cb)
       
       return tabpage
    
@@ -383,47 +386,7 @@ class ConfigForm(CVForm):
       
       return tabpage
   
-   # ==========================================================================
-   def __build_rescrapetab(self):
-      ''' builds and returns the "Behaviour" Tab for the TabControl '''
-      
-      tabpage = TabPage()
-      tabpage.Text = i18n.get("ConfigFormRescrapeTab")
-      
-      # 1. -- build the 'use fast rescrape' checkbox
-      self.__fast_rescrape_cb = CheckBox()
-      self.__fast_rescrape_cb.AutoSize = False
-      self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
-      self.__fast_rescrape_cb.Location = Point(52, 80)
-      self.__fast_rescrape_cb.Size = Size(300, 34)
-      self.__fast_rescrape_cb.Text = i18n.get("ConfigFormRescrapeCB")
-      self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
-      
-      # 2. -- build the 'add rescrape hints to tags' checkbox
-      self.__rescrape_tags_cb = CheckBox()
-      self.__rescrape_tags_cb.AutoSize = False
-      self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_tags_cb.Location = Point(82, 125)
-      self.__rescrape_tags_cb.Size = Size(270, 17)
-      self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
-      self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
-      
-      # 3. -- build the 'add rescrape hints to notes' checkbox
-      self.__rescrape_notes_cb = CheckBox()
-      self.__rescrape_notes_cb.AutoSize = False
-      self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_notes_cb.Location = Point(82, 155)
-      self.__rescrape_notes_cb.Size = Size(270, 17)
-      self.__rescrape_notes_cb.Text = i18n.get("ConfigFormRescrapeNotesCB")
-      self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
-   
-      # 4. --- add 'em all to the tabpage 
-      tabpage.Controls.Add(self.__fast_rescrape_cb)
-      tabpage.Controls.Add(self.__rescrape_tags_cb)
-      tabpage.Controls.Add(self.__rescrape_notes_cb)
-      
-      return tabpage
-   
+  
    # ==========================================================================
    def __build_advancedtab(self):
       ''' builds and returns the "Advanced" Tab for the TabControl '''
@@ -525,14 +488,12 @@ class ConfigForm(CVForm):
       config.convert_imprints_b = self.__convert_imprints_cb.Checked
       config.specify_series_b = self.__specify_series_cb.Checked
       config.ignore_blanks_b = self.__ignore_blanks_cb.Checked
-      config.show_covers_b = self.__show_covers_cb.Checked
       config.download_thumbs_b = self.__download_thumbs_cb.Checked
       config.preserve_thumbs_b = self.__preserve_thumbs_cb.Checked
       config.fast_rescrape_b = self.__fast_rescrape_cb.Checked
       config.scrape_in_groups_b = self.__scrape_in_groups_cb.Checked
       config.rescrape_notes_b = self.__rescrape_notes_cb.Checked
       config.rescrape_tags_b = self.__rescrape_tags_cb.Checked
-      config.welcome_dialog_b = self.__welcome_dialog_cb.Checked
       config.summary_dialog_b = self.__summary_dialog_cb.Checked
       
       # 3. --- then get the string out of the advanced settings textbox
@@ -582,14 +543,12 @@ class ConfigForm(CVForm):
       self.__convert_imprints_cb.Checked = config.convert_imprints_b
       self.__specify_series_cb.Checked = config.specify_series_b
       self.__ignore_blanks_cb.Checked = config.ignore_blanks_b
-      self.__show_covers_cb.Checked = config.show_covers_b
       self.__download_thumbs_cb.Checked = config.download_thumbs_b
       self.__preserve_thumbs_cb.Checked = config.preserve_thumbs_b
       self.__fast_rescrape_cb.Checked = config.fast_rescrape_b
       self.__scrape_in_groups_cb.Checked = config.scrape_in_groups_b
       self.__rescrape_notes_cb.Checked = config.rescrape_notes_b
       self.__rescrape_tags_cb.Checked = config.rescrape_tags_b
-      self.__welcome_dialog_cb.Checked = config.welcome_dialog_b
       self.__summary_dialog_cb.Checked = config.summary_dialog_b
       
       # 3. --- finally, set the contents in the advanced settings textbox
