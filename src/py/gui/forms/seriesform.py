@@ -11,6 +11,7 @@ from dbpicturebox import DBPictureBox
 from utils import sstr
 from matchscore import MatchScore
 import i18n
+import log
 
 clr.AddReference('System')
 from System.ComponentModel import ListSortDirection
@@ -280,6 +281,7 @@ class SeriesForm(CVForm):
       '''
       
       label = Label()
+      label.UseMnemonic = False
       label.Location = Point(10, 20)
       label.Size = Size(480, 40)
       if num_matches_n > 1:

@@ -260,6 +260,7 @@ class IssueForm(CVForm):
       ''' builds and returns the main text label for this form '''
    
       label = Label()
+      label.UseMnemonic = False
       label.Text = i18n.get("IssueFormChooseText") \
          if self.__found_issue_in_table else \
          i18n.get("IssueFormChooseUnknownText")

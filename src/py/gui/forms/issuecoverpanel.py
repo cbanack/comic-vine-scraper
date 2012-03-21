@@ -118,6 +118,7 @@ class IssueCoverPanel(Panel):
       '''
       
       label = Label()
+      label.UseMnemonic = False
       label.Visible = self.__config.show_covers_b
       label.Location = Point(18, 326)
       label.Size = Size(155,36)

@@ -131,7 +131,8 @@ class ComicForm(CVForm):
    def __build_label(self):
       ''' Builds and returns the label for this form. '''
       
-      label = Label() 
+      label = Label()
+      label.UseMnemonic = False
       label.Text = '' # updated everytime we start scraping a new comic
       label.Location = Point(13, 45)
       label.Size = Size(320, 15)

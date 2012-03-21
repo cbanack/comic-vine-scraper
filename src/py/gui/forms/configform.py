@@ -187,6 +187,7 @@ class ConfigForm(CVForm):
       
       # 1. --- a description label for this tabpage
       label = Label()
+      label.UseMnemonic = False
       label.AutoSize = True
       label.Location = Point(14, 25)
       label.Size = Size(299, 17)
@@ -397,6 +398,7 @@ class ConfigForm(CVForm):
       
       # 1. --- a description label for this tabpage
       label = Label()
+      label.UseMnemonic = False
       label.AutoSize = True
       label.Location = Point(14, 25)
       label.Size = Size(299, 17)
