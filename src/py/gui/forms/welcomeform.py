@@ -79,6 +79,7 @@ class WelcomeForm(CVForm):
       plural = len(books) != 1
       
       label = Label()
+      label.UseMnemonic = False
       label.AutoSize = True
       label.Location = Point(9, 10)
       label.Size = Size(319, 13)

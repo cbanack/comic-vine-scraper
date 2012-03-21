@@ -71,6 +71,7 @@ class FinishForm(CVForm):
       '''
 
       label = Label()
+      label.UseMnemonic = False
       label.Location = Point(10, 10)
       label.Size = Size(280, 13)
       label.TextAlign = ContentAlignment.MiddleCenter
@@ -87,6 +88,7 @@ class FinishForm(CVForm):
       '''
 
       label = Label()
+      label.UseMnemonic = False
       label.Location = Point(10, 30) 
       label.Size = Size(280, 13)
       label.TextAlign = ContentAlignment.MiddleCenter

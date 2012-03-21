@@ -109,6 +109,7 @@ class SearchForm(CVForm):
           if there is no failed search terms, this returns None. '''
 
       label = Label()
+      label.UseMnemonic = False
       label.Location = Point(10, 10)
       label.Size = Size(415, 100)
       label.Visible = self.__fail_label_is_visible   
@@ -123,6 +124,7 @@ class SearchForm(CVForm):
       ''' builds and returns the text label for this form '''
 
       label = Label()
+      label.UseMnemonic = False
       label.Location = Point(10, 110 if self.__fail_label_is_visible else 10)
       label.Size = Size(415, 20)
       label.Text = i18n.get("SearchFormText")
