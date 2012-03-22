@@ -11,7 +11,7 @@ import i18n
 
 clr.AddReference('System.Windows.Forms') 
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
-    CheckedListBox, DialogResult, FlatStyle, Label, RichTextBox, \
+    CheckedListBox, DialogResult, FlatStyle, Label, ScrollBars,TextBox, \
     SelectionMode, TabControl, TabPage
 
 clr.AddReference('System.Drawing')
@@ -406,10 +406,11 @@ class ConfigForm(CVForm):
       
       
       # 2. --- build the update checklist (contains all the 'data' checkboxes)
-      self.__advanced_tbox = RichTextBox()
+      self.__advanced_tbox = TextBox()
       self.__advanced_tbox.Multiline=True
       self.__advanced_tbox.MaxLength=1024
       self.__advanced_tbox.WordWrap = True
+      self.__advanced_tbox.ScrollBars = ScrollBars.Vertical
       self.__advanced_tbox.Location = Point(15, 50)
       self.__advanced_tbox.Size = Size(355, 200)
       

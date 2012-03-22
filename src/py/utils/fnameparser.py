@@ -40,7 +40,6 @@ def regex( filename_s, regex_s ):
                results = ( match.group("series"), 
                   match.group("num") if "num" in founddict else "",
                   match.group("volyear") if "volyear" in founddict else "" )
-               log.debug(results)
       except:
          log.debug_exc("regex filename parsing failed:")
          __failed_regex = regex_s
