@@ -15,7 +15,6 @@ import utils
 from utils import is_string, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
 import cvimprints
-import storyarcparser
 
 clr.AddReference('System')
 from System.Net import WebRequest
@@ -34,14 +33,12 @@ def _initialize():
    ''' ComicVine implementation of the identically named method in the db.py '''
    global __series_details_cache
    __series_details_cache = {}
-   storyarcparser.initialize()
    
 # =============================================================================
 def _shutdown():
    ''' ComicVine implementation of the identically named method in the db.py '''
    global __series_details_cache
    __series_details_cache = None
-   storyarcparser.shutdown()
       
 
 # =============================================================================
@@ -297,7 +294,6 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
          issue_refs.add(IssueRef(issue_num_s, issue.id, title_s))
 
    log.debug("   ...found ", len(issue_refs), " issues at comicvine.com")
-   storyarcparser.prime(issue_refs)
    return issue_refs
 
 
@@ -363,8 +359,6 @@ def __issue_parse_simple_stuff(issue, dom):
       issue.series_name_s = dom.results.volume.name.strip()
    if is_string(dom.results.name):
       issue.title_s = dom.results.name.strip()
-      # if there is a crossover/alt series, this story arc will get deleted
-      issue.storyarc_s = storyarcparser.extract(issue.title_s)
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
    if is_string(dom.results.issue_number):
@@ -491,7 +485,6 @@ def __issue_parse_story_credits(issue, dom):
       elif is_string(dom.results.story_arc_credits.story_arc.name):
          crossovers.append(dom.results.story_arc_credits.story_arc.name)
       if len(crossovers) > 0:
-         issue.storyarc_s = None # don't allow story arcs when crossover exists
          issue.crossovers_sl = crossovers
 
    # get any character details that might exist

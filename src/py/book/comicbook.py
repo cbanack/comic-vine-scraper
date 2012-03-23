@@ -225,13 +225,6 @@ class ComicBook(object):
       if value is None: bd.dont_update("title_s") 
       else: bd.title_s = value
       
-      # storyarc -------------------
-      value = self.__massage_new_string("Story Arc", issue.storyarc_s, 
-         bd.storyarc_s, config.update_storyarc_b, config.ow_existing_b, 
-         config.ignore_blanks_b )
-      if value is None: bd.dont_update("storyarc_s") 
-      else: bd.storyarc_s = value
-         
       # crossovers -----------
       value = self.__massage_new_string_list("Crossovers", 
          issue.crossovers_sl, bd.crossovers_sl, config.update_crossovers_b,

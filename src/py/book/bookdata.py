@@ -36,7 +36,6 @@ class BookData(object):
       self.__month_n = -1 # -1 is a blank value
       self.__format_s = ""
       self.__title_s =""
-      self.__storyarc_s = ""
       self.__crossovers_sl = [] 
       self.__summary_s = ""
       self.__publisher_s = ""
@@ -176,16 +175,6 @@ class BookData(object):
       "Title of this book (issue specific).  Not None, may be empty.")
    
    
-   #===========================================================================   
-   def __set_storyarc_s(self, storyarc_s = None):
-      self.__storyarc_s = BookData.blank("storyarc_s") \
-         if storyarc_s is None else storyarc_s.strip();
-      
-   storyarc_s = property( lambda self : self.__storyarc_s, 
-      __set_storyarc_s, __set_storyarc_s,
-      "Story Arc for this book (series specific).  Not None, may be empty.")
-      
-      
    #===========================================================================   
    def __set_crossovers_sl(self, crossovers_sl = None ):
       self.__crossovers_sl = \
