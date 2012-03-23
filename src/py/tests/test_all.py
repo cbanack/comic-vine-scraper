@@ -10,7 +10,6 @@ import sys
 import log
 import test_fnameparser
 import test_bookdata
-import test_storyarcparser
 
 #==============================================================================
 class AllTests(unittest.TestSuite):
@@ -24,7 +23,6 @@ class AllTests(unittest.TestSuite):
          [
          loader.loadTestsFromModule(test_bookdata),
          loader.loadTestsFromModule(test_fnameparser),
-         loader.loadTestsFromModule(test_storyarcparser)
          ] 
       )
    
