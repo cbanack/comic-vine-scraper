@@ -10,9 +10,9 @@ from configuration import Configuration
 import i18n
 
 clr.AddReference('System.Windows.Forms') 
-from System.Windows.Forms import AutoScaleMode, Button, CheckBox, \
-    CheckedListBox, DialogResult, FlatStyle, Label, ScrollBars,TextBox, \
-    SelectionMode, TabControl, TabPage
+from System.Windows.Forms import AutoScaleMode, Button, CheckBox, ContextMenu, \
+    CheckedListBox, DialogResult, FlatStyle, Label, MenuItem, \
+    RichTextBox, SelectionMode, TabControl, TabPage
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Point, Size, ContentAlignment
@@ -406,13 +406,19 @@ class ConfigForm(CVForm):
       
       
       # 2. --- build the update checklist (contains all the 'data' checkboxes)
-      self.__advanced_tbox = TextBox()
-      self.__advanced_tbox.Multiline=True
-      self.__advanced_tbox.MaxLength=1024
-      self.__advanced_tbox.WordWrap = True
-      self.__advanced_tbox.ScrollBars = ScrollBars.Vertical
-      self.__advanced_tbox.Location = Point(15, 50)
-      self.__advanced_tbox.Size = Size(355, 200)
+      tbox = RichTextBox()
+      tbox.Multiline=True
+      tbox.MaxLength=1024
+      tbox.WordWrap = True
+      tbox.Location = Point(15, 50)
+      tbox.Size = Size(355, 200)
+      
+      menu = ContextMenu()
+      menu.MenuItems.Add( MenuItem("Cut", lambda s, ea : tbox.Cut() ) )
+      menu.MenuItems.Add( MenuItem("Copy", lambda s, ea : tbox.Copy() ) )
+      menu.MenuItems.Add( MenuItem("Paste", lambda s, ea : tbox.Paste() ) )
+      tbox.ContextMenu = menu
+      self.__advanced_tbox = tbox
       
       # 3. --- add 'em all to the tabpage 
       tabpage.Controls.Add(label)
