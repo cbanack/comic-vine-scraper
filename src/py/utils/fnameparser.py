@@ -20,8 +20,8 @@ def regex( filename_s, regex_s ):
    '''
    Takes the filename of a comic book, and extracts three strings out of it 
    using the given regular expression, which must match the filename and create
-   regex groups called "series", "num", and "volyear".  The extracted details 
-   will be the series name, the issue number, and the volume year.  These three
+   regex groups called "series", "num", and "year".  The extracted details 
+   will be the series name, the issue number, and the issue year.  These three
    details are returned as a triple, i.e. ("batman", "344", "2004").
    
    As long as AT LEAST a series name is found, this function will return the 
@@ -39,7 +39,7 @@ def regex( filename_s, regex_s ):
             if "series" in founddict:
                results = ( match.group("series"), 
                   match.group("num") if "num" in founddict else "",
-                  match.group("volyear") if "volyear" in founddict else "" )
+                  match.group("year") if "year" in founddict else "" )
       except:
          log.debug_exc("regex filename parsing failed:")
          __failed_regex = regex_s
@@ -51,12 +51,12 @@ def regex( filename_s, regex_s ):
 def extract( filename_s ):
    '''
    Takes the filename of a comic book, and extracts three strings out of it: the 
-   series name, the issue number, and the volume year. These three pieces 
+   series name, the issue number, and the issue year. These three pieces 
    of information are returned as a triple, i.e. ("batman", "344", "2004").
    
    This function never returns None, and it will ALWAYS return the triple with
    at least a non-empty series name (even if it is just "unknown"), but the 
-   issue number and volume year may be "" if they couldn't be determined.
+   issue number and year may be "" if they couldn't be determined.
    ''' 
    
    # remove the file extension, unless it's the whole filename
