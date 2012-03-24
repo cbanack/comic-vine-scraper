@@ -727,11 +727,13 @@ class ComicBook(object):
       them in by parsing them out of the comic's path.
       '''
       
+      # coryhigh: this should be enhanced to try to parse the volume year out 
+      # of the file name (i.e. V2004) for those rare cases where it's available.
       bd  = self.__bookdata
       no_series = BookData.blank("series_s") == bd.series_s
       no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
-      no_volyear = BookData.blank("volume_year_n") == bd.volume_year_n
-      if no_series or no_issuenum or no_volyear:
+      no_year = BookData.blank("year_n") == bd.year_n
+      if no_series or no_issuenum or no_year:
          if bd.path_s:
             # 1. at least one detail is missing, and we have a path name to
             #    work with, so lets try to extract some details that way.
@@ -752,9 +754,9 @@ class ComicBook(object):
                bd.series_s = extracted[0]
             if no_issuenum:
                bd.issue_num_s = extracted[1]
-            if no_volyear:
-               bd.volume_year_n = int(extracted[2]) \
+            if no_year:
+               bd.year_n = int(extracted[2]) \
                   if is_number(extracted[2])\
-                     else BookData.blank("volume_year_n")
+                     else BookData.blank("year_n")
                
                
