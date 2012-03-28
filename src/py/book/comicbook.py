@@ -121,6 +121,8 @@ class ComicBook(object):
          bd.notes_s =self.__update_notes_s(bd.notes_s, None)
          log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Notes'")
          
+      bd.update()
+         
 
    # =============================================================================
    def __extract_issue_ref(self): 
