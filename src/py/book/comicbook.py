@@ -731,6 +731,7 @@ class ComicBook(object):
       
       # coryhigh: this should be enhanced to try to parse the volume year out 
       # of the file name (i.e. V2004) for those rare cases where it's available.
+      # don't forget to change the pluginbookdata to not use shadowvolume.
       bd  = self.__bookdata
       no_series = BookData.blank("series_s") == bd.series_s
       no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
