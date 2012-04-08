@@ -30,8 +30,8 @@ class PluginBookData(BookData):
       # load our own copy of all data from the ComicRack database
       self.series_s = crbook.Series    # don't use shadows
       self.issue_num_s = crbook.Number # don't use shadows
-      self.volume_year_n = crbook.Volume # don't use shadows
-      self.year_n =  crbook.ShadowYear
+      self.year_n =  crbook.Year       # don't use shadows
+      self.volume_year_n = crbook.ShadowVolume
       self.month_n = crbook.Month
       self.format_s = crbook.ShadowFormat
       self.title_s = crbook.Title
