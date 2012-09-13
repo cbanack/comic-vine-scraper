@@ -15,6 +15,7 @@ from progressbarform import ProgressBarForm
 from searchform import SearchForm
 import utils
 import db
+import sys
 from welcomeform import WelcomeForm
 from finishform import FinishForm
 import i18n
@@ -125,6 +126,7 @@ class ScrapeEngine(object):
             self.comicrack.App.ProductVersion + ")")
          log.debug("Cache Directory:     ", Resources.LOCAL_CACHE_DIRECTORY)
          log.debug("Settings File:       ", Resources.SETTINGS_FILE)
+         log.debug("Python:              ", sys.version)
          log.debug("-"*80)
          log.debug()
 
