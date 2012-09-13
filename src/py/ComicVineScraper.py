@@ -23,22 +23,22 @@ Credits:
        - MessageBoxManager - http://www.codeproject.com/
 
 =========================================================================== '''
-import clr
-import log
-import i18n
-import re
-from scrapeengine import ScrapeEngine
+from System.Threading import ThreadExceptionEventHandler
+from System.Windows.Forms import Application, MessageBox, MessageBoxButtons, \
+   MessageBoxIcon
 from configform import ConfigForm
-from utils import sstr
 from resources import Resources
+from scrapeengine import ScrapeEngine
+from utils import sstr
+import clr
 import db
+import i18n
+import log
+import re
 
 clr.AddReference('System')
-from System.Threading import ThreadExceptionEventHandler
 
 clr.AddReference('System.Windows.Forms')
-from System.Windows.Forms import Application, MessageBox, \
-    MessageBoxButtons, MessageBoxIcon
 
 if False:
    # this gets rid of a stubborn compiler warning
@@ -73,6 +73,8 @@ def cvs_scrape(books):
 #            cPickle.dump(books, f);
          engine = ScrapeEngine(ComicRack)
          engine.scrape(books)
+      else:
+         log.debug("No books provided for scraping.  Exiting...")
    __launch(delegate)
 
 
@@ -87,7 +89,7 @@ def __launch(delegate):
    ''' 
    try:
       # initialize the application resources (import directories, etc)
-      Resources.initialize("StandAloneFlag" in dir(ComicRack))
+      Resources.initialize( ComicRack.__name__ == "FakeComicRack" )
       
       # fire up the debug logging system
       log.install(ComicRack.MainWindow)

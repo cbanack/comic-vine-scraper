@@ -49,6 +49,11 @@ class Resources(object):
    # the full name of the app, including version string
    SCRIPT_FULLNAME = 'Comic Vine Scraper - v' + SCRIPT_VERSION
 
+   # coryhigh: START HERE
+   # I've changed the meaning of "standalone", but that's not implemented in 
+   # this module.  go through this class and figure out what information we 
+   # need--"pluginMode?" "ideMode?" "fakeComicRack?".  Requires some though...
+   # (and certainly some changes to this class, and the environment reporter.)  
    #==============================================================================
    @classmethod 
    def initialize(cls, standalone):
@@ -130,6 +135,7 @@ class Resources(object):
          cls.I18N_DEFAULTS_FILE = script_dir + r'\en.zip'
          
       # the cache directory is the same regardless of which mode we're running
+      # corynorm: is this even needed anymore?
       cls.LOCAL_CACHE_DIRECTORY = profile_dir + r'\localCache'
       
       # see if there is a old cache available for us to import

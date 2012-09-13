@@ -166,6 +166,7 @@ class ScrapeEngine(object):
       # from now on (so that it can be used to report the status of this 
       # scrape, even if an error occurs.)
       self.__status = [0, len(books)];
+      
       # 1. load the currently saved configuration settings from disk
       self.config = Configuration()
       self.config.load_defaults()
