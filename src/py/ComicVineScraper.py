@@ -23,22 +23,23 @@ Credits:
        - MessageBoxManager - http://www.codeproject.com/
 
 =========================================================================== '''
-from System.Threading import ThreadExceptionEventHandler
-from System.Windows.Forms import Application, MessageBox, MessageBoxButtons, \
-   MessageBoxIcon
+import clr
 from configform import ConfigForm
 from resources import Resources
 from scrapeengine import ScrapeEngine
 from utils import sstr
-import clr
 import db
 import i18n
 import log
 import re
 
 clr.AddReference('System')
-
+from System.Threading import ThreadExceptionEventHandler
 clr.AddReference('System.Windows.Forms')
+from System.Windows.Forms import Application, MessageBox, MessageBoxButtons, \
+   MessageBoxIcon
+
+
 
 if False:
    # this gets rid of a stubborn compiler warning
@@ -64,23 +65,26 @@ def cvs_config():
 #@Key          comic-vine-scraper
 #@Hook         Books, Editor
 # ============================================================================      
-def cvs_scrape(books):
+def cvs_scrape(books, plugin_mode=True):
    # create a launch a delegate that scrapes the given books
    def delegate():
       if books:
       # uncomment this to create a pickled load file for my pydev launcher
-#         with open("k:/sample.pickled", "w") as f:
-#            cPickle.dump(books, f);
+      #   with open("k:/sample.pickled", "w") as f:
+      #      cPickle.dump(books, f);
+      
+      # coryhigh: START HERE 1: move "plugin_mode" into the ScrapeEngine object
+      # and take it out of Resources.
          engine = ScrapeEngine(ComicRack)
          engine.scrape(books)
       else:
          log.debug("No books provided for scraping.  Exiting...")
-   __launch(delegate)
+   __launch(delegate, plugin_mode)
 
 
 
 # =============================================================================
-def __launch(delegate):
+def __launch(delegate, plugin_mode):
    ''' 
    Runs the given (no-argument) delegate method in a 'safe' script environment.
    This environment will take care of all error handling, logging/debug stream,
@@ -89,7 +93,7 @@ def __launch(delegate):
    ''' 
    try:
       # initialize the application resources (import directories, etc)
-      Resources.initialize( ComicRack.__name__ == "FakeComicRack" )
+      Resources.initialize( "FakeComicRack" in dir(ComicRack), plugin_mode )
       
       # fire up the debug logging system
       log.install(ComicRack.MainWindow)
@@ -122,8 +126,9 @@ def __launch(delegate):
       i18n.uninstall()
       
       # make sure the Winform exception handler is removed
-      Application.ThreadException -=\
-         ThreadExceptionEventHandler(exception_handler)
+      if 'exception_handler' in locals():
+         Application.ThreadException -=\
+            ThreadExceptionEventHandler(exception_handler)
          
       # shut down the logging system
       log.uninstall()

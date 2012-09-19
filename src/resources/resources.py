@@ -16,9 +16,8 @@ class Resources(object):
     resources that this app uses.  (i.e. pathnames and locations, mostly.)
     ''' 
    
-   # a boolean indicating whether we are running in standalone mode (true), or 
-   # as a ComicRack plugin (False)
-   STANDALONE_MODE = False
+   # a boolean indicating whether we are running in plugin or standalone mode
+   PLUGIN_MODE = False
    
    # the location of our scraper 'cache' files. 
    LOCAL_CACHE_DIRECTORY = None
@@ -49,24 +48,22 @@ class Resources(object):
    # the full name of the app, including version string
    SCRIPT_FULLNAME = 'Comic Vine Scraper - v' + SCRIPT_VERSION
 
-   # coryhigh: START HERE
-   # I've changed the meaning of "standalone", but that's not implemented in 
-   # this module.  go through this class and figure out what information we 
-   # need--"pluginMode?" "ideMode?" "fakeComicRack?".  Requires some though...
-   # (and certainly some changes to this class, and the environment reporter.)  
+   # coryhigh: START HERE-- update references to this method  
    #==============================================================================
    @classmethod 
-   def initialize(cls, standalone):
+   def initialize(cls, external_profile, plugin_mode):
       '''
       Initialize the Resources class.  This method MUST be called exactly once
       before you try to make use of this class in any other way.  The 
-      'standalone' argument determines whether we should configure Resources
-      for running this app standalone (True) or as a ComicRack plugin (False). 
+      'external_profile' argument determines whether we should save/load
+      Resources (True means in Windows designated ApplicationData folder, False
+      means alongside the script itself.)  The 'plugin_mode' boolean determines
+      whether the app should be running in 'plugin' or 'standalone' mode.
       '''
       # this code runs before we have our proper error handling installed, so 
       # wrap it in a try-except block so at least we have SOME error handling
       try:
-         cls.__initialize(standalone)
+         cls.__initialize(external_profile, plugin_mode)
       except:
          print sys.exc_info()[1]
          sys.exit();   
@@ -96,9 +93,9 @@ class Resources(object):
    
    #==============================================================================
    @classmethod
-   def __initialize(cls, standalone):
+   def __initialize(cls, external_profile, plugin_mode):
       ''' Implements the publicly accessible method of the same name. '''
-      cls.STANDALONE_MODE = standalone
+      cls.PLUGIN_MODE = plugin_mode
 
       # get the basic locations that the other locations build on      
       script_dir = Directory.GetParent(__file__).FullName
@@ -108,7 +105,7 @@ class Resources(object):
       if not File.Exists(profile_dir):
          Directory.CreateDirectory(profile_dir)
       
-      if standalone:
+      if external_profile:
          # set the standard locations for when we are running in standalone
          # mode (including when running directly out of the IDE) 
          cls.SETTINGS_FILE = profile_dir + r'\settings.dat'
@@ -126,7 +123,7 @@ class Resources(object):
                and File.Exists( ide_i18n_file ):
             cls.I18N_DEFAULTS_FILE = ide_i18n_file
              
-      elif not standalone:
+      else:
          # set the standard locations for when we are running in plugin mode
          cls.SETTINGS_FILE = script_dir + r'\settings.dat'
          cls.ADVANCED_FILE = script_dir + r'\advanced.dat'
@@ -134,8 +131,11 @@ class Resources(object):
          cls.SERIES_FILE = script_dir + r'\series.dat'
          cls.I18N_DEFAULTS_FILE = script_dir + r'\en.zip'
          
+      # coryhigh: START HERE 2: is the cache even needed anymore?
+      # also, investigate making EVERYTHING run in "external_profile" mode.
+      # (copy old prefs over cleanly, etc.)
+      
       # the cache directory is the same regardless of which mode we're running
-      # corynorm: is this even needed anymore?
       cls.LOCAL_CACHE_DIRECTORY = profile_dir + r'\localCache'
       
       # see if there is a old cache available for us to import

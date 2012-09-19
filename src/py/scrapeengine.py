@@ -22,12 +22,12 @@ import i18n
 from matchscore import MatchScore
 from comicbook import ComicBook
 
+clr.AddReference('System')
+from System.IO import Path
+
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
     MessageBoxButtons, MessageBoxIcon
-
-clr.AddReference('System')
-from System.IO import Path
     
 # =============================================================================
 class ScrapeEngine(object):
@@ -122,7 +122,7 @@ class ScrapeEngine(object):
          log.debug("-"*80)
          log.debug("CV Scraper Version:  ", Resources.SCRIPT_VERSION)
          log.debug("Running As:          ", "Standalone Application" if 
-            Resources.STANDALONE_MODE else "ComicRack Plugin (CR version " +
+            not Resources.PLUGIN_MODE else "ComicRack Plugin (CR version " +
             self.comicrack.App.ProductVersion + ")")
          log.debug("Cache Directory:     ", Resources.LOCAL_CACHE_DIRECTORY)
          log.debug("Settings File:       ", Resources.SETTINGS_FILE)

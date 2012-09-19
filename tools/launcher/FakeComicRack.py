@@ -13,7 +13,7 @@ from System.Windows.Forms import Form
 
 #==============================================================================
 class FakeComicRack(object):
-   ''' A static class that emulates the real ComicRack object. '''
+   ''' A static pythong class that emulates the real C# ComicRack object. '''
    class AppImpl:
       ProductVersion = '999.999.99999'
       def GetComicPage(self, arg1, arg2):
@@ -30,3 +30,8 @@ class FakeComicRack(object):
    
    App = AppImpl()
    MainWindow = MainForm()
+   
+   # the presence (or lack thereof) of this member identifies this class's type
+   # in a way that can be easily tested on both this class (Python) and the
+   # 'real' ComicRack object (C#).  
+   FakeComicRack = 'yup' 
