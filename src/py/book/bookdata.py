@@ -6,7 +6,24 @@ must have.  Various subclasses will implement the specific details.
 @author: Cory Banack
 '''
 
-# corylow: use this
+# coryhigh:  FILED-BASED COMICS WORKING PLAN HERE
+#  If I ever do file-based comics, with the Scraper, this is the place to
+#  start.  These are the steps that should happen, roughly in order.
+# 
+#   - make i18n works (english only?) in standalone mode
+#   - make it so we get as far as __load_books(), with command line params
+#   - make file-based ComicBooks load up (do nothing but parse filename)
+#      - add progressbar to file-based loading
+#      - make file-based ComicBooks scrape (load/save in at least 1 format)
+#      - make file-based ComicBooks readable pages?
+#      - maybe make a file choosing UI of some kind?
+#   - alternate preferences for standalone mode?
+#   - make an executable build (.exe?)
+#   - windows installer build?
+
+#
+#   Also, here's how to read a comic book file:
+# 
 #   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
 #   from Ionic.Zip import ZipFile #@UnresolvedImport
 #   from System.IO import Directory, File

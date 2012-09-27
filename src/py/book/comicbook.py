@@ -729,7 +729,7 @@ class ComicBook(object):
       them in by parsing them out of the comic's path.
       '''
       
-      # corylow: this should be enhanced to try to parse the volume year out 
+      # corylow: this could be enhanced to try to parse the volume year out 
       # of the file name (i.e. V2004) for those rare cases where it's available.
       # don't forget to change the pluginbookdata to not use shadowvolume.
       bd  = self.__bookdata

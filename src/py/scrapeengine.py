@@ -190,10 +190,9 @@ class ScrapeEngine(object):
       log.debug(self.config)
       log.debug()
       
-      # 4. sort the ComicBooks in the order that we're gonna loop them in
-      #    (sort AFTER config is loaded cause config affects the sort!)
-      books = [ ComicBook(book, self) for book in books ]
-      books = self.__sort_books(books) 
+      # 4. load and sort the ComicBooks in the order that we're gonna loop 
+      #    through them (sort AFTER config is loaded; config affects the sort!)
+      books = self.__load_books(books);
 
       # 5. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
@@ -488,6 +487,17 @@ class ScrapeEngine(object):
       raise Exception("should never get here")
 
 
+   # ==========================================================================
+   def __load_books(self, books):
+      '''
+      Converts the given list of "comicbook-like" objects into a matching list
+      of properly loaded, initialized and usuable ComicBook objects.  This
+      process may or may not be slow--if it is, a progress bar dialog will 
+      appear.
+      ''' 
+      books = [ ComicBook(book, self) for book in books ]
+      return self.__sort_books(books) 
+      
    # ==========================================================================
    def __sort_books(self, books):
       '''

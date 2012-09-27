@@ -20,8 +20,8 @@ class ProgressBarForm(CVForm):
    briefly displayed during the time that a ProgressBar needs to be visible,
    and then it will disappear as soon as the ProgressBar isn't needed anymore.
    
-   Note that if the user manually closes this Form, the __scrape_engine given in the
-   __init__ method will be cancelled. 
+   Note that if the user manually closes this Form, the __scrape_engine given 
+   in the __init__ method will be cancelled. 
    '''
 
    # ==========================================================================

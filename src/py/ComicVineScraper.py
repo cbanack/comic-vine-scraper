@@ -45,7 +45,6 @@ if False:
    # this gets rid of a stubborn compiler warning
    ComicRack = None
 
-
 # ============================================================================      
 # The is a plugin hook to attach this method to ComicRack.  Don't change!
 #@Key    comic-vine-scraper
@@ -75,7 +74,7 @@ def cvs_scrape(books, plugin_mode=True):
          engine = ScrapeEngine(ComicRack, plugin_mode)
          engine.scrape(books)
       else:
-         log.debug("No books provided for scraping.  Exiting...")
+         log.debug("Standalone mode is not yet implemented...")
    __launch(delegate)
 
 
