@@ -16,9 +16,6 @@ class Resources(object):
     resources that this app uses.  (i.e. pathnames and locations, mostly.)
     ''' 
    
-   # a boolean indicating whether we are running in plugin or standalone mode
-   PLUGIN_MODE = False
-   
    # the location of our scraper 'cache' files. 
    LOCAL_CACHE_DIRECTORY = None
    
@@ -48,22 +45,20 @@ class Resources(object):
    # the full name of the app, including version string
    SCRIPT_FULLNAME = 'Comic Vine Scraper - v' + SCRIPT_VERSION
 
-   # coryhigh: START HERE-- update references to this method  
    #==============================================================================
    @classmethod 
-   def initialize(cls, external_profile, plugin_mode):
+   def initialize(cls, external_profile):
       '''
       Initialize the Resources class.  This method MUST be called exactly once
       before you try to make use of this class in any other way.  The 
       'external_profile' argument determines whether we should save/load
       Resources (True means in Windows designated ApplicationData folder, False
-      means alongside the script itself.)  The 'plugin_mode' boolean determines
-      whether the app should be running in 'plugin' or 'standalone' mode.
+      means alongside the script itself.)
       '''
       # this code runs before we have our proper error handling installed, so 
       # wrap it in a try-except block so at least we have SOME error handling
       try:
-         cls.__initialize(external_profile, plugin_mode)
+         cls.__initialize(external_profile)
       except:
          print sys.exc_info()[1]
          sys.exit();   
@@ -93,10 +88,8 @@ class Resources(object):
    
    #==============================================================================
    @classmethod
-   def __initialize(cls, external_profile, plugin_mode):
+   def __initialize(cls, external_profile):
       ''' Implements the publicly accessible method of the same name. '''
-      cls.PLUGIN_MODE = plugin_mode
-
       # get the basic locations that the other locations build on      
       script_dir = Directory.GetParent(__file__).FullName
       profile_dir = Environment.GetFolderPath(

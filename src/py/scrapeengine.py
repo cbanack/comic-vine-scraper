@@ -43,10 +43,11 @@ class ScrapeEngine(object):
    '''
 
    # ==========================================================================
-   def __init__(self, comicrack):
+   def __init__(self, comicrack, plugin_mode):
       '''
       Initializes this ScrapeEngine.  It takes the ComicRack Application 
-      object as it's only parameter.
+      object as a parameter, and a boolean indicating whether this 
+      ScrapeEngine should run in plugin_mode or standalone mode.
       '''
       
       # the Configuration details for this ScrapeEngine.  used everywhere.  
@@ -55,6 +56,9 @@ class ScrapeEngine(object):
       # the ComicRack application object, i.e. the instance of ComicRack that
       # is running this script.  used everywhere.
       self.comicrack = comicrack
+      
+      # whether we should run in plugin mode (true) or standalone (false)
+      self.plugin_mode = plugin_mode
       
       # a list of methods that will each be fired whenever the 'scrape' 
       # operation begins processing/scraping a new book. these methods should
@@ -122,7 +126,7 @@ class ScrapeEngine(object):
          log.debug("-"*80)
          log.debug("CV Scraper Version:  ", Resources.SCRIPT_VERSION)
          log.debug("Running As:          ", "Standalone Application" if 
-            not Resources.PLUGIN_MODE else "ComicRack Plugin (CR version " +
+            not self.plugin_mode else "ComicRack Plugin (CR version " +
             self.comicrack.App.ProductVersion + ")")
          log.debug("Cache Directory:     ", Resources.LOCAL_CACHE_DIRECTORY)
          log.debug("Settings File:       ", Resources.SETTINGS_FILE)

@@ -69,22 +69,19 @@ def cvs_scrape(books, plugin_mode=True):
    # create a launch a delegate that scrapes the given books
    def delegate():
       if books:
-      # uncomment this to create a pickled load file for my pydev launcher
-      #   with open("k:/sample.pickled", "w") as f:
-      #      cPickle.dump(books, f);
-      
-      # coryhigh: START HERE 1: move "plugin_mode" into the ScrapeEngine object
-      # and take it out of Resources.
-         engine = ScrapeEngine(ComicRack)
+         # uncomment this to create a pickled load file for my pydev launcher
+         #   with open("k:/sample.pickled", "w") as f:
+         #      cPickle.dump(books, f);
+         engine = ScrapeEngine(ComicRack, plugin_mode)
          engine.scrape(books)
       else:
          log.debug("No books provided for scraping.  Exiting...")
-   __launch(delegate, plugin_mode)
+   __launch(delegate)
 
 
 
 # =============================================================================
-def __launch(delegate, plugin_mode):
+def __launch(delegate):
    ''' 
    Runs the given (no-argument) delegate method in a 'safe' script environment.
    This environment will take care of all error handling, logging/debug stream,
@@ -93,7 +90,7 @@ def __launch(delegate, plugin_mode):
    ''' 
    try:
       # initialize the application resources (import directories, etc)
-      Resources.initialize( "FakeComicRack" in dir(ComicRack), plugin_mode )
+      Resources.initialize( "FakeComicRack" in dir(ComicRack) )
       
       # fire up the debug logging system
       log.install(ComicRack.MainWindow)
