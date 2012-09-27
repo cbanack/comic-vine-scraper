@@ -128,7 +128,6 @@ class ScrapeEngine(object):
          log.debug("Running As:          ", "Standalone Application" if 
             not self.plugin_mode else "ComicRack Plugin (CR version " +
             self.comicrack.App.ProductVersion + ")")
-         log.debug("Cache Directory:     ", Resources.LOCAL_CACHE_DIRECTORY)
          log.debug("Settings File:       ", Resources.SETTINGS_FILE)
          log.debug("Python:              ", sys.version)
          log.debug("-"*80)

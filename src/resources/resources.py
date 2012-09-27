@@ -16,9 +16,6 @@ class Resources(object):
     resources that this app uses.  (i.e. pathnames and locations, mostly.)
     ''' 
    
-   # the location of our scraper 'cache' files. 
-   LOCAL_CACHE_DIRECTORY = None
-   
    # the location of the app's settings file.
    SETTINGS_FILE = None
    
@@ -124,28 +121,3 @@ class Resources(object):
          cls.SERIES_FILE = script_dir + r'\series.dat'
          cls.I18N_DEFAULTS_FILE = script_dir + r'\en.zip'
          
-      # coryhigh: START HERE 2: is the cache even needed anymore?
-      # also, investigate making EVERYTHING run in "external_profile" mode.
-      # (copy old prefs over cleanly, etc.)
-      
-      # the cache directory is the same regardless of which mode we're running
-      cls.LOCAL_CACHE_DIRECTORY = profile_dir + r'\localCache'
-      
-      # see if there is a old cache available for us to import
-      cls.__import_legacy_cache()
-   
-   #==============================================================================
-   @classmethod
-   def __import_legacy_cache(cls):
-      '''
-      This method looks to see if there is a) a cache available in the old
-      location, and b) no cache available in the new location.  If so, it 
-      moves the entire cache from the old location to the new one.
-      '''
-      roaming_dir = Environment.GetFolderPath(
-         Environment.SpecialFolder.ApplicationData)
-      legacy_dir = roaming_dir + \
-         "\cYo\ComicRack\Scripts\Comic Vine Scraper\localCache"
-      target_dir = cls.LOCAL_CACHE_DIRECTORY
-      if Directory.Exists(legacy_dir) and not Directory.Exists(target_dir):
-         Directory.Move(legacy_dir, target_dir)
