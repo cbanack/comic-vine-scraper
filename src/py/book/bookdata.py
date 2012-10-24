@@ -6,20 +6,6 @@ must have.  Various subclasses will implement the specific details.
 @author: Cory Banack
 '''
 
-# corylow: use this
-#   clr   clr.AddReference("Ionic.Zip.dll") # a 3rd party dll
-#   from Ionic.Zip import ZipFile #@UnresolvedImport
-#   from System.IO import Directory, File
-#   def delegate2(): 
-#      zip = r"K:\xmlstuff\comic.cbz";
-#      xml = r"ComicInfo.xml" 
-#      
-#      # grab the default (i.e. english) zip file, unzip it, and grab the
-#      # xml file from inside.  parse that to obtain default i18n strings.
-#      with ZipFile.Read(zip) as zipfile:
-#         zipfile.AddEntry("cory.txt", "this is some sample text")
-#         zipfile.Save(zip+".zip")
-
 #==============================================================================
 class BookData(object):
    '''
