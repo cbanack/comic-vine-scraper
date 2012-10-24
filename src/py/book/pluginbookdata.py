@@ -65,12 +65,19 @@ class PluginBookData(BookData):
       
       fileless = not self.path_s
       page_image = None
-      if fileless or page_index < 0 or page_index >= self.page_count_n:
+      if fileless:
          page_image = None
       else:
-         page_image = self.__scraper.comicrack.App.GetComicPage(
-            self.__crbook, page_index)
-         page_image = utils.strip_back_cover(page_image)
+         try:
+            page_image = self.__scraper.comicrack.App.GetComicPage(
+               self.__crbook, page_index)
+         except Exception:
+            # we can't rely on self.page_count_n, thanks to bug 235.
+            # (page count is zero after "clear data", so use try-catch instead.
+            page_image = None
+            
+         if page_image:
+            page_image = utils.strip_back_cover(page_image)
       return page_image                              
 
       
