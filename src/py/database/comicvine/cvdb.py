@@ -119,15 +119,38 @@ def _check_magic_file(path_s):
 def _query_series_refs(search_terms_s, callback_function):
    ''' ComicVine implementation of the identically named method in the db.py '''
       
-   # clean up the search terms (to make them more palatable to comicvine
-   # databases) before searching.  if no results are found, clean them up more 
-   # aggressively and try one more time.
-   search_terms_s = __cleanup_search_terms(search_terms_s, False)
-   series_refs = __query_series_refs(search_terms_s, callback_function)
-   if not series_refs:
-      altsearch_s = __cleanup_search_terms(search_terms_s, True);
-      if altsearch_s != search_terms_s:
-         series_refs = __query_series_refs(altsearch_s, callback_function)
+   series_refs = set()
+   
+   # 1. clean up the search terms (to make them more palatable to comicvine
+   # databases) before our first attempt at searching with them
+   search_s = __cleanup_search_terms(search_terms_s, False)
+   if search_s:
+      series_refs = __query_series_refs(search_s, callback_function)
+      
+      # 2. if first search failed, cleanup terms more aggressively, try again
+      if not series_refs:
+         altsearch_s = __cleanup_search_terms(search_s, True);
+         if search_terms_s and altsearch_s != search_s:
+            series_refs = __query_series_refs(altsearch_s, callback_function)
+            
+      # 3. if second search failed, try interpreting the search terms as 
+      #    a comicvine ID or the URL for a comicvine volume's webpage
+      if not series_refs:
+         search_terms_s = search_terms_s.strip()
+         pattern = r"(^(49-)?(?<num>\d+)$)|" + \
+            r"(^https?://.*comicvine\.com/.*/49-(?<num>\d+)(/.*)?$)"
+            
+         match = re.match(pattern, search_terms_s, re.I)
+         if match:
+            series_key_s = match.group("num")
+            try:
+               dom = cvconnection._query_series_details_dom(series_key_s)
+               num_results_n = int(dom.number_of_total_results)
+               if num_results_n == 1:
+                  series_refs.add(__volume_to_seriesref(dom.results))
+            except:
+               pass # happens when the user enters an non-existent key
+      
    return series_refs
 
 
@@ -139,8 +162,10 @@ def __query_series_refs(search_terms_s, callback_function):
    series_refs = set()
    
    # 1. do the initial query, record how many results in total we're getting
-   dom = cvconnection._query_series_ids_dom(search_terms_s, 0)
-   num_results_n = int(dom.number_of_total_results)
+   num_results_n = 0
+   if search_terms_s and search_terms_s.strip():
+      dom = cvconnection._query_series_ids_dom(search_terms_s, 0)
+      num_results_n = int(dom.number_of_total_results)
    
    if num_results_n > 0:
 
@@ -185,8 +210,8 @@ def __query_series_refs(search_terms_s, callback_function):
                   else:
                      for volume in dom.results.volume:
                         series_refs.add( __volume_to_seriesref(volume) )
-   
-   # 6. Done!  We've gone through and gathered all results.
+                        
+   # 6. Done.  series_refs now contained whatever SeriesRefs we could find
    return set() if cancelled_b[0] else series_refs   
 
 

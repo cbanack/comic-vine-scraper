@@ -11,8 +11,7 @@ from dbpicturebox import DBPictureBox
 from utils import sstr
 from matchscore import MatchScore
 import i18n
-import log
-
+ 
 clr.AddReference('System')
 from System.ComponentModel import ListSortDirection
 
@@ -22,7 +21,7 @@ from System.Drawing import Point, Size
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
    DataGridViewAutoSizeColumnMode, DataGridViewContentAlignment, \
-   DataGridViewSelectionMode, DialogResult, FlatStyle, Keys, Label
+   DataGridViewSelectionMode, DialogResult, Keys, Label
 
 #==============================================================================
 class SeriesForm(CVForm):
