@@ -97,7 +97,7 @@ class SeriesForm(CVForm):
       label = self.__build_label(search_terms_s, len(self.__series_refs)) 
       self.__table = self.__build_table(
          self.__series_refs, book, self.__ok_button)
-      self.__cover_image = self.__build_coverimage(self.__series_refs)
+      self.__cover_image = self.__build_coverimage(self.__series_refs, book)
 
       # 2. --- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
@@ -292,12 +292,12 @@ class SeriesForm(CVForm):
    
 
    # ==========================================================================
-   def __build_coverimage(self, series_refs):
+   def __build_coverimage(self, series_refs, book):
       ''' 
       Builds and returns the cover image PictureBox for this form.
       'series_refs' -> a list with one SeriesRef object for each found series
       '''
-      cover = DBPictureBox()
+      cover = DBPictureBox(book.issue_num_s)
       cover.Location = Point(523, 51)
       cover.Size = Size(195, 320)
       if self.__config.show_covers_b:

@@ -16,7 +16,6 @@ source, and therefore may be quite slow and occassionally unreliable.
 
 import cvdb
 import utils
-import log
 
 
 # a limited-size cache for storing the results of SeriesRef searches
@@ -175,7 +174,6 @@ def query_issue_refs(series_ref, callback_function=lambda x,y : False):
    issue_refs = set()
    if series_ref in __issue_refs_cache:
       issue_refs = set(__issue_refs_cache[series_ref]) 
-      log.debug("   ...found ", len(issue_refs), " issues in internal cache")
    else: 
       __issue_refs_cache = {} # only keep one element in cache (else too big!)
       issue_refs = cvdb._query_issue_refs(series_ref, callback_function)
