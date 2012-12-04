@@ -710,7 +710,9 @@ class ScrapeEngine(object):
                   .format(sstr((int)(complete_ratio_n * 100)))
             Application.DoEvents()
             return self.__cancelled_b
-         return db.query_issue_refs(series_ref, callback)
+         issue_refs = db.query_issue_refs(series_ref, callback)
+         log.debug("   ...found ", len(issue_refs), " issues at comicvine.com")
+         return issue_refs
 
 
 
