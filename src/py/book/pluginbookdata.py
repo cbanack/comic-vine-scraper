@@ -27,6 +27,10 @@ class PluginBookData(BookData):
       if not ("ComicBook" in utils.sstr(type(crbook))): 
          raise Exception("invalid backing ComicBook")
       
+      # a quick function to make splitting ComicRack comicbook fields easier 
+      def split(s):
+         return s.split(",") if s else [] 
+      
       # load our own copy of all data from the ComicRack database
       self.series_s = crbook.Series    # don't use shadows
       self.issue_num_s = crbook.Number # don't use shadows
@@ -35,21 +39,21 @@ class PluginBookData(BookData):
       self.month_n = crbook.Month
       self.format_s = crbook.ShadowFormat
       self.title_s = crbook.Title
-      self.crossovers_sl = crbook.AlternateSeries.split(",")
+      self.crossovers_sl = split(crbook.AlternateSeries)
       self.summary_s = crbook.Summary
       self.publisher_s = crbook.Publisher
       self.imprint_s = crbook.Imprint
-      self.characters_sl = crbook.Characters.split(",")
-      self.teams_sl = crbook.Teams.split(",")
-      self.locations_sl = crbook.Locations.split(",")
-      self.writers_sl = crbook.Writer.split(",")
-      self.pencillers_sl = crbook.Penciller.split(",")
-      self.inkers_sl = crbook.Inker.split(",")
-      self.colorists_sl = crbook.Colorist.split(",")
-      self.letterers_sl = crbook.Letterer.split(",")
-      self.cover_artists_sl = crbook.CoverArtist.split(",")
-      self.editors_sl = crbook.Editor.split(",")
-      self.tags_sl = crbook.Tags.split(",") 
+      self.characters_sl = split(crbook.Characters)
+      self.teams_sl = split(crbook.Teams)
+      self.locations_sl = split(crbook.Locations)
+      self.writers_sl = split(crbook.Writer)
+      self.pencillers_sl = split(crbook.Penciller)
+      self.inkers_sl = split(crbook.Inker)
+      self.colorists_sl = split(crbook.Colorist)
+      self.letterers_sl = split(crbook.Letterer)
+      self.cover_artists_sl = split(crbook.CoverArtist)
+      self.editors_sl = split(crbook.Editor)
+      self.tags_sl = split(crbook.Tags) 
       self.notes_s = crbook.Notes
       self.path_s = crbook.FilePath 
       self.webpage_s = crbook.Web
