@@ -10,7 +10,6 @@ import utils
 import db
 from resources import Resources
 from scheduler import Scheduler
-from dbmodels import SeriesRef
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Graphics, Bitmap
@@ -46,13 +45,10 @@ class DBPictureBox(PictureBox):
 
 
    #===========================================================================
-   def __init__(self, issue_hint=None): 
+   def __init__(self): 
       ''' Defines member variables for new instances of this class. '''
       # the ref of whatever image should currently be displayed, or None
       self.__current_image_ref = None
-      
-      # the issue image that should be displayed when the image_ref is a series
-      self.__issue_hint_s = utils.sstr(issue_hint) if issue_hint else None 
       
       # a simple "last-in-and-ignore-everything-else" scheduler
       self.__scheduler = Scheduler()
@@ -95,20 +91,14 @@ class DBPictureBox(PictureBox):
       
 
    #===========================================================================
-   def set_image_ref(self, ref, issuehint = None):
+   def set_image_ref(self, ref):
       '''
       Sets the image displayed in this picturebox to whatever image
       corresponds to the given ref (a SeriesRef or IssueRef) in the database.
       If the given value is None, or unavailable, a placeholder image gets used.
-      
-      The optional 'issuehint' is an issue number that may (if not None) be 
-      used to treat the given SeriesRef as an IssueRef--in other words, the 
-      image for the given issue number in the given series will be displayed,
-      instead of the series image. 'issuehint' is ignored if ref is an IssueRef.
       '''
       
       self.__current_image_ref = ref
-      self.__current_issuehint = issuehint
       if self.Visible:
          self.__update_image()
      
@@ -159,22 +149,8 @@ class DBPictureBox(PictureBox):
          self.Image = self.__loading_image
          def download_task():
             
-            # coryhigh: start here: make this stuff work with an 
-            # IssueCoverPanel, if possible.  add a callback so the displayed 
-            # issue can be shown in the issue name.  add advanced feature to
-            # turn shit off.
-            
-            # 3a. load the image. of there's an issue hint for a SeriesRef, use
-            #     it to find the image for a specific issue in the SeriesRef.
-            new_image = None
-            if type(ref) == SeriesRef and self.__issue_hint_s != None:
-               issue_refs = db.query_issue_refs(ref)
-               for issue_ref in issue_refs:
-                  if issue_ref.issue_num_s == self.__issue_hint_s:
-                     new_image = db.query_image(issue_ref)
-                     break
-            if new_image == None:
-               new_image = db.query_image(ref) # disposed later
+            # 3a. load the image. 
+            new_image = db.query_image(ref) # disposed later
                
             # 3b. now that we've loaded a new image, the following method is
             #     passed back to the gui thread and run to update our gui 

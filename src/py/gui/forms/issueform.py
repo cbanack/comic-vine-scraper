@@ -297,8 +297,8 @@ class IssueForm(CVForm):
       dialogAnswer = self.ShowDialog(self.Owner) # blocks
       
       if dialogAnswer == DialogResult.OK:
-         result = IssueFormResult( 
-            "OK", self.__issue_refs[self.__chosen_index] )
+         issue = self.__issue_refs[self.__chosen_index]
+         result = IssueFormResult( "OK", issue )
          alt_image_ref = self.__coverpanel.get_alt_cover_image_url()
          if alt_image_ref:
             # the user chose a non-default cover image for this issue.
