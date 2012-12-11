@@ -7,10 +7,10 @@ This module is home to the SeriesForm and SeriesFormResult classes.
 import clr
 from buttondgv import ButtonDataGridView
 from cvform import CVForm
-from dbpicturebox import DBPictureBox
 from utils import sstr
 from matchscore import MatchScore
 import i18n
+from issuecoverpanel import IssueCoverPanel
  
 clr.AddReference('System')
 from System.ComponentModel import ListSortDirection
@@ -70,8 +70,8 @@ class SeriesForm(CVForm):
       # the table that displays series (on per row) for the user to pick from
       self.__table = None
       
-      # a PictureBox that displays the cover art for the current selected series
-      self.__cover_image = None
+      # IssueCoverPanel that shows cover art for the current selected SeriesRef
+      self.__coverpanel = None
       
       # the index (in self.__series_refs) of the currently selected SeriesRef
       self.__chosen_index = None
@@ -97,7 +97,7 @@ class SeriesForm(CVForm):
       label = self.__build_label(search_terms_s, len(self.__series_refs)) 
       self.__table = self.__build_table(
          self.__series_refs, book, self.__ok_button)
-      self.__cover_image = self.__build_coverimage(self.__series_refs, book)
+      self.__coverpanel = self.__build_coverpanel()
 
       # 2. --- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
@@ -115,14 +115,15 @@ class SeriesForm(CVForm):
       self.Controls.Add (self.__skip_button)
       self.Controls.Add (search_button)
       self.Controls.Add (self.__issues_button)
-      self.Controls.Add(self.__cover_image)
+      self.Controls.Add(self.__coverpanel) # must be added LAST
       
       # 3. --- define the keyboard focus tab traversal ordering
       self.__ok_button.TabIndex = 1
       self.__skip_button.TabIndex = 2
       search_button.TabIndex = 3
       self.__issues_button.TabIndex = 4
-      self.__table.TabIndex = 5
+      self.__coverpanel.TabIndex = 5
+      self.__table.TabIndex = 6
       
       # 4. --- make sure the UI goes into a good initial state
       self.__change_table_selection_fired(None, None)
@@ -292,19 +293,20 @@ class SeriesForm(CVForm):
    
 
    # ==========================================================================
-   def __build_coverimage(self, series_refs, book):
+   def __build_coverpanel(self):
       ''' 
       Builds and returns the cover image PictureBox for this form.
       'series_refs' -> a list with one SeriesRef object for each found series
       '''
-      cover = DBPictureBox(book.issue_num_s)
-      cover.Location = Point(523, 51)
-      cover.Size = Size(195, 320)
+      panel = IssueCoverPanel(self.__config)
+      panel.Location = Point(523, 30)
+      # panel size is determined by the panel itself
+      
       if self.__config.show_covers_b:
-         cover.Show()
+         panel.Show()
       else:
-         cover.Hide()
-      return cover
+         panel.Hide()
+      return panel
    
    # ==========================================================================
    def show_form(self):
@@ -319,6 +321,14 @@ class SeriesForm(CVForm):
       if dialogAnswer == DialogResult.OK:
          series = self.__series_refs[self.__chosen_index] 
          result = SeriesFormResult( "OK", series )
+# coryhigh: handle this somehow?         
+#         alt_image_ref = self.__coverpanel.get_alt_cover_image_url()
+#         if alt_image_ref:
+#            # the user chose a non-default cover image for this issue.
+#            # we'll store that choice in the global "session data map",
+#            # in case any other part of the program wants to use it.
+#            alt_cover_key = sstr(result.get_ref().issue_key) + "-altcover"
+#            self.__config.session_data_map[alt_cover_key] = alt_image_ref
       elif dialogAnswer == DialogResult.Yes:
          series = self.__series_refs[self.__chosen_index] 
          result = SeriesFormResult( "SHOW", series )
@@ -342,7 +352,7 @@ class SeriesForm(CVForm):
       ''' this method is called whenever this SeriesForm is closed. '''
       
       self.__table.Dispose()
-      self.__cover_image.free()      
+      self.__coverpanel.free()      
       self.Closed -= self.__form_closed_fired
 
 
@@ -355,11 +365,11 @@ class SeriesForm(CVForm):
       selected_rows = self.__table.SelectedRows
       if selected_rows.Count == 1:
          self.__chosen_index = selected_rows[0].Cells[6].Value
-         self.__cover_image.set_image_ref(
+         self.__coverpanel.set_issue(
             self.__series_refs[self.__chosen_index])
       else:
          self.__chosen_index = None
-         self.__cover_image.set_image_ref(None)
+         self.__coverpanel.set_issue(None)
      
       # don't let the user click 'ok' or 'show issue' if no row is selected!    
       self.__ok_button.Enabled = selected_rows.Count == 1
