@@ -13,7 +13,6 @@ from utils import sstr
 import clr
 import db
 import i18n
-import log
 import utils
 
 clr.AddReference('System.Drawing')
