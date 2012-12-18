@@ -97,7 +97,7 @@ class SeriesForm(CVForm):
       label = self.__build_label(search_terms_s, len(self.__series_refs)) 
       self.__table = self.__build_table(
          self.__series_refs, book, self.__ok_button)
-      self.__coverpanel = self.__build_coverpanel()
+      self.__coverpanel = self.__build_coverpanel(book)
 
       # 2. --- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
@@ -126,7 +126,7 @@ class SeriesForm(CVForm):
       self.__table.TabIndex = 6
       
       # 4. --- make sure the UI goes into a good initial state
-      self.__change_table_selection_fired(None, None)
+      self.Shown += self.__change_table_selection_fired
 
 
 
@@ -293,12 +293,12 @@ class SeriesForm(CVForm):
    
 
    # ==========================================================================
-   def __build_coverpanel(self):
+   def __build_coverpanel(self, book):
       ''' 
       Builds and returns the cover image PictureBox for this form.
-      'series_refs' -> a list with one SeriesRef object for each found series
+      'book' -> the ComicBook being scraped
       '''
-      panel = IssueCoverPanel(self.__config)
+      panel = IssueCoverPanel(self.__config, book.issue_num_s) 
       panel.Location = Point(523, 30)
       # panel size is determined by the panel itself
       
@@ -365,11 +365,11 @@ class SeriesForm(CVForm):
       selected_rows = self.__table.SelectedRows
       if selected_rows.Count == 1:
          self.__chosen_index = selected_rows[0].Cells[6].Value
-         self.__coverpanel.set_issue(
+         self.__coverpanel.set_ref(
             self.__series_refs[self.__chosen_index])
       else:
          self.__chosen_index = None
-         self.__coverpanel.set_issue(None)
+         self.__coverpanel.set_ref(None) 
      
       # don't let the user click 'ok' or 'show issue' if no row is selected!    
       self.__ok_button.Enabled = selected_rows.Count == 1
