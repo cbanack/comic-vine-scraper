@@ -123,7 +123,7 @@ class IssueForm(CVForm):
       self.__table.TabIndex = 5
 
       #4. --- make sure the UI goes into a good initial state
-      self.__change_table_selection_fired(None, None)
+      self.Shown += self.__change_table_selection_fired
 
 
    # ==========================================================================   
@@ -338,11 +338,11 @@ class IssueForm(CVForm):
       selected_rows = self.__table.SelectedRows
       if selected_rows.Count == 1:
          self.__chosen_index = selected_rows[0].Cells[3].Value
-         self.__coverpanel.set_issue(
+         self.__coverpanel.set_ref(
             self.__issue_refs[self.__chosen_index] )
       else:
          self.__chosen_index = None
-         self.__coverpanel.set_issue( None ) 
+         self.__coverpanel.set_ref( None ) 
                 
       # don't let the user click 'ok' if no row is selected!
       self.__ok_button.Enabled = selected_rows.Count == 1

@@ -14,7 +14,7 @@ import clr
 import db
 import i18n
 import utils
-
+# coryhigh: fix import order
 clr.AddReference('System.Drawing')
 
 clr.AddReference('System.Windows.Forms')
@@ -24,30 +24,41 @@ clr.AddReference('System.Windows.Forms')
 class IssueCoverPanel(Panel): 
    '''
    This panel is a compound gui component for displaying a comic book's issue 
-   cover art (in a DBPictureBox), along with a few extra decorations.  
+   or series cover art (in a DBPictureBox), along with a few extra decorations.  
    
-   Namely, there is a label displaying the current IssueRef's issue number
-   just below the DBPictureBox, and on either side of that there are two buttons
-   that allow you to navigate forward and backward through the list of alternate
-   cover art for the currently displayed issue.
+   The panel is updated when we set a new "ref" object, which is either an
+   IssueRef (comic issue) or SeriesRef (comic series).  If the ref is an 
+   IssueRef, we display that issue's cover art.  If it is a SeriesRef, we 
+   display the cover art for the entire series, OR the cover art for a 
+   particular issue in the series (if issue_num_hint_s has be set, see below.)
    
-   You can set the issue that is currently being displayed by calling the 
-   'set_issue' method.   After that, background threads will take care of 
+   There is also label just below the DBPictureBox that displays the issue 
+   number of the ref cover that is currently on display (if possible), and on 
+   either side of that there are two buttons that allow you to navigate forward 
+   and backward through any available alternate cover art for that ref.
+   
+   You can set the ref that is currently being displayed by calling the 
+   'set_ref' method.   After that, background threads will take care of 
    loading the cover art (and alternate covers) for that issue. 
    
    Do not forget to 'free' this panel when it is not longer in use!
    '''
    
    #===========================================================================
-   def __init__(self, config):
+   def __init__(self, config, issue_num_hint_s=None):
       ''' 
       Initializes this panel.
       
       'config' -> the shared global Configuration object
+      'issue_num_hint_s' -> issue number to use for figuring out which cover
+          art to display when the currently set ref is a SeriesRef.
       '''
       
       # the shared global configuration
       self.__config = config
+      
+      # the issue number to use when finding cover art for a SeriesRef
+      self.__issue_num_hint_s = issue_num_hint_s
       
       # a PictureBox that displays the cover art for the current selected issue
       self.__coverpanel = None
@@ -55,21 +66,23 @@ class IssueCoverPanel(Panel):
       # a label describing the currently displayed cover image
       self.__label = None
       
-      # the "next" button for seeing an issue's next available cover
+      # the "next" button for seeing a ref's next available cover
       self.__nextbutton = None
       
-      # the "prev" button for seeing an issue's previous cover
+      # the "prev" button for seeing a ref's previous cover
       self.__prevbutton = None
       
-      # the IssueRef of the issue that we are currently displaying
-      self.__issueref = None
+      # the IssueRef or SeriesRef whose cover we are currently displaying
+      self.__ref = None
       
-      # a mapping of IssueRefs to _ButtonModels.  Basically caches the 
-      # next/prev button state for each issue.
+      # a mapping of refs to _ButtonModels.  Basically caches the 
+      # next/prev button state for each ref.
       self.__button_cache = {}
       
-      # a simple "last-in-and-ignore-everything-else" scheduler
-      self.__scheduler = Scheduler()
+      # a scheduler (thread) for finding cover images...
+      self.__finder_scheduler = Scheduler()
+      
+      # a scheduler (thread) for setting new refs...
       self.__setter_scheduler = Scheduler()
       
       # the user's alternate cover art choice, if she made one
@@ -99,7 +112,7 @@ class IssueCoverPanel(Panel):
 
       #4. --- make sure the UI goes into a good initial state and the callback
       #       function gets its initial call.
-      self.set_issue(None)
+      self.set_ref(None)
 
 
    # ==========================================================================
@@ -167,16 +180,17 @@ class IssueCoverPanel(Panel):
       
       # sets the alternate cover image that the user may have chosen
       # see get_alt_cover_image_url for more details
-      if self.__issueref:
-         button_model = self.__button_cache[self.__issueref]
+      if self.__ref:
+         button_model = self.__button_cache[self.__ref]
          if button_model:
             if button_model.can_decrement():
                ref = button_model.get_current_ref()
                if utils.is_string(ref):
                   self.__alt_cover_url = ref
       
-      self.__scheduler.shutdown(False)
-      self.set_issue(None)
+      self.__finder_scheduler.shutdown(False)
+      self.__setter_scheduler.shutdown(False)
+      self.set_ref(None)
       self.__coverpanel.free()
       self.__prevbutton = None
       self.__nextbutton = None
@@ -185,40 +199,49 @@ class IssueCoverPanel(Panel):
 
 
    # ==========================================================================
-   def set_issue(self, ref):
+   def set_ref(self, ref):
       '''
-      Sets the comic issue that this panel is displaying.
+      Sets the comic IssueRef or SeriesRef that this panel is displaying.
       'ref'-> the IssueRef or SeriesRef that we are displaying, or None.
       '''
-      
-      # coryhigh: start here: this class needs major cleanup and commenting
-      if type(ref) == SeriesRef:
+
+      run_in_background = type(ref) == SeriesRef and self.__issue_num_hint_s       
+      if run_in_background:
+         # 1a. our ref is a SeriesRef
+         # check to see if our issue num hint matches one of the issues that
+         # the db has for the current series that we are displaying 
          scheduler = self.__setter_scheduler
-         def set_new_issue(ref): 
+         def maybe_convert_seriesref_to_issue_ref(ref): 
             issue_refs = db.query_issue_refs(ref)
             if issue_refs:
                for issue_ref in issue_refs:
-                  if issue_ref.issue_num_s == '3': # coryhigh: fix
+                  if issue_ref.issue_num_s == self.__issue_num_hint_s:
                      ref = issue_ref
                      break
                   
-            self.__issueref = ref
-            self.__update()
+            # 1b. go back to the application thread to do the actual ref change
+            def change_ref():  
+               self.__ref = ref
+               self.__update()
+            utils.invoke(self.__coverpanel, change_ref, True)
             
-         def dummy(): # don't know why this is needed
-            set_new_issue(ref)
+         def dummy(): # I don't know why this is needed 
+            maybe_convert_seriesref_to_issue_ref(ref)
          scheduler.submit(dummy)
+         
       else:
-         self.__issueref = ref
+         # 2. our ref is an IssueRef
+         # we're already on the application thread, so just do the ref change 
+         self.__ref = ref
          self.__update()
             
 
    # ==========================================================================
    def get_alt_cover_image_url(self):
       '''
-      If the comic issue that this panel was displaying when it was closed was
-      set to display an alternate cover image (i.e. anything other than the 
-      default image) then this method will return the string URL for that image.  
+      If the comic cover that this panel was displaying when it was closed was
+      an alternate cover image (i.e. anything other than the default image) 
+      then this method will return the string URL for that image.  
       
       Otherwise, or if the panel hasn't been shutdown yet, we return None.
       '''
@@ -227,25 +250,25 @@ class IssueCoverPanel(Panel):
    # ==========================================================================
    def __update(self):
       '''
-      Updates all elements of this controls GUI.  Should be called anytime 
-      anything has changed that might require a change to the data displayed
-      by one of this controls child controls.  
+      Updates all elements of this control's GUI.  Should be called anytime 
+      anything has changed that might require us to update the data displayed
+      by any of our child controls (text labels, buttons, DBPictureBox, etc).  
       
       Note that this method call may initiate a background thread to update a 
-      newly created _ButtonModel at some point in the future.
+      a ref's _ButtonModel based on a db query.
       '''
       
       # 1. grab copies of all the member variables that we might want to use; 
       # keep in mind that any of the following code can be running AFTER this 
       # panel and it's form has been closed/disposed, so we don't want to 
       # directly rely on any 'self.' members.
-      ref = self.__issueref
+      ref = self.__ref
       cache = self.__button_cache
       cover_image = self.__coverpanel
       nextbutton = self.__nextbutton
       prevbutton = self.__prevbutton
       label = self.__label
-      scheduler = self.__scheduler
+      scheduler = self.__finder_scheduler
       
       search_for_more_covers = False 
       
@@ -256,9 +279,10 @@ class IssueCoverPanel(Panel):
          prevbutton.Visible = False
          label.Enabled = True
          label.Text = ''
+         
       else:
-         # 3a. make sure the cache has a _ButtonModel for the current issue
-         #    also, if that _ButtonModel is not fully updated, update it.
+         # 3a. if we don't already have a cached _ButtonModel for the current 
+         #     ref, create one and put it in the cache. 
          if not cache.has_key(ref) or \
                not cache[ref].is_fully_updated():
             
@@ -267,12 +291,12 @@ class IssueCoverPanel(Panel):
                cache[ref] = _ButtonModel(ref)
             search_for_more_covers = type(ref) == IssueRef
          
-         # 3b. now that we have a bmodel for the current issue, adjust our 
+         # 3b. now that we have a _ButtonModel for the current issue, adjust our 
          #     various gui widgets according to its state.  remember, if this
-         #     bmodel was freshly created, it's going to contain a single 
-         #     image reference for now, but at some point in the future (~1 sec)
+         #     model was freshly created, it's only going to contain a single 
+         #     image reference for now, but at some point in the future (~2 sec)
          #     this method will be automatically called again, and the bmodel
-         #     will be fully updated, and may contain more images.
+         #     will be fully updated, and may then contain more images.
          bmodel = cache[ref]
          cover_image.set_image_ref( bmodel.get_current_ref() )
          nextbutton.Visible = cover_image.Visible and bmodel.can_increment()
@@ -291,10 +315,15 @@ class IssueCoverPanel(Panel):
                   label.Text = i18n.get("IssueCoverPanelSingle").\
                      format(sstr(issue_num_s))
 
+         # coryhigh: start here: buttonmodel still needs cleanup
+         # also, sort out text here.   and why do the buttons sometimes
+         # appear before the text updates (possible bug?)
             else:
-               label.Text = ""
+               label.Text = "Series Art" # corynorm: externalize
          else:
-            label.Text = i18n.get("IssueCoverPanelSearching")
+            #label.Text = i18n.get("IssueCoverPanelSearching")
+            label.Text = "Issue {0} - (searching)".\
+               format(sstr(issue_num_s)) #corynorm: externalize
             
       
          # 4. search to see if there are any more covers to find
@@ -305,11 +334,11 @@ class IssueCoverPanel(Panel):
                   
                def update_bmodel():  # runs on application thread
                   bmodel = cache[ref]
-                  bmodel.set_fully_updated()
                   if issue and len(issue.image_urls_sl) > 1:
                      for i in range(1, len(issue.image_urls_sl)):
                         bmodel.add_new_ref(issue.image_urls_sl[i])
                   self.__update() # recurse!
+                  bmodel.set_fully_updated()
                utils.invoke(self, update_bmodel, False)
             scheduler.submit(update_cache)
        
@@ -318,8 +347,8 @@ class IssueCoverPanel(Panel):
    def __button_click_fired(self, sender, args):
       ''' This method is called when the next/prev buttons are clicked '''
       
-      # should never happen when the button cache is empty or issueref is None
-      bmodel = self.__button_cache[self.__issueref]
+      # should never happen when button cache is empty or current ref is None
+      bmodel = self.__button_cache[self.__ref]
       if sender == self.__nextbutton:
          bmodel.increment()
       else:
