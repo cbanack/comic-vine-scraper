@@ -195,7 +195,8 @@ class Configuration(object):
                self.__alt_search_regex_s = match.group(1)
             except:
                pass # nope, looks like it's not a parsable regex
-      
+         
+         # coryhigh: make a FORCE_SERIES_ART option
       
    
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
