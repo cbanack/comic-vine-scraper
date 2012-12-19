@@ -3,7 +3,6 @@ This module is home to the IssueCoverPanel class.
  
 @author: Cory Banack
 '''
-
 from System.Drawing import ContentAlignment, Font, FontStyle, Point, Size
 from System.Windows.Forms import Button, Label, Panel
 from dbmodels import IssueRef, SeriesRef
@@ -14,7 +13,7 @@ import clr
 import db
 import i18n
 import utils
-# coryhigh: fix import order
+
 clr.AddReference('System.Drawing')
 
 clr.AddReference('System.Windows.Forms')
@@ -78,6 +77,10 @@ class IssueCoverPanel(Panel):
       # a mapping of refs to _ButtonModels.  Basically caches the 
       # next/prev button state for each ref.
       self.__button_cache = {}
+      
+      # a mapping of SeriesRefs to IssueRefs (or SeriesRefs).  this cache lets
+      # us avoid querying the database twice for the same SeriesRef.
+      self.__series_cache = {}
       
       # a scheduler (thread) for finding cover images...
       self.__finder_scheduler = Scheduler()
@@ -209,25 +212,28 @@ class IssueCoverPanel(Panel):
       if run_in_background:
          # 1a. our ref is a SeriesRef
          # check to see if our issue num hint matches one of the issues that
-         # the db has for the current series that we are displaying 
-         scheduler = self.__setter_scheduler
-         def maybe_convert_seriesref_to_issue_ref(ref): 
-            issue_refs = db.query_issue_refs(ref)
-            if issue_refs:
-               for issue_ref in issue_refs:
-                  if issue_ref.issue_num_s == self.__issue_num_hint_s:
-                     ref = issue_ref
-                     break
+         # the db has for the current series that we are displaying.  use a 
+         # simple cache to avoid querying for the same issue twice.
+         def maybe_convert_seriesref_to_issue_ref(ref):
+            if not ref in self.__series_cache:
+               issue_refs = db.query_issue_refs(ref)
+               if issue_refs:
+                  for issue_ref in issue_refs:
+                     if issue_ref.issue_num_s == self.__issue_num_hint_s:
+                        self.__series_cache[ref] = issue_ref
+                        break
+               if not ref in self.__series_cache:
+                  self.__series_cache[ref] = ref
                   
             # 1b. go back to the application thread to do the actual ref change
             def change_ref():  
-               self.__ref = ref
+               self.__ref = self.__series_cache[ref]
                self.__update()
             utils.invoke(self.__coverpanel, change_ref, True)
             
          def dummy(): # I don't know why this is needed 
             maybe_convert_seriesref_to_issue_ref(ref)
-         scheduler.submit(dummy)
+         self.__setter_scheduler.submit(dummy)
          
       else:
          # 2. our ref is an IssueRef
@@ -270,26 +276,20 @@ class IssueCoverPanel(Panel):
       label = self.__label
       scheduler = self.__finder_scheduler
       
-      search_for_more_covers = False 
       
       if ref is None or cache is None:
          # 2. do nothing, we're in a wierd/border state
          cover_image.set_image_ref(None)
          nextbutton.Visible = False
          prevbutton.Visible = False
-         label.Enabled = True
          label.Text = ''
          
       else:
          # 3a. if we don't already have a cached _ButtonModel for the current 
          #     ref, create one and put it in the cache. 
-         if not cache.has_key(ref) or \
-               not cache[ref].is_fully_updated():
+         if not cache.has_key(ref):
+            cache[ref] = _ButtonModel(ref, type(ref) == SeriesRef)
             
-            label.Enabled = False
-            if not cache.has_key(ref):
-               cache[ref] = _ButtonModel(ref)
-            search_for_more_covers = type(ref) == IssueRef
          
          # 3b. now that we have a _ButtonModel for the current issue, adjust our 
          #     various gui widgets according to its state.  remember, if this
@@ -304,42 +304,40 @@ class IssueCoverPanel(Panel):
          
          # 3c. update the text for the label.
          issue_num_s = ref.issue_num_s if type(ref) == IssueRef else ''
-         label.Enabled = bmodel.is_fully_updated()
          if bmodel.is_fully_updated():
             if issue_num_s:
                if len(bmodel) > 1:
                   label.Text = i18n.get("IssueCoverPanelPlural").\
-                     format(sstr(issue_num_s), sstr(bmodel.get_ref_id()+1),\
+                     format(sstr(issue_num_s), sstr(bmodel.get_position()+1),\
                      sstr(len(bmodel)))
                else:
                   label.Text = i18n.get("IssueCoverPanelSingle").\
                      format(sstr(issue_num_s))
-
-         # coryhigh: start here: buttonmodel still needs cleanup
-         # also, sort out text here.   and why do the buttons sometimes
-         # appear before the text updates (possible bug?)
             else:
-               label.Text = "Series Art" # corynorm: externalize
+               label.Text = i18n.get("IssueCoverPanelSeries")
          else:
-            #label.Text = i18n.get("IssueCoverPanelSearching")
-            label.Text = "Issue {0} - (searching)".\
-               format(sstr(issue_num_s)) #corynorm: externalize
+            label.Text = i18n.get("IssueCoverPanelSearching").\
+               format(sstr(issue_num_s))
+               
+         # corylow: "IssueCoverPanelSearching" as "Issue {0} (searching)"
+         # corylow: "IssueCoverPanelSeries" as "Series Art"
             
       
          # 4. search to see if there are any more covers to find
+         search_for_more_covers = not cache[ref].is_fully_updated()
          if search_for_more_covers:
             def update_cache(): #runs on scheduler thread
                issue = db.query_issue(ref, True) \
-                  if type(ref) == IssueRef else None
+                  if type(ref) == IssueRef else None 
                   
                def update_bmodel():  # runs on application thread
                   bmodel = cache[ref]
                   if issue and len(issue.image_urls_sl) > 1:
                      for i in range(1, len(issue.image_urls_sl)):
                         bmodel.add_new_ref(issue.image_urls_sl[i])
-                  self.__update() # recurse!
                   bmodel.set_fully_updated()
-               utils.invoke(self, update_bmodel, False)
+                  self.__update() # recurse!
+               utils.invoke(self, update_bmodel, True)
             scheduler.submit(update_cache)
        
          
@@ -361,41 +359,45 @@ class IssueCoverPanel(Panel):
 # =============================================================================     
 class _ButtonModel(object):
    ''' 
-   Contains state for the next/prev buttons for a single comic issue. 
-   In particular, contains 1 or more 'image references' for that issue. 
-   Each image reference is a url (or IssueRef object) that maps to one of 
-   the cover art images for that issue.
+   Contains state for a pair of next/prev buttons, including a list of 1 or 
+   more 'image references', and a current position within that list.
+   
+   Each image reference is either a url string, an IssueRef, or a SeriesRef.  
+   Any of these objects can be mapped back to a cover image.
    '''
    
    #===========================================================================
-   def __init__(self, issue_ref):
+   def __init__(self, ref, is_fully_updated=True):
       ''' 
-      Initializes this _ButtonModel with the given issue_ref as its sole
+      Initializes this _ButtonModel with the given ref as its sole
       image reference.  More references can be added.
             
-      'issue_ref' -> an IssueRef that will be our sole image reference (so far).
+      'ref' -> an IssueRef, SeriesRef, or url string reference to an image.
+         This will be our sole image reference (until more are added).
+      'is_fully_updated' -> false means we are still looking for more image
+         references to add to this _ButtonModel, true means we're done looking. 
       '''
       
-      # a list of all of this buttons image references.  will always have at 
+      # a list of all of our image references.  will always have at 
       # least one element, though that element may be a null image reference.
       self.__image_refs = []
 
+      # true iff we won't be adding any more image references to this model. 
+      self.__is_fully_updated = is_fully_updated
+      
       # the position of the 'current' element in the list of image references.
       # this value can be changed by the 'increment' or 'decrement' methods.
       self.__pos_n = 0
       
-      # true iff this _ButtonModel has been fully updated with all image refs
-      self.__is_fully_updated = type(issue_ref) == SeriesRef
-      
-      self.add_new_ref(issue_ref)
+      self.add_new_ref(ref)
       
       
    #===========================================================================
    def add_new_ref(self, image_ref):
       '''
-      Adds a new image reference to this button model.  The given ref should be
-      either an IssueRef (which can be used indirectly to obtain a cover image)
-      or the direct string url of the image. 
+      Adds a new image reference to this _ButtonModel.  The given ref should be
+      either an IssueRef or a SeriesRef (either which can be used indirectly to 
+      obtain a cover image via the db) or a direct url string to the image. 
       '''  
       if image_ref:
          if not image_ref in self.__image_refs:
@@ -405,18 +407,19 @@ class _ButtonModel(object):
    #===========================================================================
    def get_current_ref(self):
       ''' 
-      Gets the current image reference for this _ButtonModel.  This value will
-      be an IssueRef or an url string. 
+      Gets the current image reference for this _ButtonModel, based on the 
+      underlying model's position in the list of image refs.  This value will
+      be an IssueRef, SeriesRef or a direct url string to the image. 
       '''
-      return self.__image_refs[self.__pos_n]
+      return self.__image_refs[self.__pos_n] if self.__image_refs else None
 
    
    #===========================================================================
    def increment(self):
       '''
-      Increments the current image reference (see 'get_current_ref') to the next
-      one in this _ButtonModel, unless we are already at the last one
-      (see 'can_increment').
+      Increments the current image reference position (see 'get_current_ref') 
+      to the next one in this _ButtonModel, unless we are already at the last 
+      one (see 'can_increment').
       '''
       self.__pos_n = min(len(self.__image_refs)-1, self.__pos_n + 1)
       
@@ -430,9 +433,9 @@ class _ButtonModel(object):
    #===========================================================================
    def decrement(self):
       '''
-      Decrements the current image reference (see 'get_current_ref') to the 
-      previous one in this _ButtonModel, unless we are already at the first one
-      (see 'can_decrement').
+      Decrements the current image reference position (see 'get_current_ref') 
+      to the previous one in this _ButtonModel, unless we are already at the 
+      first one (see 'can_decrement').
       '''
       self.__pos_n = max(0, self.__pos_n - 1)
 
@@ -451,12 +454,12 @@ class _ButtonModel(object):
       
    #===========================================================================
    def is_fully_updated(self):
-      ''' Returns whether this _ButtonModel is flagged as 'fully updated'.'''
+      ''' Gets whether this _ButtonModel has its complete set of image refs. '''
       return self.__is_fully_updated
    
    #===========================================================================
-   def get_ref_id(self):
-      ''' Returns the index of the current image reference.'''
+   def get_position(self):
+      ''' Returns 0-indexed position of the current image reference.'''
       return self.__pos_n
    
    #===========================================================================

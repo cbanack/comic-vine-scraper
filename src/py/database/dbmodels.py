@@ -223,7 +223,7 @@ class Issue(object):
    '''
    
    #===========================================================================
-   def __init__(self, issue_ref):
+   def __init__(self, ref):
       ''' 
       Initializes a new Issue object.   The given parameter must be an IssueRef
       object that references the same comic book (in the database) that this
@@ -232,7 +232,7 @@ class Issue(object):
       
       # these all call the property setters defined below...
       
-      self.issue_key = issue_ref.issue_key
+      self.issue_key = ref.issue_key
       
       self.issue_num_s = ''
       self.title_s = ''

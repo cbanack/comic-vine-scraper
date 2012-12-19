@@ -357,6 +357,7 @@ def _query_image(ref):
 def _query_issue(issue_ref, slow_data):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
+   # coryhigh: can we implement a cache here?  could really speed things up
    issue = Issue(issue_ref)
    
    dom = cvconnection._query_issue_details_dom(sstr(issue_ref.issue_key))
