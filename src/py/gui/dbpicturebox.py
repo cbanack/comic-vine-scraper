@@ -1,6 +1,6 @@
 '''
 This module contains the DBPictureBox class, which can be used to display 
-remotely loaded images using an asyncrhonous off-loading thread manner.
+remotely loaded images using an asyncrhonous off-loading thread.
 
 @author: Cory Banack
 '''
