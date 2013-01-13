@@ -321,14 +321,14 @@ class SeriesForm(CVForm):
       if dialogAnswer == DialogResult.OK:
          series = self.__series_refs[self.__chosen_index] 
          result = SeriesFormResult( "OK", series )
-# coryhigh: handle this somehow?         
-#         alt_image_ref = self.__coverpanel.get_alt_cover_image_url()
-#         if alt_image_ref:
-#            # the user chose a non-default cover image for this issue.
-#            # we'll store that choice in the global "session data map",
-#            # in case any other part of the program wants to use it.
-#            alt_cover_key = sstr(result.get_ref().issue_key) + "-altcover"
-#            self.__config.session_data_map[alt_cover_key] = alt_image_ref
+         alt_choice = self.__coverpanel.get_alt_issue_cover_choice()
+         if alt_choice:
+            issue_ref, image_ref = alt_choice
+            # the user chose a non-default cover image for this issue.
+            # we'll store that choice in the global "session data map",
+            # in case any other part of the program wants to use it.
+            alt_cover_key = sstr(issue_ref.issue_key) + "-altcover"
+            self.__config.session_data_map[alt_cover_key] = image_ref
       elif dialogAnswer == DialogResult.Yes:
          series = self.__series_refs[self.__chosen_index] 
          result = SeriesFormResult( "SHOW", series )

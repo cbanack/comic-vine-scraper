@@ -3,20 +3,22 @@ This module is home to the IssueCoverPanel class.
  
 @author: Cory Banack
 '''
-from System.Drawing import ContentAlignment, Font, FontStyle, Point, Size
-from System.Windows.Forms import Button, Label, Panel
+import clr
 from dbmodels import IssueRef, SeriesRef
 from dbpicturebox import DBPictureBox
 from scheduler import Scheduler
 from utils import sstr
-import clr
 import db
 import i18n
 import utils
 
 clr.AddReference('System.Drawing')
+from System.Drawing import ContentAlignment, Font, FontStyle, Point, Size
 
 clr.AddReference('System.Windows.Forms')
+from System.Windows.Forms import Button, Panel, LinkLabel
+
+
 
 
 #==============================================================================
@@ -62,8 +64,11 @@ class IssueCoverPanel(Panel):
       # a PictureBox that displays the cover art for the current selected issue
       self.__coverpanel = None
       
-      # a label describing the currently displayed cover image
+      # a linklabel describing the currently displayed cover image
       self.__label = None
+      
+      # the function that gets called if a link on self.__label gets clicked
+      self.__link_callback = None
       
       # the "next" button for seeing a ref's next available cover
       self.__nextbutton = None
@@ -88,9 +93,9 @@ class IssueCoverPanel(Panel):
       # a scheduler (thread) for setting new refs...
       self.__setter_scheduler = Scheduler()
       
-      # the user's alternate cover art choice, if she made one
-      # this url is None until this panel is disposed (i.e. 'free' is called)
-      self.__alt_cover_url = None
+      # a tuple containing the user's alternate cover art choice (a url) for 
+      # a specific IssueRef i.e. (IssuRef, url). none if no alt choice was made.
+      self.__alt_cover_choice = None
       
       Panel.__init__(self)
       self.__build_gui()
@@ -132,19 +137,24 @@ class IssueCoverPanel(Panel):
    # ==========================================================================
    def __build_label(self):
       ''' 
-      Builds and return the label for toggling cover image display.
+      Builds and return the label for the cover image.
       '''
       
-      label = Label()
+      label = LinkLabel()
       label.UseMnemonic = False
       label.Visible = self.__config.show_covers_b
       label.Location = Point(18, 326)
       label.Size = Size(155,36)
       label.TextAlign = ContentAlignment.MiddleCenter
+      
+      def link_clicked(sender, args):
+         if self.__link_callback:
+            self.__link_callback()
+      label.LinkClicked += link_clicked
 
       return label
-      
-      
+   
+   
    # ==========================================================================
    def __build_nextbutton(self):
       ''' Builds and returns the 'next' button for this panel. '''
@@ -181,15 +191,16 @@ class IssueCoverPanel(Panel):
       Free all resources allocated by this class when it is no longer needed.
       '''
       
-      # sets the alternate cover image that the user may have chosen
-      # see get_alt_cover_image_url for more details
-      if self.__ref:
-         button_model = self.__button_cache[self.__ref]
+      # sets the alternate issue cover that the user may have chosen
+      # see get_alt_issue_cover_choice() for more details
+      if type(self.__ref) == IssueRef:
+         issue_ref = self.__ref
+         button_model = self.__button_cache[issue_ref]
          if button_model:
             if button_model.can_decrement():
-               ref = button_model.get_current_ref()
-               if utils.is_string(ref):
-                  self.__alt_cover_url = ref
+               image_ref = button_model.get_current_ref()
+               if utils.is_string(image_ref):
+                  self.__alt_cover_choice = (issue_ref, image_ref)
       
       self.__finder_scheduler.shutdown(False)
       self.__setter_scheduler.shutdown(False)
@@ -243,15 +254,19 @@ class IssueCoverPanel(Panel):
             
 
    # ==========================================================================
-   def get_alt_cover_image_url(self):
+   def get_alt_issue_cover_choice(self):
       '''
       If the comic cover that this panel was displaying when it was closed was
-      an alternate cover image (i.e. anything other than the default image) 
-      then this method will return the string URL for that image.  
+      an alternate cover image (i.e. anything other than the default image 
+      choice for an issue or series) then this method will return a tuple, with 
+      the first element being the IssueRef (never a SeriesRef) for the 
+      alternate image choice, and the second element being a string URL for 
+      the alternate image itself.  
       
-      Otherwise, or if the panel hasn't been shutdown yet, we return None.
+      If the chosen image was the default image anyway, or if the panel hasn't 
+      been shutdown yet, we return None.
       '''
-      return self.__alt_cover_url
+      return self.__alt_cover_choice
 
    # ==========================================================================
    def __update(self):
@@ -288,7 +303,8 @@ class IssueCoverPanel(Panel):
          # 3a. if we don't already have a cached _ButtonModel for the current 
          #     ref, create one and put it in the cache. 
          if not cache.has_key(ref):
-            cache[ref] = _ButtonModel(ref, type(ref) == SeriesRef)
+            cache[ref] = _ButtonModel(ref, \
+              'searched' if type(ref) == SeriesRef else 'not-searched')
             
          
          # 3b. now that we have a _ButtonModel for the current issue, adjust our 
@@ -302,9 +318,11 @@ class IssueCoverPanel(Panel):
          nextbutton.Visible = cover_image.Visible and bmodel.can_increment()
          prevbutton.Visible = cover_image.Visible and bmodel.can_decrement()
          
-         # 3c. update the text for the label.
+         # 3c. update the text, hyperlinks, and link callback for the label.
+         label.Links.Clear()
+         self.__link_callback = None
          issue_num_s = ref.issue_num_s if type(ref) == IssueRef else ''
-         if bmodel.is_fully_updated():
+         if bmodel.get_status() == 'searched':
             if issue_num_s:
                if len(bmodel) > 1:
                   label.Text = i18n.get("IssueCoverPanelPlural").\
@@ -315,16 +333,34 @@ class IssueCoverPanel(Panel):
                      format(sstr(issue_num_s))
             else:
                label.Text = i18n.get("IssueCoverPanelSeries")
-         else:
+         elif bmodel.get_status() == 'searching': 
             label.Text = i18n.get("IssueCoverPanelSearching").\
                format(sstr(issue_num_s))
+         elif bmodel.get_status() == 'not-searched':
+            label.Text = i18n.get("IssueCoverPanelSearchable").\
+               format(sstr(issue_num_s))
+            # create a link in between the first set of brackets. if use clicks
+            # on it, flip the current bmodel to "searching" status, and update
+            start = label.Text.find('(')
+            end = label.Text.find(')', start) if start > -1 else -1
+            if start >= 0 and end >= start:
+               label.Links.Add(start+1, end)
+               def link_callback():
+                  bmodel.set_status("searching")
+                  self.__update()
+               self.__link_callback = link_callback 
+         else:
+            raise Exception()
+            
                
-         # corylow: "IssueCoverPanelSearching" as "Issue {0} (searching)"
          # corylow: "IssueCoverPanelSeries" as "Series Art"
+         # corylow: "IssueCoverPanelSearching" as "Issue {0} (searching)"
+         # corylow: "IssueCoverPanelSearchable" as "Issue {0} (more covers)"
+         # corylow: "IssueCoverPanelSearchable" as "Issue {0} - Single Cover"
             
       
          # 4. search to see if there are any more covers to find
-         search_for_more_covers = not cache[ref].is_fully_updated()
+         search_for_more_covers = cache[ref].get_status()=='searching'
          if search_for_more_covers:
             def update_cache(): #runs on scheduler thread
                issue = db.query_issue(ref, True) \
@@ -335,7 +371,7 @@ class IssueCoverPanel(Panel):
                   if issue and len(issue.image_urls_sl) > 1:
                      for i in range(1, len(issue.image_urls_sl)):
                         bmodel.add_new_ref(issue.image_urls_sl[i])
-                  bmodel.set_fully_updated()
+                  bmodel.set_status('searched')
                   self.__update() # recurse!
                utils.invoke(self, update_bmodel, True)
             scheduler.submit(update_cache)
@@ -367,23 +403,23 @@ class _ButtonModel(object):
    '''
    
    #===========================================================================
-   def __init__(self, ref, is_fully_updated=True):
+   def __init__(self, ref, status="not-searched"):
       ''' 
       Initializes this _ButtonModel with the given ref as its sole
       image reference.  More references can be added.
             
       'ref' -> an IssueRef, SeriesRef, or url string reference to an image.
          This will be our sole image reference (until more are added).
-      'is_fully_updated' -> false means we are still looking for more image
-         references to add to this _ButtonModel, true means we're done looking. 
+      'status' -> one of three values, see comment for 'set_status'
       '''
       
       # a list of all of our image references.  will always have at 
       # least one element, though that element may be a null image reference.
       self.__image_refs = []
 
-      # true iff we won't be adding any more image references to this model. 
-      self.__is_fully_updated = is_fully_updated
+      # one of 'not-searched', 'searching', or 'searched' 
+      self.__status = None
+      self.set_status(status)
       
       # the position of the 'current' element in the list of image references.
       # this value can be changed by the 'increment' or 'decrement' methods.
@@ -447,15 +483,22 @@ class _ButtonModel(object):
       
       
    #===========================================================================
-   def set_fully_updated(self):
-      ''' Marks this _ButtonModel as having a complete set of image refs.'''
-      self.__is_fully_updated = True
-
+   def set_status(self, status):
+      ''' 
+      Changes the search status of this _ButtonModel. Must be one of:
+         'not-searched' : user has not requested a search for more image refs
+         'searching' : a background thread is currently search for image refs
+         'searched' : the search for more image refs is now complete
+      '''
+      if status=='not-searched' or status=='searching' or status=='searched':
+         self.__status = status
+      else:
+         raise Exception("bad status received: ", sstr(status))
       
    #===========================================================================
-   def is_fully_updated(self):
-      ''' Gets whether this _ButtonModel has its complete set of image refs. '''
-      return self.__is_fully_updated
+   def get_status(self):
+      '''  Gets the search status of this _ButtonModel. See set_status.  '''
+      return self.__status
    
    #===========================================================================
    def get_position(self):
