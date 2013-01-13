@@ -1,0 +1,207 @@
+# This file contains the test data for the filename parser unit test.
+# The data is formatted with three strings to a line, where the three strings
+# are all either delineated by double quotes (") or all by single quotes (').
+# Characters (like whitespace and commas) outside of the strings are ignored.
+#
+# The first string is the name of the file to parse.
+# The second is the expected series name that the filename parser should find.
+# The third is the expected issue number string that the parser should find.
+
+# first some very standard ones - these are how "normal" filenames look
+"Amazing-Spider-Man 671 (2011) (Digital-Empire).cbr", "Amazing-Spider-Man", "671", "2011"
+"American Vampire - Survival of The Fittest 05 (of 05) (2011) (digital-TheGroup).cbr", "American Vampire - Survival of The Fittest", "5", "2011" 
+"Baltimore - The Curse Bells 03 (of 05) (2011) (Minutemen-DTs).cbz", "Baltimore - The Curse Bells", "3", "2011"
+"Batgirl 002 (2011) (digital-TheGroup).cbr", "Batgirl", "2", "2011"
+"Buffy the Vampire Slayer Season 9 02 (2011) (two covers) (Minutemen-DTs).cbz", "Buffy the Vampire Slayer Season 9", "2", "2011"
+"Comic Shop News 1269(c2c)(Comic Shop News)(2011)(YZ1).cbr", "Comic Shop News", "1269", "2011"
+"Comic Shop News 1333.cbr", "Comic Shop News", "1333"
+"Critter 3(c2c)(2011)(Re-em).cbr", "Critter", "3", "2011"
+"3 - Critter(c2c)(2011)(Re-em).cbr", "Critter", "3", "2011"
+"3_Critter(c2c)(2011)(Re-em).cbr", "Critter", "3", "2011"
+"Daily Bugle Avenging Spider-Man (2011) (digital-Empire).cbr", "Daily Bugle Avenging Spider-Man", "", "2011"
+"Iron Man 2.0 006 (2011)(FBScan)(C2C).cbr" "Iron Man 2.0" "6", "2011"
+"Iron Man 2.0 007.1 (2011)(FBScan)(C2C).cbr" "Iron Man 2.0" "7.1", "2011"
+"Irredeemable 30 (2011) (two covers) (Minutemen-DTs).cbz" "Irredeemable" "30", "2011"
+"Megaman 06 (2011) (Minutemen-DTs).cbz" "Megaman" "6", "2011"
+"Red Hood & the Outlaws 001 (2011)(FBScan)(C2C).cbr" "Red Hood & the Outlaws" "1", "2011"
+"S.H.I.E.L.D. 03 (2011) (c2c) (Team-CPS).cbr" "S.H.I.E.L.D." "3", "2011"
+"Zorro Rides Again 003 (2011)(FBScan)(C2C).cbr" "Zorro Rides Again" "3", "2011"
+"Ultimate Vision 000 (2007) (c2c) (Popbot & ArtNet-DCP)" "Ultimate Vision" "0" "2007"
+"Meta4 05 (of 05) (2011) (theProletariat-DCP)" "Meta4" "5" "2011"
+"New York 5 03 (2011) (noads) (AngelicWezzy-CPS-DCP)" "New York 5" "3" "2011"
+"I, Zombie 10 (2011) (fixed) (Minutemen-XxxX&Saxon)" "I, Zombie" "10" "2011"
+"Draw 21.cbr" "Draw" "21"
+"Draw -21.cbr" "Draw" "-21"
+"Draw 'Single Quotes' 21.cbr" "Draw 'Single Quotes'" "21"
+"Batman Beyond V2010 #4 (2010).cbz" "Batman Beyond" "4" "2010"
+     
+     
+# some filenames can have weird bracketing
+"Conan 0a [c2c][2011]  [Re-em].cbr", "Conan", "0a" "2011"
+"Conan 0a {c2c } {2011}  {Re-em}.cbr", "Conan", "0a" "2011"
+"Conan 0a [[c2c][2011]]  [Re-em].cbr", "Conan", "0a" "2011"
+"Conan 0a (((c2c)(2011)  [Re-em])[special]).cbr", "Conan", "0a" "2011"
+     
+      
+# certain series have numbers in the name, which can cause problems
+"2000AD 1740 (29-06-11) (John Williams-DCP).cbr", "2000AD", "1740" 
+"2000AD 0001 (29-06-11).cbz", "2000AD", "1" 
+"2000AD 0001 (29-06-11).cbz", "2000AD", "1" 
+"2000AD 2000 (29-06-11).cbz", "2000AD", "2000" 
+"2000 AD 2000 (29-06-11).cbz", "2000 AD", "2000" 
+"2000 A.D. 2000 (29-06-11).cbz", "2000 A.D.", "2000" 
+"2000A.D. 2011 (29-06-11).cbz", "2000A.D.", "2011"
+"Love Potion #9 5 (What?).cbz", "Love Potion #9" "5" 
+"Love Potion #9, #5 (What?).cbz", "Love Potion #9" "5" 
+"Love Potion #9 v300 4 (What?).cbz", "Love Potion #9" "4" 
+"Love Potion #9.cbz", "Love Potion" "9"  # unavoidable 
+"5 Ronin 03 (2011) (Minutemen-DeliriousScanner)" "5 Ronin" "3" "2011"
+"Scratch9 03 (of 04) (2010) (C2C) (Minutemen-DrSouse)" "Scratch9" "3" "2010"
+"#3 Scratch9 (2010)" "Scratch9" "3" "2010"
+"4 Scratch9 (2010)" "Scratch9" "4" "2010"
+"4z Scratch9 (2010).cbr" "Scratch9" "4z" "2010"
+"4.2 Scratch9 (2010).cbz" "Scratch9" "4.2" "2010"
+"    4.3 Scratch9 (2010).cbz" "Scratch9" "4.3" "2010"
+
+       
+# if the word "volume" or a variant thereof appears, it should be ignored
+"Executive Assistant Iris V2 04 (2011) (Tarutaru-DCP).cbr" "Executive Assistant Iris" "4" "2011"
+"Green Lantern v5 02 (2011) (c2c) (The Last Kryptonian-DCP).cbr" "Green Lantern" "2" "2011"
+"Superboy v5 02 (2011) (c2c) (The Last Kryptonian-DCP).cbr" "Superboy" "2" "2011"
+"Transformers v2 027 (2011) (2 covers) (GiantGreenGoat-DCP).cbr" "Transformers" "27" "2011"
+"Supergirl v5 062 (2011) (c2c) (The Last Kryptonian-DCP)" "Supergirl" "62" "2011"
+
+"Comic Shop News 1333 Vol. 3.cbr", "Comic Shop News", "1333" 
+"Comic Shop News 1333 Vol.3.cbr", "Comic Shop News", "1333" 
+"Comic Shop News 1333b V 3.cbr", "Comic Shop News", "1333b"
+"Comic Shop News -1333 Volume 3.cbr", "Comic Shop News", "-1333" 
+"Comic Shop News -13.33 Vol 5.cbr", "Comic Shop News", "-13.33" 
+"Comic Shop News -1.333c Vol5.cbr", "Comic Shop News", "-1.333c" 
+"Comic Shop News 1333 V1.cbr", "Comic Shop News", "1333"
+       
+"Comic Shop News Vol. 3 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News Vol.3 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News V 3 1222.cbr", "Comic Shop News", "1222"
+"Comic Shop News Volume 3a 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News Volume23 1222.cbr", "Comic Shop News", "1222" 
+"Comic Shop News Vol 5cdf 1222.cbr", "Comic Shop News", "1222"
+"Comic Shop News Vol5s 1222cory.cbr", "Comic Shop News", "1222cory" 
+"Comic Shop News V1 1222.cbr", "Comic Shop News", "1222"
+      
+"Comic Shop News Vol. 3.cbr", "Comic Shop News", "" 
+"Comic Shop News Vol.3.cbr", "Comic Shop News", "" 
+"Comic Shop News V 3.cbr", "Comic Shop News", ""
+"Comic Shop News Volume 3.cbr", "Comic Shop News", "" 
+"Comic Shop News Volume23.cbr", "Comic Shop News", "" 
+"Comic Shop News Vol 5.cbr", "Comic Shop News", "" 
+"Comic Shop News Vol5.cbr", "Comic Shop News", "" 
+"Comic Shop News V1.cbr", "Comic Shop News", ""
+     
+"Comic Shop News Vol..cbr", "Comic Shop News Vol.", "" 
+"Comic Shop News V.cbr", "Comic Shop News V", ""
+"Comic Shop News Volume.cbr", "Comic Shop News Volume", "" 
+"Comic Shop News Vol.cbr", "Comic Shop News Vol", ""
+"Comic Shop News Volumes 3.cbr", "Comic Shop News Volumes", "3"
+
+
+# the "of" problem
+"Lone Ranger Death of Zorro 2 of 5 (2011)(FBScan)(C2C).cbr" "Lone Ranger Death of Zorro" "2" "2011"
+"Powerman & Iron Fist 2of5 (2011)(FBScan)(C2C).cbr" "Powerman & Iron Fist" "2" "2011"
+"Ultimate Comics Hawkeye 2 of4(2011)(FBScan)(C2C).cbr" "Ultimate Comics Hawkeye" "2" "2011"
+"2 of 4 - Ultimate Comics Hawkeye (2011)(FBScan)(C2C).cbr" "Ultimate Comics Hawkeye" "2" "2011"
+
+
+# there can be trouble if the comic has NO issue number
+"Conan - Free Comic Book Day 2006 Special V2006 #1 (2006).cbr" "Conan - Free Comic Book Day 2006 Special" "1" "2006"
+"Marvel Season One Guide (c2c)(2011)(Re-em).cbr" "Marvel Season One Guide" "" "2011"
+"Season One Guide (2011) (Digital) (Empire-Meganubis).cbr" "Season One Guide" "" "2011"
+"The CBLDF Presents Liberty Annual 2011 (2011) (four covers) (c2c) (Minutemen-DTs).cbz" "The CBLDF Presents Liberty Annual 2011" "" "2011"
+"Guff! (1998) (c2c) (FlipBook + Card) (Popbot & ArtNet-DCP)" "Guff!" "" "1998"
+"Lorna, Relic Wrangler (2011) (Minutemen-DTs).cbz" "Lorna, Relic Wrangler" "" "2011"
+"Red Sonja - Deluge (noads) (2011) (Minutemen-Penner).cbr" "Red Sonja - Deluge" "" "2011"
+
+
+# this is a common format created by comicrack scripts
+"Conan_ Road of Kings V2010 #3 (of 6) (2011)" "Conan Road of Kings" "3" "2010"
+"King Conan_ The Scarlet Citadel V2011 #3 (of 4) (2011).zip" "King Conan The Scarlet Citadel" "3" "2011"
+"Conan - Book of Thoth V2006 #2 (2006)" "Conan - Book of Thoth" "2" "2006"
+"Conan the Cimmerian_ The Weight of the Crown V2010 #1 (2010).cbz" "Conan the Cimmerian The Weight of the Crown" "1" "2010"
+"Star Wars_ The Old Republic - The Lost Suns V2011 #4 (of 5) (2011).cbz" "Star Wars The Old Republic - The Lost Suns" "4" "2011"
+"Batman Beyond V2010 #3 (of 6) (2010).cbz" "Batman Beyond" "3" "2010"
+
+
+# some filenames have the issue number embedded mid-name.  these issue numbers
+# should be parsed, EXCEPT when they look like a year
+"Conan - Free Comic Book Day 2006 Special V2006 (2006).cbz" "Conan - Free Comic Book Day 2006 Special" "" "2006"
+"Conan - Free Comic Book Day 2006a Special V2006 (2006).cbz" "Conan - Free Comic Book Day Special" "2006a" "2006"
+"Cobra 04 - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra - Cobra Civil War", "4" "2011"
+"Cobra      05.3a - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra - Cobra Civil War", "05.3a" "2011"
+"G.I. Joe v2 06 - Cobra Civil War (2011)(noads)(Aardvark).cbr" "G.I. Joe - Cobra Civil War" "6" "2011"
+"Action Comics 200 V1 (1955-1)" "Action Comics" "200" "1955"
+
+# some filenames have a reading list number prepended to them.  In SOME cases,
+# we can recognize that and strip it off
+"013. Fear itself - The Worthy 02.cbr" "Fear itself - The Worthy" "2"
+"013 - Fear itself - The Worthy 02.cbr" "Fear itself - The Worthy" "2"
+" 13-Fear itself - The Worthy 02.cbr" "Fear itself - The Worthy" "2"
+"13.Fear itself - The Worthy 02.cbr" "13.Fear itself - The Worthy" "2"
+"13.3 - Fear itself - The Worthy 02.cbr" "13.3 - Fear itself - The Worthy" "2"
+# but we should never wreck valid titles like these:
+"4 Conan.cbz" "Conan" "4"
+"4.2a Conan the Man.cbr" "Conan the Man" "4.2a"
+
+# coryhigh: can we improve on parsing lines like  this (crossover numbering)?
+#"015 The Mighty Thor v1 411" "The Mighty Thor" "411"
+
+# test the extraction of year (volume) from the names
+"Conan is Cool (2006  ).cbz" "Conan is Cool" "" "2006"
+"Conan is Cool [2006  ].cbz" "Conan is Cool" "" "2006"
+"Conan is Cool 2002 ( 2006).cbz" "Conan is Cool 2002" "" "2006"
+"Conan is Cool 2002 (2406).cbz" "Conan is Cool 2002" "" ""
+"Conan is Cool [2002 ] (2406).cbz" "Conan is Cool" "" "2002"
+"Conan is Cool (1802) ( 2406).cbz" "Conan is Cool" "" ""
+"Conan is Cool (1802) (2009).cbz" "Conan is Cool" "" "2009"
+"(2001)Conan is Cool (1802) (2109).cbz" "Conan is Cool" "" "2001"
+"[2001]Conan is Cool (1802) (2109).cbz" "Conan is Cool" "" "2001"
+
+"Conan is Cool (2006-2009 ).cbz" "Conan is Cool" "" "2006"
+"Conan is Cool {2006 - 2009}.cbz" "Conan is Cool" "" "2006"
+"Conan is Cool ( 2006 -09).cbz" "Conan is Cool" "" "2006"
+"Conan is Cool (2006-9).cbz" "Conan is Cool" "" "2006"
+"Conan is Cool [2006-9].cbz" "Conan is Cool" "" "2006"
+"Conan is Cool {2006-9 }.cbz" "Conan is Cool" "" "2006"
+"Conan is Cool [ 2006 - 9].cbz" "Conan is Cool" "" "2006"
+"Conan is Cool (2006-229).cbz" "Conan is Cool" "" "2006"
+
+"Conan is Cool #5 V2003.cbz" "Conan is Cool" "5" "2003"
+"Conan is Cool #5 V2403.cbz" "Conan is Cool" "5" ""
+"Conan is Cool #5 V2003 (2005).cbz" "Conan is Cool" "5" "2003"
+"Conan is Cool #5 (2008) V2003 (2005).cbz" "Conan is Cool" "5" "2003"
+"V1995 Conan is Cool #5 V2003.cbz" "Conan is Cool" "5" ""
+"V1995 Conan is Cool #5.cbz" "Conan is Cool" "5" "1995"
+"Conan is Cool #5 v2003" "Conan is Cool" "5" "2003"
+"Conan is Cool_#5_v2003" "Conan is Cool" "5" "2003"
+"Conan is Cool - #5 - v2003" "Conan is Cool" "5" "2003"
+"Conan is Cool-#5-v2003" "Conan is Cool" "5" "2003"
+"Conan is Cool - v2003 - 5" "Conan is Cool" "5" "2003"
+"Conan is Cool-v2003-#5" "Conan is Cool" "5" "2003"
+"Conan is Cool, v2003, 5" "Conan is Cool" "5" "2003"
+"Conan is Cool,v2003,#5" "Conan is Cool" "5" "2003"
+
+
+# some very weird, pathological cases
+"" "" ""
+"(this is a weird name).cbz" "(this is a weird name)" ""
+".weird name #5" ".weird name" "5"
+".werd name #2.cbz" ".werd name" "2"
+"." "." ""
+"__" "__" ""
+"34" "34" ""
+"(what is this) 34.cbz" "(what is this) 34" ""
+"bad.test case should work" "bad" ""
+"reasonable.test.case.34.cbr" "reasonable.test.case.34" ""
+"Fantastic Four 583-586 (2011) (Covers ONLY) (ScanDog & ArtNet-DCP)" "Fantastic Four" "583" "2011"
+"Test Comic #4 (missing right bracket (cory).cbz" "Test Comic (missing right bracket" "4"
+"Deadpool.v3.01.(1997).xmen-blog" "Deadpool." "" "1997"
+
+
