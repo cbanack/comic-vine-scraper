@@ -19,6 +19,8 @@ from bookdata import BookData
 
 clr.AddReference('System')
 from System.IO import Path
+from System.Security.Cryptography import MD5
+from System.Text import Encoding
 
 #==============================================================================
 class ComicBook(object):
@@ -183,15 +185,24 @@ class ComicBook(object):
       svolume = ''
       if sname:
          if bd.volume_year_n and bd.volume_year_n > 0:
-            svolume = "[v" + sstr(bd.volume_year_n) + "]"
+            svolume = sstr(bd.volume_year_n)
       else:
          # if we can't find a name at all (very weird), fall back to the
          # memory ID, which is be unique and thus ensures that this 
          # comic doesn't get lumped in to the same series choice as any 
          # other unnamed comics! 
          sname = "uniqueid-" + utils.sstr(id(self))
-      return sname + svolume
-
+      
+      # coryhigh: maybe add a pref to turn dir uniqueness off
+      # i.e. just don't compute the location
+      location = Path.GetDirectoryName(bd.path_s) if bd.path_s else None
+      location = location if location else ''
+      hash = location + svolume
+      if hash:  
+         with MD5.Create() as md5:
+            bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(location+svolume))
+            hash = ''.join( [ "%02X" % x for x in bytes[:5] ] ).strip()
+      return sname + hash 
 
    #===========================================================================
    def update(self, issue):
