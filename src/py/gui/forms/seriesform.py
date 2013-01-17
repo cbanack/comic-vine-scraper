@@ -298,7 +298,8 @@ class SeriesForm(CVForm):
       Builds and returns the cover image PictureBox for this form.
       'book' -> the ComicBook being scraped
       '''
-      panel = IssueCoverPanel(self.__config, book.issue_num_s) 
+      panel = IssueCoverPanel(self.__config, -9991 \
+         if self.__config.force_series_art_b else book.issue_num_s) 
       panel.Location = Point(523, 30)
       # panel size is determined by the panel itself
       

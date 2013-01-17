@@ -193,14 +193,18 @@ class ComicBook(object):
          # other unnamed comics! 
          sname = "uniqueid-" + utils.sstr(id(self))
       
-      # coryhigh: maybe add a pref to turn dir uniqueness off
-      # i.e. just don't compute the location
+      
+      # generate a hash to add onto the string.  the hash should be identical 
+      # for all comics that belong to the same series, and different otherwise.
+      # not how by default, comics that are in different directories are always
+      # considered to belong to different series. 
       location = Path.GetDirectoryName(bd.path_s) if bd.path_s else None
       location = location if location else ''
-      hash = location + svolume
+      hash = svolume if self.__scraper.config.ignore_folders_b \
+         else location + svolume
       if hash:  
          with MD5.Create() as md5:
-            bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(location+svolume))
+            bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(hash))
             hash = ''.join( [ "%02X" % x for x in bytes[:5] ] ).strip()
       return sname + hash 
 

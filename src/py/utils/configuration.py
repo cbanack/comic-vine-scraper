@@ -63,6 +63,8 @@ class Configuration(object):
    __DEFAULT_SHOW_COVERS = True
    __DEFAULT_WELCOME_DIALOG = True 
    __DEFAULT_ALT_SEARCH_REGEX = "" 
+   __DEFAULT_IGNORE_FOLDERS = False
+   __DEFAULT_FORCE_SERIES_ART = False
   
   
    #=========================================================================== 
@@ -113,6 +115,7 @@ class Configuration(object):
       # when we save and load a Configuration object, but the parsed values are
       # tied to the string, and only change when it does.
       self.__advanced_settings_s = None
+      
       self.__ignored_publishers_sl = None # ignore publishers out of searches
       self.__ignored_before_year_n = None # filter series started before year
       self.__ignored_after_year_n = None # filter series started after year
@@ -121,6 +124,8 @@ class Configuration(object):
       self.__show_covers_b = None # whether to display issue covers by default
       self.__welcome_dialog_b = None # whether to display the welcome dialog
       self.__alt_search_regex_s = None # alternate filename parsing regex
+      self.__ignore_folders_b = None # use folders w/ grouping issue into series
+      self.__force_series_art_b = None # series dialog always shows series art?
       self.__set_advanced_settings_s("")
       
       return self
@@ -146,6 +151,8 @@ class Configuration(object):
       self.__show_covers_b = c.__DEFAULT_SHOW_COVERS
       self.__welcome_dialog_b = c.__DEFAULT_WELCOME_DIALOG
       self.__alt_search_regex_s = c.__DEFAULT_ALT_SEARCH_REGEX
+      self.__ignore_folders_b = c.__DEFAULT_IGNORE_FOLDERS
+      self.__force_series_art_b = c.__DEFAULT_FORCE_SERIES_ART
       
       # 2. scan through the string looking at each line for advanced settings
       lines_s = [ x.strip() for x in self.__advanced_settings_s.split("\n") \
@@ -196,7 +203,16 @@ class Configuration(object):
             except:
                pass # nope, looks like it's not a parsable regex
          
-         # coryhigh: make a FORCE_SERIES_ART option
+         # 2i. parse the "IGNORE_FOLDERS=XXXX" line
+         match = re.match(pattern_s.format("IGNORE_FOLDERS"), line_s)
+         if match:
+            self.__ignore_folders_b = match.group(1).strip().lower()=="true"
+            
+         # 2j. parse the "FORCE_SERIES_ART=XXXX" line
+         match = re.match(pattern_s.format("FORCE_SERIES_ART"), line_s)
+         if match:
+            self.__force_series_art_b = match.group(1).strip().lower()=="true"
+            
       
    
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
@@ -234,6 +250,14 @@ class Configuration(object):
    alt_search_regex_s = property( 
       lambda self : self.__alt_search_regex_s, None, None,
       "Alternate regex for parsing issue/series/etc from filename. Not None.")
+   
+   ignore_folders_b = property( 
+      lambda self : self.__ignore_folders_b, None, None,
+      "Whether to consider folders when grouping issues into series. Not None.")
+   
+   force_series_art_b = property( 
+      lambda self : self.__force_series_art_b, None, None,
+      "Whether or not to force the series dialog to always display series art.")
       
    
    #===========================================================================
@@ -524,21 +548,24 @@ class Configuration(object):
             .format(self.never_ignore_threshold_n))
       
       if self.update_rating_b != c.__DEFAULT_UPDATE_RATING:
-         lines_sl.append("Scrape Community Rating into each issue (slow).\n"\
-            .format(self.update_rating_b))
+         lines_sl.append("Scrape Community Rating into each issue (slow).\n")
          
       if self.show_covers_b != c.__DEFAULT_SHOW_COVERS:
-         lines_sl.append("Hide series and issue covers while scraping.\n"\
-            .format(self.show_covers_b))
+         lines_sl.append("Hide series and issue covers while scraping.\n")
          
       if self.welcome_dialog_b != c.__DEFAULT_WELCOME_DIALOG:
-         lines_sl.append("Do not show the initial 'Welcome Dialog'.\n"\
-            .format(self.welcome_dialog_b))
+         lines_sl.append("Do not show the initial 'Welcome Dialog'.\n")
       
       if self.alt_search_regex_s != c.__DEFAULT_ALT_SEARCH_REGEX:
          lines_sl.append("Alternate Filename Search Regex:\n   {0}\n"\
             .format(self.alt_search_regex_s))
                
+      if self.ignore_folders_b != c.__DEFAULT_IGNORE_FOLDERS:
+         lines_sl.append("Ignore folders when grouping issues into series.\n")
+         
+      if self.force_series_art_b != c.__DEFAULT_FORCE_SERIES_ART:
+         lines_sl.append("Always display Series Art in the Series dialog.\n")
+         
       advanced_lines_s = "".join(lines_sl)
       if advanced_lines_s:
          retval += "\n" + advanced_lines_s + \
