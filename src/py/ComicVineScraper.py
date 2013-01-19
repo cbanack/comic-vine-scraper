@@ -30,7 +30,6 @@ import re
 from scrapeengine import ScrapeEngine
 from configform import ConfigForm
 from utils import sstr
-from comicbook import ComicBook
 from resources import Resources
 import db
 
