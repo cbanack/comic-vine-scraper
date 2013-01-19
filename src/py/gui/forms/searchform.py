@@ -76,7 +76,8 @@ class SearchForm(CVForm):
       self.__skip_button = self.__build_skipbutton()
       self.__cancel_button = self.__build_cancelbutton()
       self.__textbox = self.__build_textbox(
-         initial_search_s, self.__search_button, self.__cancel_button)
+         failed_search_s if failed_search_s else initial_search_s, 
+         self.__search_button, self.__cancel_button)
       
       # configure this form, and add all gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
