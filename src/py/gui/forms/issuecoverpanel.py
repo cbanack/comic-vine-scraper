@@ -352,13 +352,6 @@ class IssueCoverPanel(Panel):
          else:
             raise Exception()
             
-               
-         # corylow: "IssueCoverPanelSeries" as "Series Art"
-         # corylow: "IssueCoverPanelSearching" as "Issue {0} (searching)"
-         # corylow: "IssueCoverPanelSearchable" as "Issue {0} (more covers)"
-         # corylow: "IssueCoverPanelSearchable" as "Issue {0} - Single Cover"
-            
-      
          # 4. search to see if there are any more covers to find
          search_for_more_covers = cache[ref].get_status()=='searching'
          if search_for_more_covers:
