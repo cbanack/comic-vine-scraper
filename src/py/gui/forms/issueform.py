@@ -277,7 +277,6 @@ class IssueForm(CVForm):
       label.UseMnemonic = False
       sep = '  ' if len(fullname_s) > 45 else '\n'
       label.Text = i18n.get("IssueFormChooseText").format(fullname_s, sep)
-      # corylow: issueFormChooseText as "The following issues were found for {0}.{1}Please choose the issue that matches your comic."
          
       if self.__config.show_covers_b:
          label.Location = Point(218, 20)
