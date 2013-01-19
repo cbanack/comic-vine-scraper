@@ -10,7 +10,6 @@ import i18n
 from buttondgv import ButtonDataGridView
 from issuecoverpanel import IssueCoverPanel
 from cvform import CVForm
-import log
 
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection
@@ -38,7 +37,7 @@ class IssueForm(CVForm):
    '''
    
    #===========================================================================
-   def __init__(self, scraper, issue_ref_hint, issue_refs, series_name_s):
+   def __init__(self, scraper, issue_ref_hint, issue_refs, series_ref):
       ''' 
       Initializes this form.  If a good issue key hint is given, that issue will
       be preselected in the table if possible.
@@ -46,7 +45,7 @@ class IssueForm(CVForm):
       'scraper' -> the currently running ScrapeEngine
       'issue_ref_hint' -> may be the issue id for the given book (or may not!)
       'issue_refs' -> a set or list containing the IssueRefs to display
-      'series_name_s' -> the name of the series that the given issues belong to
+      'series_ref' -> SeriesRef for the series that the given issues belong to
       '''
       
       # the the shared global configuration
@@ -83,11 +82,11 @@ class IssueForm(CVForm):
       if len(issue_refs) <= 0:
          raise Exception("do not invoke the IssueForm with no IssueRefs!")
       CVForm.__init__(self, scraper.comicrack.MainWindow, "issueformLocation")
-      self.__build_gui(issue_ref_hint, series_name_s)
+      self.__build_gui(issue_ref_hint, series_ref)
       scraper.cancel_listeners.append(self.Close)
       
    # ==========================================================================
-   def __build_gui(self, issue_ref_hint, series_name_s):
+   def __build_gui(self, issue_ref_hint, series_ref):
       ''' Constructs and initializes the gui for this form. '''
       
       # 1. --- build each gui component
@@ -95,14 +94,14 @@ class IssueForm(CVForm):
       self.__skip_button = self.__build_skipbutton()
       back_button = self.__build_backbutton()
       self.__table = self.__build_table(
-         self.__issue_refs, issue_ref_hint, series_name_s, self.__ok_button)
-      self.__label = self.__build_label() # must build AFTER table is built!
+         self.__issue_refs, issue_ref_hint, self.__ok_button)
+      self.__label = self.__build_label(series_ref) # must build AFTER table!
       self.__coverpanel = self.__build_coverpanel()
       
       # 2. --- configure this form, and add all the gui components to it      
       self.AutoScaleMode = AutoScaleMode.Font
       self.ClientSize = Size(730, 395)
-      self.Text = i18n.get("IssueFormTitle") + " - '" + series_name_s + "'"
+      self.Text = i18n.get("IssueFormTitle")
       self.FormClosed += self.__form_closed_fired
       self.KeyPreview = True;
       self.KeyDown += self.__key_was_pressed
@@ -128,15 +127,13 @@ class IssueForm(CVForm):
 
 
    # ==========================================================================   
-   def __build_table(self, issue_refs, issue_ref_hint,
-         series_name_s, enter_button):
+   def __build_table(self, issue_refs, issue_ref_hint, enter_button):
       '''
       Builds and returns the table for this form. If a good issue key hint is 
       given, that issue will be preselected in the table if possible.
       
       'issue_refs' -> a list with one IssueRef object for each row in the table
       'issue_ref_hint' -> may be the issue key for the given book (or may not!)
-      'series_name_s' -> the name of the series to which all issues belong
       'enter_button' -> the button to "press" if the user hits enter
       '''
       
@@ -257,14 +254,30 @@ class IssueForm(CVForm):
 
 
    # ==========================================================================
-   def __build_label(self):
+   def __build_label(self, series_ref):
       ''' builds and returns the main text label for this form '''
-   
+
+      # 1. compute the best possible full name for the given SeriesRef   
+      name_s = series_ref.series_name_s
+      publisher_s = series_ref.publisher_s
+      year_n = series_ref.volume_year_n
+      year_s = sstr(year_n) if year_n > 0 else ''
+      fullname_s = ''
+      if name_s:
+         if publisher_s:
+            if year_s:
+               fullname_s = "'"+name_s+"' (" + publisher_s + ", " + year_s + ")"
+            else:
+               fullname_s = "'"+name_s+"' (" + publisher_s + ")"
+         else:
+            fullname_s = "'"+name_s+"'"
+            
+      
       label = Label()
       label.UseMnemonic = False
-      label.Text = i18n.get("IssueFormChooseText") \
-         if self.__found_issue_in_table else \
-         i18n.get("IssueFormChooseUnknownText")
+      sep = '  ' if len(fullname_s) > 45 else '\n'
+      label.Text = i18n.get("IssueFormChooseText").format(fullname_s, sep)
+      # corylow: issueFormChooseText as "The following issues were found for {0}.{1}Please choose the issue that matches your comic."
          
       if self.__config.show_covers_b:
          label.Location = Point(218, 20)

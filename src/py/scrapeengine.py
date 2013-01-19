@@ -621,7 +621,7 @@ class ScrapeEngine(object):
             log.debug("   ...could not identify issue number automatically")
          hint = result.get_ref() if result else None
          log.debug("displaying the issue selection dialog...")
-         with IssueForm(self, hint, issue_refs, series_name_s) as issue_form:
+         with IssueForm(self, hint, issue_refs, series_ref) as issue_form:
             result = issue_form.show_form()
             result = result if result else IssueFormResult("BACK")
          log.debug('   ...user chose to ', result.get_debug_string())
