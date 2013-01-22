@@ -55,7 +55,6 @@ class Configuration(object):
    __SUMMARY_DIALOG = 'summaryDialog'
    
    # default values for advanced settings
-   __DEFAULT_IGNORED_PUBLISHERS = set()
    __DEFAULT_IGNORED_BEFORE_YEAR = 0
    __DEFAULT_IGNORED_AFTER_YEAR = 9999999
    __DEFAULT_NEVER_IGNORE_THRESHOLD = 9999999
@@ -117,6 +116,7 @@ class Configuration(object):
       self.__advanced_settings_s = None
       
       self.__ignored_publishers_sl = None # ignore publishers out of searches
+      self.__publisher_aliases_sm = None # map of publisher names to new names
       self.__ignored_before_year_n = None # filter series started before year
       self.__ignored_after_year_n = None # filter series started after year
       self.__never_ignore_threshold_n = None # min issues before we don't filter
@@ -143,7 +143,8 @@ class Configuration(object):
       
       # 1. reset to defaults
       c = Configuration
-      self.__ignored_publishers_sl = c.__DEFAULT_IGNORED_PUBLISHERS
+      self.__ignored_publishers_sl = set()
+      self.__publisher_aliases_sm = dict()
       self.__ignored_before_year_n = c.__DEFAULT_IGNORED_BEFORE_YEAR
       self.__ignored_after_year_n = c.__DEFAULT_IGNORED_AFTER_YEAR
       self.__never_ignore_threshold_n = c.__DEFAULT_NEVER_IGNORE_THRESHOLD
@@ -213,6 +214,15 @@ class Configuration(object):
          if match:
             self.__force_series_art_b = match.group(1).strip().lower()=="true"
             
+         # 2K. parse the "PUBLISHER_ALIAS=XXXX-->YYYY" line
+         match = re.match(pattern_s.format("PUBLISHER_ALIAS"), line_s)
+         if match:
+            match = re.match(r"^\s*(\S.*?)[- ]+>\s*(\S.*?)$", match.group(1))
+            if match:
+               pub, alias = match.group(1).strip(" '\"").lower(), \
+                  match.group(2).strip(" '\"")
+               if pub and alias and len(alias) <= 50: 
+                  self.__publisher_aliases_sm[pub] = alias
       
    
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
@@ -222,6 +232,10 @@ class Configuration(object):
    ignored_publishers_sl = property( 
       lambda self : list(self.__ignored_publishers_sl), None, None,
       "List of publisher names to filter out of series searches. Not None.")
+   
+   publisher_aliases_sm = property( 
+      lambda self : dict(self.__publisher_aliases_sm), None, None,
+      "Dict mapping publisher names (lower case) to user's aliases. Not None.")
    
    ignored_before_year_n = property( 
       lambda self : self.__ignored_before_year_n, None, None,
@@ -530,10 +544,6 @@ class Configuration(object):
       lines_sl = []
       c = Configuration
       
-      if self.ignored_publishers_sl != c.__DEFAULT_IGNORED_PUBLISHERS:
-         for publisher_s in self.ignored_publishers_sl:
-            lines_sl.append("Ignore all series published by '{0}'\n"\
-               .format(publisher_s))
       
       if self.ignored_before_year_n != c.__DEFAULT_IGNORED_BEFORE_YEAR:
          lines_sl.append("Ignore all series that start before {0}.\n"\
@@ -565,8 +575,17 @@ class Configuration(object):
          
       if self.force_series_art_b != c.__DEFAULT_FORCE_SERIES_ART:
          lines_sl.append("Always display Series Art in the Series dialog.\n")
+       
+      for publisher_s in self.ignored_publishers_sl:
+         lines_sl.append("Ignore all series published by '{0}'\n"\
+            .format(publisher_s))
          
-      advanced_lines_s = "".join(lines_sl)
+      for publisher_s in self.publisher_aliases_sm.keys():
+         lines_sl.append("Replace publisher '{0}' with '{1}'\n"\
+            .format(publisher_s, self.publisher_aliases_sm[publisher_s])) 
+
+            
+      advanced_lines_s = "".join(lines_sl) 
       if advanced_lines_s:
          retval += "\n" + advanced_lines_s + \
          "-------------------------------------------------------------------"
