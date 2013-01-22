@@ -277,12 +277,24 @@ class ComicBook(object):
       if value is None: bd.dont_update("volume_year_n")
       else: bd.volume_year_n = value
        
+      # coryhigh: deal with alternate imprints here?
+      #   issue.publisher_s = cvimprints.find_parent_publisher(publisher_s)
+      #   if issue.publisher_s != publisher_s:
+      #      issue.imprint_s = publisher_s
+               
       # if we found an imprint for this issue, the user may prefer that the 
       # imprint be listed as the publisher (instead). if so, make that change
       # before writing the 'imprint' and 'publisher' fields out to the book:
       if not config.convert_imprints_b and issue.imprint_s:
          issue.publisher_s = issue.imprint_s
-         issue.imprint_s = ''                                   
+         issue.imprint_s = ''
+         
+      # the user may have defined publisher aliases. deal with that here.
+      aliases = config.publisher_aliases_sm;
+      if issue.publisher_s.lower() in aliases:
+         issue.publisher_s = aliases[issue.publisher_s.lower()]
+      if issue.imprint_s.lower() in aliases:
+         issue.imprint_s = aliases[issue.imprint_s.lower()]
             
       # imprint -------------------
       value = self.__massage_new_string("Imprint", issue.imprint_s, \
