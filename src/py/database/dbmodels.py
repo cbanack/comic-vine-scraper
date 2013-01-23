@@ -242,6 +242,7 @@ class Issue(object):
       self.summary_s = ''
       self.webpage_s = '' 
       
+      self.day_n = -1
       self.month_n = -1
       self.year_n = -1
       self.volume_year_n = -1
@@ -323,6 +324,17 @@ class Issue(object):
    webpage_s = property( lambda self : self.__webpage_s, __set_webpage_s )
       
       
+   # the publication day for this Issue, as an int. not None. 
+   # will always be <= 31 and >= 1, or else -1 for unknown.
+   def __set_day_n(self, day_n):
+      ''' called when you assign a value to 'self.day_n' '''
+      try:
+         self.__day_n = int(day_n)
+         self.__day_n = self.__day_n if (1 <= self.__day_n <= 31) else -1
+      except:
+         self.__day_n = -1
+   day_n = property( lambda self : self.__day_n, __set_day_n )
+   
    # the publication month for this Issue, as an int. not None. 
    # will always be <= 12 and >= 1, or else -1 for unknown.
    def __set_month_n(self, month_n):

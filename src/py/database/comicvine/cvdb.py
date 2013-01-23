@@ -391,7 +391,7 @@ def __issue_parse_simple_stuff(issue, dom):
          dom.results.site_detail_url.startswith("http"):
       issue.webpage_s = dom.results.site_detail_url 
    
-   # grab the published year and month
+   # grab the published year, month and day
    if "publish_year" in dom.results.__dict__ and \
       is_string(dom.results.publish_year):
       try:
@@ -404,6 +404,12 @@ def __issue_parse_simple_stuff(issue, dom):
          issue.month_n = int(dom.results.publish_month)
       except:
          pass # got an unrecognized "month" format...?
+   if "publish_day" in dom.results.__dict__ and \
+      is_string(dom.results.publish_day):
+      try:
+         issue.day_n = int(dom.results.publish_day)
+      except:
+         pass # got an unrecognized "day" format...?
       
    # grab the image for this issue and store it as the first element
    # in the list of issue urls.
