@@ -270,6 +270,13 @@ class ComicBook(object):
       if value is None: bd.dont_update("month_n")
       else: bd.month_n = value
       
+      # day ------------------------
+      value = self.__massage_new_number("Day", issue.day_n, bd.day_n, \
+         config.update_day_b, config.ow_existing_b, config.ignore_blanks_b,\
+         -1, lambda x : x >=1 and x <= 31 )
+      if value is None: bd.dont_update("day_n")
+      else: bd.day_n = value
+      
       # volume --------------------
       value = self.__massage_new_number("Volume", issue.volume_year_n, \
       bd.volume_year_n, config.update_volume_b, config.ow_existing_b, \
@@ -740,7 +747,7 @@ class ComicBook(object):
       #  1) the update option is turned on for this particular field
       #  2) we can overwrite the existing value, or there is no existing value
       #  3) we're not overwriting with a blank value unless we're allowed to
-      retval = None;      
+      retval = None;  
       if update and (overwrite or old_value == blank_value) and \
          not (ignoreblanks and new_value == blank_value):
          retval = new_value

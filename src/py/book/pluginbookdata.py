@@ -32,11 +32,12 @@ class PluginBookData(BookData):
          return s.split(",") if s else [] 
       
       # load our own copy of all data from the ComicRack database
-      self.series_s = crbook.Series    # don't use shadows
-      self.issue_num_s = crbook.Number # don't use shadows
-      self.year_n =  crbook.Year       # don't use shadows
-      self.volume_year_n = crbook.ShadowVolume
+      self.series_s = crbook.Series    # don't use shadows!  we'll parse these 3
+      self.issue_num_s = crbook.Number # values from the comic's filename our
+      self.year_n =  crbook.Year       # self if they are not present!
       self.month_n = crbook.Month
+      self.day_n = crbook.Day
+      self.volume_year_n = crbook.ShadowVolume
       self.format_s = crbook.ShadowFormat
       self.title_s = crbook.Title
       self.crossovers_sl = split(crbook.AlternateSeries)
@@ -120,6 +121,10 @@ class PluginBookData(BookData):
       if "month_n" in ok_to_update:
          self.__crbook.Month = self.month_n
          ok_to_update.remove("month_n")
+         
+      if "day_n" in ok_to_update:
+         self.__crbook.Day = self.day_n
+         ok_to_update.remove("day_n")
          
       if "format_s" in ok_to_update:
          self.__crbook.Format = self.format_s

@@ -20,6 +20,7 @@ class BookData(object):
       self.__volume_year_n = -1 # -1 is a blank value
       self.__year_n =  -1 # -1 is a blank value
       self.__month_n = -1 # -1 is a blank value
+      self.__day_n = -1 # -1 is a blank value
       self.__format_s = ""
       self.__title_s =""
       self.__crossovers_sl = [] 
@@ -216,6 +217,15 @@ class BookData(object):
               20 = Mar/Apr (4)    30 = Aug/Sep (9)
               21 = May/Jun (6)    31 = Oct/Nov (11)
               22 = Jul/Aug (8)                         ''')
+   
+   
+   #===========================================================================   
+   def __set_day_n(self, day_n = None):
+      day_n = -1 if day_n is None else int(day_n)
+      self.__day_n = day_n if day_n >= 0 else BookData.blank("day_n")
+      
+   day_n = property( lambda self : self.__day_n, __set_day_n, __set_day_n, 
+      "Publication day of this book, an int from 1 to 31, where -1 is unknown" )
 
    
    #===========================================================================   

@@ -80,6 +80,20 @@ class TestBookData(TestCase):
       self.assertEquals(book.month_n, BookData.blank("month_n"))
       
    # --------------------------------------------------------------------------
+   def test_day_n(self):
+      ''' Checks to see if the BookData's day_n property works. '''
+      book = BookData()
+      self.assertEquals(book.day_n, BookData.blank("day_n"))
+      book.day_n = 15
+      self.assertEquals(book.day_n, 15)
+      book.day_n = "16"
+      self.assertEquals(book.day_n, 16)
+      book.day_n = None
+      self.assertEquals(book.day_n, BookData.blank("day_n"))
+      del book.year_n
+      self.assertEquals(book.day_n, BookData.blank("day_n"))
+      
+   # --------------------------------------------------------------------------
    def test_format_s(self):
       ''' Checks to see if the BookData's format_s property works. '''
       book = BookData()
