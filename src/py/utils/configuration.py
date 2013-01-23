@@ -117,6 +117,7 @@ class Configuration(object):
       
       self.__ignored_publishers_sl = None # ignore publishers out of searches
       self.__publisher_aliases_sm = None # map of publisher names to new names
+      self.__user_imprints_sm = None # map of publisher names to imprints
       self.__ignored_before_year_n = None # filter series started before year
       self.__ignored_after_year_n = None # filter series started after year
       self.__never_ignore_threshold_n = None # min issues before we don't filter
@@ -145,6 +146,7 @@ class Configuration(object):
       c = Configuration
       self.__ignored_publishers_sl = set()
       self.__publisher_aliases_sm = dict()
+      self.__user_imprints_sm = dict()
       self.__ignored_before_year_n = c.__DEFAULT_IGNORED_BEFORE_YEAR
       self.__ignored_after_year_n = c.__DEFAULT_IGNORED_AFTER_YEAR
       self.__never_ignore_threshold_n = c.__DEFAULT_NEVER_IGNORE_THRESHOLD
@@ -217,12 +219,24 @@ class Configuration(object):
          # 2K. parse the "PUBLISHER_ALIAS=XXXX-->YYYY" line
          match = re.match(pattern_s.format("PUBLISHER_ALIAS"), line_s)
          if match:
-            match = re.match(r"^\s*(\S.*?)[- ]+>\s*(\S.*?)$", match.group(1))
+            match = re.match(r"^\s*(\S.*?)\s*[-=]+>\s*(\S.*?)$", match.group(1))
             if match:
                pub, alias = match.group(1).strip(" '\"").lower(), \
                   match.group(2).strip(" '\"")
                if pub and alias and len(alias) <= 50: 
                   self.__publisher_aliases_sm[pub] = alias
+                  
+         # 2L. parse the "IMPRINT=IIII-->PPPP" line
+         match = re.match(pattern_s.format("IMPRINT"), line_s)
+         if match:
+            match = re.match(r"^\s*(\S.*?)\s*[-=]+>\s*(\S.*?)$", match.group(1))
+            if match:
+               imprint_s = match.group(1).lower().strip(" '\"")
+               publisher_s = match.group(2).strip(" '\"")
+               if publisher_s and imprint_s and \
+                     publisher_s.lower() != imprint_s.lower() and \
+                     len(publisher_s) <= 50 and len(imprint_s) <= 50:  
+                  self.__user_imprints_sm[imprint_s] = publisher_s
       
    
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
@@ -236,6 +250,10 @@ class Configuration(object):
    publisher_aliases_sm = property( 
       lambda self : dict(self.__publisher_aliases_sm), None, None,
       "Dict mapping publisher names (lower case) to user's aliases. Not None.")
+   
+   user_imprints_sm = property( 
+      lambda self : dict(self.__user_imprints_sm), None, None,
+      "Dict mapping user's imprint names (lower case) to publishers. Not None.")
    
    ignored_before_year_n = property( 
       lambda self : self.__ignored_before_year_n, None, None,
@@ -580,6 +598,10 @@ class Configuration(object):
          lines_sl.append("Ignore all series published by '{0}'\n"\
             .format(publisher_s))
          
+      for imprint_s in self.user_imprints_sm.keys():
+         lines_sl.append("Treat '{0}' as an imprint of '{1}'\n"\
+            .format(imprint_s, self.user_imprints_sm[imprint_s]))
+          
       for publisher_s in self.publisher_aliases_sm.keys():
          lines_sl.append("Replace publisher '{0}' with '{1}'\n"\
             .format(publisher_s, self.publisher_aliases_sm[publisher_s])) 
