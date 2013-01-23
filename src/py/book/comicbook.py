@@ -116,11 +116,11 @@ class ComicBook(object):
       tags = self.__scraper.config.rescrape_tags_b
       
       if notes == tags or tags:
-         bd.tags_sl = self.__update_tags_sl(bd.tags_sl, None);
+         bd.tags_sl = self.__add_key_to_tags(bd.tags_sl, None);
          log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Tags'")
       
       if notes == tags or notes:
-         bd.notes_s =self.__update_notes_s(bd.notes_s, None)
+         bd.notes_s =self.__add_key_to_notes(bd.notes_s, None)
          log.debug("Added ", ComicBook.CVDBSKIP, " flag to comic book 'Notes'")
          
       bd.update()
@@ -277,38 +277,8 @@ class ComicBook(object):
       if value is None: bd.dont_update("volume_year_n")
       else: bd.volume_year_n = value
        
-      # coryhigh: deal with alternate imprints here?
-      #   issue.publisher_s = cvimprints.find_parent_publisher(publisher_s)
-      #   if issue.publisher_s != publisher_s:
-      #      issue.imprint_s = publisher_s
-               
-      # if we found an imprint for this issue, the user may prefer that the 
-      # imprint be listed as the publisher (instead). if so, make that change
-      # before writing the 'imprint' and 'publisher' fields out to the book:
-      if not config.convert_imprints_b and issue.imprint_s:
-         issue.publisher_s = issue.imprint_s
-         issue.imprint_s = ''
-         
-      # the user may have defined publisher aliases. deal with that here.
-      aliases = config.publisher_aliases_sm;
-      if issue.publisher_s.lower() in aliases:
-         issue.publisher_s = aliases[issue.publisher_s.lower()]
-      if issue.imprint_s.lower() in aliases:
-         issue.imprint_s = aliases[issue.imprint_s.lower()]
-            
-      # imprint -------------------
-      value = self.__massage_new_string("Imprint", issue.imprint_s, \
-         bd.imprint_s, config.update_imprint_b, config.ow_existing_b, \
-         config.ignore_blanks_b )
-      if value is None: bd.dont_update("imprint_s")
-      else: bd.imprint_s = value
-            
-      # publisher -----------------
-      value = self.__massage_new_string("Publisher", issue.publisher_s, \
-         bd.publisher_s, config.update_publisher_b, config.ow_existing_b, \
-         config.ignore_blanks_b )
-      if value is None: bd.dont_update("publisher_s")
-      else: bd.publisher_s = value
+      # publisher and imprint -----
+      self.__update_publishers(issue, config)
       
       # characters ----------------
       value = self.__massage_new_string_list("Characters", \
@@ -395,27 +365,72 @@ class ComicBook(object):
       else: bd.rating_n = value
          
       # tags -------------------
-      new_tags = self.__update_tags_sl(bd.tags_sl, issue.issue_key)
+      new_tags = self.__add_key_to_tags(bd.tags_sl, issue.issue_key)
       value = self.__massage_new_string_list("Tags", new_tags, \
          bd.tags_sl, config.rescrape_tags_b, True, False )
       if value is None: bd.dont_update("tags_sl")
       else: bd.tags_sl = value
       
       # notes ------------------
-      new_notes = self.__update_notes_s(bd.notes_s, issue.issue_key)
+      new_notes = self.__add_key_to_notes(bd.notes_s, issue.issue_key)
       value = self.__massage_new_string("Notes", new_notes, \
          bd.notes_s, config.rescrape_notes_b, True, False )
       if value is None: bd.dont_update("notes_s")
       else: bd.notes_s = value
       
       # cover url -------------
-      self.__update_cover_url_s(issue)
+      self.__update_cover_url(issue)
       
       bd.update();
    
+   #===========================================================================
+   def __update_publishers(self, issue, config):
+      '''
+      Uses the given Configuration to copy the publisher and imprint data in
+      the given issue into the underlying BookData (changing them as required
+      by the Configuration).  Prints out a debug line for each value.
+      '''
+       
+      bd = self.__bookdata
+      publisher_s = issue.publisher_s # publisher and (maybe) imprint owner
+      imprint_s = issue.imprint_s # imprint, or '' if one there isn't one
+      
+      # 1. the user may have defined their own custom imprint mappings.  
+      # if so, they will override any previously applied imprints
+      key = imprint_s if imprint_s else publisher_s
+      if key and key.lower() in config.user_imprints_sm:
+         publisher_s = config.user_imprints_sm[key.lower()]
+         imprint_s = key
+               
+      # 2. if we found an imprint, the user may prefer that it be listed as 
+      #    the publisher (i.e. if we DON'T convert imprints).
+      if not config.convert_imprints_b and imprint_s:
+         publisher_s = imprint_s
+         imprint_s = ''
+         
+      # 3. the user may have defined publisher aliases. deal with that here.
+      aliases = config.publisher_aliases_sm;
+      if publisher_s.lower() in aliases:
+         publisher_s = aliases[publisher_s.lower()]
+      if imprint_s.lower() in aliases:
+         imprint_s = aliases[imprint_s.lower()]
+      
+      # imprint -------------------
+      value = self.__massage_new_string("Imprint", imprint_s, \
+         bd.imprint_s, config.update_imprint_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
+      if value is None: bd.dont_update("imprint_s")
+      else: bd.imprint_s = value
+            
+      # publisher -----------------
+      value = self.__massage_new_string("Publisher", publisher_s, \
+         bd.publisher_s, config.update_publisher_b, config.ow_existing_b, \
+         config.ignore_blanks_b )
+      if value is None: bd.dont_update("publisher_s")
+      else: bd.publisher_s = value
    
    #===========================================================================
-   def __update_cover_url_s(self, issue):
+   def __update_cover_url(self, issue):
       '''
       Obtains the appropriate cover art url for this book (if available), based
       on the given Issue object.  Sets value in the underlying BookData, and 
@@ -442,7 +457,7 @@ class ComicBook(object):
             
       
    #===========================================================================
-   def __update_tags_sl(self, tags_sl, issue_key):
+   def __add_key_to_tags(self, tags_sl, issue_key):
       '''
       Returns the given tag list, but with a "key tag" for the given issue_key 
       added in (iff key tags are supported by the current database 
@@ -493,7 +508,7 @@ class ComicBook(object):
    
    
    #===========================================================================
-   def __update_notes_s(self, notestring_s, issue_key):
+   def __add_key_to_notes(self, notestring_s, issue_key):
       '''
       Returns a copy of the given comic book note string, but with a "key tag" 
       for the given issue_key appended onto the end (iff key tags are
