@@ -421,6 +421,12 @@ class ComicBook(object):
          publisher_s = aliases[publisher_s.lower()]
       if imprint_s.lower() in aliases:
          imprint_s = aliases[imprint_s.lower()]
+         
+      # 4. if the imprint and the publisher are identical, the user is trying
+      #    to nullify an existing imprint by overriding it to be equal to
+      #    itself. in that case, only keep the publisher.
+      if publisher_s == imprint_s:
+         imprint_s = ''
       
       # imprint -------------------
       value = self.__massage_new_string("Imprint", imprint_s, \

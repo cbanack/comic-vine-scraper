@@ -236,7 +236,6 @@ class Configuration(object):
                imprint_s = match.group(1).lower().strip(" '\"")
                publisher_s = match.group(2).strip(" '\"")
                if publisher_s and imprint_s and \
-                     publisher_s.lower() != imprint_s.lower() and \
                      len(publisher_s) <= 50 and len(imprint_s) <= 50:  
                   self.__user_imprints_sm[imprint_s] = publisher_s
       
