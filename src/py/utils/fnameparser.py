@@ -97,23 +97,26 @@ def __extract(name_s):
    s = recurse_sub(r"\{[^\{]*?\}", s)
    s = recurse_sub(r"\[[^\[]*?\]", s)
    
-   # 4. remove all trace of volume from the name (like "vol. 2a" and "vol -3.1")
+   # 4. clean out underscores
+   s = re.sub(r"_", " ", s)
+    
+   # 5. remove all trace of volume from the name (like "vol. 2a" and "vol -3.1")
    s = re.sub(r"(?i)((v|vol)\.?|volume)\s*-?\s*[0-9]+[.0-9a-z]*", "", s)
    
-   # 5. if the name has things like "4 of 5", remove the " of 5" part
+   # 6. remove all page counts, ie. "245p" or "50 pages"
+   s = re.sub(r"(?i)\b[.,]?\s*\d+\s*(p|pg|pgs|pages)\b[.,]?", "", s)
+   
+   # 7. if the name has things like "4 of 5", remove the " of 5" part
    #    also, if the name has 3-6, remove the -6 part.
    s = re.sub(r"(?i)(?<=\d)(\s*of\s*\d+)", "", s)
    s = re.sub(r"(?<=\d)(-\d+)", "", s)
-   
-   # 6. clean up excess whitespace and underscores
-   s = re.sub(r"_", " ", s) 
 
-   # 7. get an ordered list of issue number-like strings in the filename
+   # 8. get an ordered list of issue number-like strings in the filename
    #    for example:  3, #4, 5a, 6.00, 10.0b, .5, -1.0   
    #    also, remove numbers that look like years, EXCEPT on the "2000AD" series
    matches = __extract_numbers(s)
       
-   # 8. if there's multiple numbers in the filename, and it starts with 
+   # 9. if there's multiple numbers in the filename, and it starts with 
    #    something like "05. " or "12 - " we assuming these files are part of 
    #    a reading list, and we strip out that first part.
    pattern = r"^\s*\d+(\.\s+|\s*-\s*(?=\D))"
@@ -121,7 +124,7 @@ def __extract(name_s):
       s = re.sub(pattern, "", s, 1)
       matches = __extract_numbers(s)
       
-   # 9. if we parsed out some potential issue numbers, designate the LAST 
+   # 10. if we parsed out some potential issue numbers, designate the LAST 
    #    (rightmost) one s the actual issue number, and remove it from the name
    if len(matches) > 0: 
       issue_num_s = matches[-1].group(2)
@@ -134,7 +137,7 @@ def __extract(name_s):
       issue_num_s = ""
       series_s = s
 
-   # 10. contract repeating whitespace, and strip bad chars off the ends      
+   # 11. contract repeating whitespace, and strip bad chars off the ends      
    series_s = re.sub(r"\s{2,}", " ", series_s).strip(" ,-_") 
       
    return [series_s, issue_num_s, volume_year_s]
@@ -144,8 +147,8 @@ def __extract(name_s):
 def __extract_year(s):
    '''  
    Searches through the given string left-to-right, seeing if an intelligible
-   volume/year can be extracted.  if it can, it will be returned as a four digit
-   string, otherwise "" will be returned.
+   publication year can be extracted.  if it can, it will be returned as a 
+   four digit string, otherwise "" will be returned.
    '''
    
    retval = ""
