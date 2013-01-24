@@ -35,13 +35,31 @@
 "Draw 'Single Quotes' 21.cbr" "Draw 'Single Quotes'" "21"
 "Batman Beyond V2010 #4 (2010).cbz" "Batman Beyond" "4" "2010"
      
+# some filenames with "p" or "pages"
+"2000 AD 2000 (29-06-11) 295 pages.cbz", "2000 AD", "2000"
+"Ultimate Vision 000, 400p (2007) (c2c) (Popbot & ArtNet-DCP)" "Ultimate Vision" "0" "2007"
+"Ultimate Vision 000, 400 pages, (2007) (c2c) (Popbot & ArtNet-DCP)" "Ultimate Vision" "0" "2007"
+"Ultimate Vision 004, 400pages (2007) (c2c) (Popbot & ArtNet-DCP).cbr" "Ultimate Vision" "4" "2007"
+"Ultimate Vision 000, 200 pgs. (2007) (c2c) (Popbot & ArtNet-DCP).cbr" "Ultimate Vision" "0" "2007"
+"Ultimate_Vision_000_200pgs_(2007)_(c2c)_(Popbot & ArtNet-DCP).cbr" "Ultimate Vision" "0" "2007"
+"I, Zombie 10 (2011) (200 pages) (fixed) (Minutemen-XxxX&Saxon).cbr" "I, Zombie" "10" "2011"
+"I, Zombie 10 (2011) (400 pgs) (fixed) (Minutemen-XxxX&Saxon).cbr" "I, Zombie" "10" "2011"
+"I, Zombie 10 (2011) (400 pgs) (fixed) (Minutemen-XxxX&Saxon).cbr" "I, Zombie" "10" "2011"
+"Supergirl v5 062 42pgs (2011) (c2c) (The Last Kryptonian-DCP).cbr" "Supergirl" "62" "2011"
+"Supergirl v5 062 42 pgs. (2011) (c2c) (The Last Kryptonian-DCP).cbr" "Supergirl" "62" "2011"
+"Supergirl_062_42pg_(2011)_(c2c)_(The Last Kryptonian-DCP).cbr" "Supergirl" "62" "2011"
+"52 pages, Supergirl (2011)_(c2c)_(The Last Kryptonian-DCP).cbr" "Supergirl" "" "2011"
+"Supergirl (2011), 40 pgs.cbr" "Supergirl" "" "2011"
      
 # some filenames can have weird bracketing
 "Conan 0a [c2c][2011]  [Re-em].cbr", "Conan", "0a" "2011"
 "Conan 0a {c2c } {2011}  {Re-em}.cbr", "Conan", "0a" "2011"
 "Conan 0a [[c2c][2011]]  [Re-em].cbr", "Conan", "0a" "2011"
 "Conan 0a (((c2c)(2011)  [Re-em])[special]).cbr", "Conan", "0a" "2011"
-     
+ 
+# filenames with underscores
+"S.H.I.E.L.D._03_(2011)_(c2c)_(Team-CPS).cbr" "S.H.I.E.L.D." "3", "2011"   
+"2000AD_0001_(29-06-11).cbz", "2000AD", "1" 
       
 # certain series have numbers in the name, which can cause problems
 "2000AD 1740 (29-06-11) (John Williams-DCP).cbr", "2000AD", "1740" 
