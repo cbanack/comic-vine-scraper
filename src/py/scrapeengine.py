@@ -130,6 +130,11 @@ class ScrapeEngine(object):
 
          # do the main part of the script
          if books:
+            # uncomment this to try out scraping a single, specific issue
+            #books[0].Series = "Invincible Iron Man"
+            #books[0].Number = "500.1"
+            #books = books[0:1]
+            
             # this populates the "status" variable, and the "config" variable
             self.__scrape(books) 
             

@@ -408,7 +408,7 @@ class ConfigForm(CVForm):
       # 2. --- build the update checklist (contains all the 'data' checkboxes)
       tbox = RichTextBox()
       tbox.Multiline=True
-      tbox.MaxLength=1024
+      tbox.MaxLength=65536
       tbox.WordWrap = True
       tbox.Location = Point(15, 50)
       tbox.Size = Size(355, 200)
