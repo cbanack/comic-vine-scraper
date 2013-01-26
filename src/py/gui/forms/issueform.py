@@ -275,7 +275,7 @@ class IssueForm(CVForm):
       
       label = Label()
       label.UseMnemonic = False
-      sep = '  ' if len(fullname_s) > 45 else '\n'
+      sep = '  ' if len(fullname_s) > 40 else '\n'
       label.Text = i18n.get("IssueFormChooseText").format(fullname_s, sep)
          
       if self.__config.show_covers_b:
