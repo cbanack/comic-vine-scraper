@@ -59,6 +59,9 @@ def perceptual_hash(image):
             bits = map(lambda x: 1 if x > average else 0, pixels ) 
             return reduce(lambda x, (i, val): x | (val<<i), enumerate(bits), 0)
          
+   else:
+      return long(0);
+         
          
 #==============================================================================
 def similarity(hash1, hash2):
@@ -67,6 +70,9 @@ def similarity(hash1, hash2):
    a value between 0.0 and 1.0, with 1.0 meaning 'very similar'
    and 0.0 meaning 'very different'. 
    '''
-   xor = hash1 ^ hash2
-   hamming_distance = sum( b == '1' for b in bin(xor)[2:])
-   return hamming_distance / float(len(hash1))
+   if hash1 == None or hash2 == None:
+      return 0.0;
+   else:
+      xor = hash1 ^ hash2
+      hamming_distance = sum( b == '1' for b in bin(xor)[2:])
+      return 1.0 - ( hamming_distance / float(len(bin(xor))) )
