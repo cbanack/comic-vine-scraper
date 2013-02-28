@@ -358,6 +358,12 @@ class ScrapeEngine(object):
             return BookStatus("DELAYED")
 
    
+      # coryhigh: move this section further down, and change it so that we
+      # are trying to identify the correct SeriesRef, not IssueRef.  that 
+      # will fit in better with the existing code; we can then update the 
+      # series_cache and proceed as normaly, thus minimizing calls to 
+      # the automatcher.
+      
       # 3. maybe the use requested that we try to do a fully automatic scrape
       #    on new (unscraped) books?  if so, now's the time to give it a try.  
       #    METHOD EXIT: if we find a matching IssueRef, use it immediately and 
@@ -430,7 +436,7 @@ class ScrapeEngine(object):
             return BookStatus("UNSCRAPED", search_terms_s)
 
 
-      # 6. now that we have a set if series_refs that match this book, 
+      # 6. now that we have a set of series_refs that match this book, 
       #    show the user the 'series dialog' so they can pick the right one.  
       #    put the chosen series into the cache so the user won't have to 
       #    pick it again for any future books that are in this book's series.
