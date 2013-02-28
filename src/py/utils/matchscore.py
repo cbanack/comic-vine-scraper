@@ -15,16 +15,18 @@ from utils import sstr
 class MatchScore(object):
    '''
    Instances of this class can compute how well a SeriesRef "matches" a 
-   particular ComicBook.  This class maintains its own state, and does 
-   file IO to record that state for future instances.  Therefore, there
-   should only ever be one one instance of this class in existence!
+   particular ComicBook. 
+   
+   This class reads its internal state out of a file on the file system, and 
+   records that state out via the record_choice() function.  Therefore, if 
+   multiple instances of this class exist at the same time, only ONE of 
+   them should ever call record_choice(), otherwise data may be lost.
    '''
    
    #=========================================================================== 
    def __init__(self):
       ''' Initializes a new Configuration object with default settings '''
       self.__prior_series_sl = set(utils.load_map(Resources.SERIES_FILE).keys())
-      
    
    
    #===========================================================================
