@@ -226,7 +226,7 @@ class ScrapeEngine(object):
             delayed_b = i >= orig_length
             manual_search_b = self.config.specify_series_b
             fast_rescrape_b = self.config.fast_rescrape_b and not delayed_b
-            autoscrape_b = False and not delayed_b # cory: fix
+            autoscrape_b = True and not delayed_b # cory: fix
             bookstatus = BookStatus("DELAYED") \
                if delayed_b else BookStatus("UNSCRAPED")
                
@@ -275,14 +275,14 @@ class ScrapeEngine(object):
       matches that book, and then copying those details into the ComicBook 
       object's metadata fields.  
       
-      The steps involved are:
+      The 10000 foot view of the loop steps:
       
        1.  Attempt to scrape automatically.  If we succeed, we're done.
-       2.  Otherwise, come up with search terms for the given 'book'
-            - if 'manual_search_b' then ask the user to provide search terms
+       2.  Otherwise, obtain search terms for the given 'book'
+            - if 'manual_search_b' then ask the user to provide the search terms
             - else guess the terms based on the book's name
        3.  Search database for all comic series that match those search terms.
-       4.  Ask the user which of the resulting series is the correct one
+       4.  Ask the user which of the series that we found is the correct one
        5a. If the user picks a series:
             - we guess which issue in that series matches our ComicBook, OR
             - we ask the user to specify the correct issue (if we can't guess)
@@ -294,22 +294,24 @@ class ScrapeEngine(object):
        Throughout this process, the 'scrape_cache' (a map, empty at first) is
        used to speed things up.  It caches details from previous calls to this 
        method, so if this method is called repeatedly, the same scrape_cache 
-       should be passed in each time.
+       must be passed in each time.
+       
+       AUTOMATIC SCRAPING
        
        Iff 'fast_rescrape_b' is set to true, this method will attempt to find 
        and use any database key that was written to the book during a previous
-       scrape.  Iff 'autoscrape_b' is true, this method will attempt a search
-       algorithm on the database, again to obtain the key.  If either attempt
+       scrape.  Else iff 'autoscrape_b' is true, this method attempts a search
+       algorithm on the database, again to obtain the key.  Iff either attempt
        succeeds, the key allows us to instantly identify a comic, thus skipping
        everything after step 1.  If no key is available, just fall back to
        the user-interactive method of identifying the comic (step 2+).
        
-       When this method is called repeatedly on the same book, a 'prev_status'
-       should be passed in, giving this method access to the BookStatus object 
-       that it returned the last time it was called (for the current book). 
-       
        RETURN VALUES
        
+       When this method is called repeatedly on the same book, a 'prev_status'
+       should be passed in, giving this method access to the BookStatus object 
+       that it returned the last time it was called for that book. 
+              
        BookStatus("UNSCRAPED"): if the book wasn't be scraped, either because
           the search terms yielded no results, or the user opted to specify
           new search terms
@@ -358,53 +360,51 @@ class ScrapeEngine(object):
             return BookStatus("DELAYED")
 
    
-      # coryhigh: move this section further down, and change it so that we
-      # are trying to identify the correct SeriesRef, not IssueRef.  that 
-      # will fit in better with the existing code; we can then update the 
-      # series_cache and proceed as normaly, thus minimizing calls to 
-      # the automatcher.
-      
-      # 3. maybe the use requested that we try to do a fully automatic scrape
-      #    on new (unscraped) books?  if so, now's the time to give it a try.  
-      #    METHOD EXIT: if we find a matching IssueRef, use it immediately and 
-      #    exit. if not, retry a manual scrape later on.  
-      if autoscrape_b:
-         log.debug("trying to match this book automatically...")
-         issue_ref = automatcher.find_image_ref(book)
-         if issue_ref:
-            log.debug("...found a suitable match:  ", issue_ref.issue_key)
-            issue = db.query_issue(issue_ref, self.config.update_rating_b)
-            book.update(issue)
-            return BookStatus("SCRAPED")
-         else:
-            log.debug("...couldn't find a match. leave it until the end.")
-            return BookStatus("DELAYED")
+      # 3. what follows is an attempt to get the unique series key for this book
+      #    into the scrape cache. this effectively tells us which series the 
+      #    book belongs to, and also allows us to automatically use the same
+      #    series for other books that have the same unique series key.
 
-
-      # 4. search for all the series in the database that match the current
-      #    book.  if info for this book's series has already been cached, we 
-      #    can skip this step.  METHOD EXIT: if we show the user the 'search' 
-      #    dialog, she may use it to skip this book or cancel the whole scrape.
-      search_terms_s = None
-      series_refs = None
       key = book.unique_series_s
       if key in scrape_cache and not self.config.scrape_in_groups_b:
          # uncaching this key forces the scraper to treat this comic series
          # as though this was the first time we'd seen it
          del scrape_cache[key]
    
-   
-      # 5. check to see if this book has an special file in it's folder that
-      #    tells us what series the book belongs to.  if so, add the series to 
-      #    our scrape_cache, which causes us to skip the "Choose Series" form.      
-      magic_series_ref = db.check_magic_file(book.path_s)
-      if magic_series_ref:        
-         log.debug("a 'magic' file identified this book's series as: '",
+      # 3a. check to see if this book has an special file in it's folder that
+      #    tells us what series the book belongs to.  if so, add that map that
+      #    book to that series in the scrape_cache.
+      if key not in scrape_cache:
+         magic_series_ref = db.check_magic_file(book.path_s)
+         if magic_series_ref:        
+            log.debug("a 'magic' file identified this book's series as: '",
               magic_series_ref, "'")
-         scraped_series = ScrapedSeries()
-         scraped_series.series_ref = magic_series_ref
-         scrape_cache[key] = scraped_series
-          
+            scraped_series = ScrapedSeries()
+            scraped_series.series_ref = magic_series_ref
+            scrape_cache[key] = scraped_series
+         
+      # 3b. or maybe the user requested that we try the auto-scrape algorithm on 
+      #     all new (unscraped) books?  if so, now's the time to give it a try.  
+      #     if we find the series for this book, add it to the scrape cache.
+      if key not in scrape_cache and autoscrape_b:
+         log.debug("trying to match this book automatically...")
+         auto_series_ref = automatcher.find_series_ref(book)
+         if auto_series_ref:
+            log.debug("...found a suitable match:  ", auto_series_ref)
+            scraped_series = ScrapedSeries()
+            scraped_series.series_ref = auto_series_ref
+            scrape_cache[key] = scraped_series
+         else:
+            log.debug("...couldn't find a match. leave it until the end.")
+            return BookStatus("DELAYED")
+
+      # 3c. if the book still hasn't been added to the scrape cache, the next
+      #     step is to search the online database for the book's series name.
+      #     the user may have to modify the auto-generated search terms. the
+      #     goal is to get some potential SeriesRefs to show the user. 
+      #     METHOD EXIT: if the user cancels or skips from the search dialog.          
+      search_terms_s = None
+      series_refs = None
       if key not in scrape_cache: 
          # get search terms for the book that we're scraping
          search_terms_s = book.series_s
@@ -436,12 +436,11 @@ class ScrapeEngine(object):
             return BookStatus("UNSCRAPED", search_terms_s)
 
 
-      # 6. now that we have a set of series_refs that match this book, 
-      #    show the user the 'series dialog' so they can pick the right one.  
-      #    put the chosen series into the cache so the user won't have to 
-      #    pick it again for any future books that are in this book's series.
-      #    METHOD EXIT: while viewing the series dialog, the user might skip,
-      #    request to re-search, or cancel the entire scrape operation.
+      # 3d. now that we have a set of SeriesRefs that match this book, 
+      #     show the user the Series dialog so he/she can choose the right one.
+      #     put the chosen series into the series cache.  METHOD EXIT: while 
+      #     viewing the series dialog, the user might skip, request to 
+      #     re-search, or cancel the entire scrape operation.
       while True:
          force_issue_dialog_b = False 
          if key not in scrape_cache: 
@@ -467,17 +466,14 @@ class ScrapeEngine(object):
                force_issue_dialog_b = series_form_result.equals("SHOW")
                scrape_cache[key] = scraped_series
                
-         # one way or another, the chosen series is now in the cache. get it.      
+
+         # 4. at this point, the 'correct' series for the book is now in the
+         #    series cache.  now we try to pick the matching issue in that 
+         #    series. do so automatically if possible, or show the user the
+         #    issue dialog if necessary.  METHOD EXIT: if the user see the 
+         #    issue dialog, she may skip, cancel the whole scrape operation, 
+         #    go back to the series dialog, or actually scrape an issue.
          scraped_series = scrape_cache[key]
-
-
-         # 7. now that we know the right series for this book, query the 
-         #    database for the issues in that series. then try to pick one, 
-         #    either  automatically, or by showing the use the "issues dialog".
-         #    also, cache the issue data, so we don't have to query again if we 
-         #    scrape another book from this series.  METHOD EXIT: if the user 
-         #    sees the query dialog, she may skip, cancel the whole scrape, 
-         #    go back to the series dialog, or actually an issue.
          log.debug("searching for the right issue in '", 
             scraped_series.series_ref, "'")
          
