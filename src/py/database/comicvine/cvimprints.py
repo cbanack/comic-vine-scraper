@@ -19,8 +19,8 @@ def find_parent_publisher(imprint_s):
    match their corresponding values in the ComicVine database (i.e. case, 
    punctation, etc.)
    ''' 
-   imprint_s = imprint_s.strip() # because the tables below are stripped, too
    parent_s = imprint_s
+   imprint_s = imprint_s.strip() # because the tables below are stripped, too
    if imprint_s in __imprint_map:
       parent_s = __imprint_map[imprint_s]
    return parent_s
