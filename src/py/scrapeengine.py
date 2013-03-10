@@ -669,7 +669,10 @@ class ScrapeEngine(object):
       ignored_before_n = self.config.ignored_before_year_n
       ignored_after_n = self.config.ignored_after_year_n
       for series_ref in series_refs:
-         if series_ref.issue_count_n < threshold_n:
+         if series_ref.issue_count_n >= threshold_n:
+            year_passes_filter = True
+            pub_passes_filter = True
+         else:
             publisher_s = series_ref.publisher_s.lower().strip()
             year_passes_filter = series_ref.volume_year_n == -1 \
                or (series_ref.volume_year_n >= ignored_before_n \
