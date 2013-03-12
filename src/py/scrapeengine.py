@@ -21,6 +21,7 @@ import i18n
 from matchscore import MatchScore
 from comicbook import ComicBook
 import automatcher
+import dbutils
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -388,7 +389,7 @@ class ScrapeEngine(object):
       #     if we find the series for this book, add it to the scrape cache.
       if key not in scrape_cache and autoscrape_b:
          log.debug("trying to match this book automatically...")
-         auto_series_ref = automatcher.find_series_ref(book)
+         auto_series_ref = automatcher.find_series_ref(book, self.config) 
          if auto_series_ref:
             log.debug("...found a suitable match:  ", auto_series_ref)
             scraped_series = ScrapedSeries()
@@ -697,23 +698,11 @@ class ScrapeEngine(object):
          series_refs = db.query_series_refs(search_terms_s, callback)
          
       # 2. filter out any series that the user has specified
-      filtered_refs = set() 
-      banned_publishers_sl = self.config.ignored_publishers_sl
-      threshold_n = self.config.never_ignore_threshold_n
-      ignored_before_n = self.config.ignored_before_year_n
-      ignored_after_n = self.config.ignored_after_year_n
-      for series_ref in series_refs:
-         if series_ref.issue_count_n >= threshold_n:
-            year_passes_filter = True
-            pub_passes_filter = True
-         else:
-            publisher_s = series_ref.publisher_s.lower().strip()
-            year_passes_filter = series_ref.volume_year_n == -1 \
-               or (series_ref.volume_year_n >= ignored_before_n \
-               and series_ref.volume_year_n <= ignored_after_n) 
-            pub_passes_filter = publisher_s not in banned_publishers_sl
-         if year_passes_filter and pub_passes_filter:    
-            filtered_refs.add(series_ref)
+      filtered_refs = dbutils.filter_series_refs(series_refs,
+         self.config.ignored_publishers_sl, 
+         self.config.ignored_before_year_n,
+         self.config.ignored_after_year_n,
+         self.config.never_ignore_threshold_n)
       
       # 3. some userful debug output
       filtered_n = len(series_refs) - len(filtered_refs) 
