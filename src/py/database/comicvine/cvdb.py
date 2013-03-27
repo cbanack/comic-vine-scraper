@@ -91,8 +91,8 @@ def _check_magic_file(path_s):
             with StreamReader(file_s, Encoding.UTF8, False) as sr:
                line = sr.ReadToEnd()
                line = line.strip() if line else line
-               match = re.match(r"^.*?\b49-(\d{2,})\b.*$", line)
-               line = match.group(1) if match else line
+               match = re.match(r"^.*?\b(49|4050)-(\d{2,})\b.*$", line)
+               line = match.group(2) if match else line
                if utils.is_number(line):
                   series_key_s = utils.sstr(int(line))
    except:
@@ -137,8 +137,8 @@ def _query_series_refs(search_terms_s, callback_function):
       #    a comicvine ID or the URL for a comicvine volume's webpage
       if not series_refs:
          search_terms_s = search_terms_s.strip()
-         pattern = r"(^(49-)?(?<num>\d+)$)|" + \
-            r"(^https?://.*comicvine\.com/.*/49-(?<num>\d+)(/.*)?$)"
+         pattern = r"(^(49-|4050-)?(?<num>\d+)$)|" + \
+            r"(^https?://.*comicvine\.com/.*/(49-|4050-)(?<num>\d+)(/.*)?$)"
             
          match = re.match(pattern, search_terms_s, re.I)
          if match:
@@ -164,7 +164,7 @@ def __query_series_refs(search_terms_s, callback_function):
    # 1. do the initial query, record how many results in total we're getting
    num_results_n = 0
    if search_terms_s and search_terms_s.strip():
-      dom = cvconnection._query_series_ids_dom(search_terms_s, 0)
+      dom = cvconnection._query_series_ids_dom(search_terms_s, 1)
       num_results_n = int(dom.number_of_total_results)
    
    if num_results_n > 0:
@@ -178,26 +178,26 @@ def __query_series_refs(search_terms_s, callback_function):
          for volume in dom.results.volume:
             series_refs.add( __volume_to_seriesref(volume) )
 
-         # 3. if there were more than 20 results, we'll have to do some more 
+         # 3. if there were more than 100 results, we'll have to do some more 
          #    queries now to get the rest of them
-         RESULTS_PAGE_SIZE = 20
+         RESULTS_PAGE_SIZE = 100
          iteration = RESULTS_PAGE_SIZE
          if iteration < num_results_n:
-            num_remaining_steps = num_results_n // RESULTS_PAGE_SIZE
+            num_remaining_pages = num_results_n // RESULTS_PAGE_SIZE
             
             # 3a. do a callback for the first results (initial query)...
             cancelled_b[0] = callback_function(
-               iteration, num_remaining_steps)
+               iteration, num_remaining_pages)
 
             while iteration < num_results_n and not cancelled_b[0]:
                # 4. query for the next batch of results, in a new dom
                dom = cvconnection._query_series_ids_dom(
-                  search_terms_s, sstr(iteration))
+                  search_terms_s, sstr(iteration//RESULTS_PAGE_SIZE+1))
                iteration += RESULTS_PAGE_SIZE
                
                # 4a. do a callback for the most recent batch of results
                cancelled_b[0] = callback_function(
-                  iteration, num_remaining_steps)
+                  iteration, num_remaining_pages)
 
                if int(dom.number_of_page_results) < 1:
                   log.debug("WARNING: got empty results page") # issue 33
@@ -220,11 +220,9 @@ def __volume_to_seriesref(volume):
    ''' Converts a cvdb "volume" dom element into a SeriesRef. '''
    publisher = '' if len(volume.publisher.__dict__) <= 1 else \
       volume.publisher.name
-   thumb = None if len(volume.image.__dict__) <= 1 else \
-      volume.image.thumb_url.replace(r'thumb', "large")
    return SeriesRef( int(volume.id), sstr(volume.name), 
       sstr(volume.start_year), sstr(publisher), 
-      sstr(volume.count_of_issues), thumb)
+      sstr(volume.count_of_issues), __parse_image_url(volume))
 
 
 # ==========================================================================   
@@ -332,7 +330,7 @@ def _query_image(ref):
       image_url_s = ref.thumb_url_s
    elif isinstance(ref, IssueRef):
       dom = cvconnection._query_issue_image_dom(sstr(ref.issue_key))
-      image_url_s = __issue_parse_image_url(dom) if dom else None
+      image_url_s = __parse_image_url(dom.results) if dom else None
    elif is_string(ref):
       image_url_s = ref
    
@@ -413,49 +411,9 @@ def __issue_parse_simple_stuff(issue, dom):
       
    # grab the image for this issue and store it as the first element
    # in the list of issue urls.
-   image_url_s = __issue_parse_image_url(dom)
+   image_url_s = __parse_image_url(dom.results)
    if image_url_s:
       issue.image_urls_sl.append(image_url_s)
-         
-
-#===========================================================================
-def __issue_parse_image_url(dom):
-   ''' Grab the image for this issue out of the given DOM. '''
-   
-   # note: we do a lot of string reversing here, because we want to replace
-   #    only the LAST occurrence of a particular string.
-   
-   # the target size for images that we're parsing
-   IMG_SIZE = "large"[::-1]
-   
-   imgurl_s = None
-   if "image" in dom.results.__dict__:
-      if "icon_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.icon_url):
-         imgurl_s = dom.results.image.icon_url[::-1]\
-            .replace(r"icon"[::-1], IMG_SIZE, 1);
-      elif "medium_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.medium_url):
-         imgurl_s = dom.results.image.medium_url[::-1] \
-            .replace(r"medium"[::-1], IMG_SIZE, 1);  
-      elif "thumb_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.thumb_url):
-         imgurl_s = dom.results.image.thumb_url[::-1] \
-            .replace(r"thumb"[::-1], IMG_SIZE, 1);
-      elif "tiny_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.tiny_url):
-         imgurl_s = dom.results.image.tiny_url[::-1] \
-            .replace(r"tiny"[::-1], IMG_SIZE, 1);
-      elif "super_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.super_url):
-         imgurl_s = dom.results.image.super_url[::-1] \
-            .replace(r"super"[::-1], IMG_SIZE, 1);
-      elif "large_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.large_url):
-         imgurl_s = dom.results.image.large_url[::-1] \
-            .replace(r"large"[::-1], IMG_SIZE, 1);
-         
-   return imgurl_s[::-1] if imgurl_s else imgurl_s        
 
 
 #===========================================================================
@@ -645,26 +603,23 @@ def __issue_parse_roles(issue, dom):
 #===========================================================================         
 def __issue_scrape_extra_details(issue, page):
    ''' Parse additional details from the issues ComicVine webpage. '''
-   
    if page:
       
       # first pass:  find all the alternate cover image urls
       regex = re.compile( \
-         r'(?mis)\<\s*div[^\>]*content-pod alt-cover[^\>]+\>.*?div(.*?)div')
-      for div_s in re.findall( regex, page ):
+         r'(?mis)\<\s*div[^\>]*img imgboxart issue-cover[^\>]+\>(.*?)div\s*>')
+      for div_s in re.findall( regex, page )[1:]:
          inner_search_results = re.search(\
             r'(?i)\<\s*img\s+.*src\s*=\s*"([^"]*)', div_s)
          if inner_search_results:
             image_url_s = inner_search_results.group(1)
             if image_url_s:
-               image_url_s = re.sub(r"_super", r"_large", image_url_s)
                issue.image_urls_sl.append(image_url_s)
                
 
       # second pass:  find the community rating (stars) for this comic
-      regex = re.compile( \
-         r'(?mis)\<span.*?>\s*user rating[\s-]+\d+\s+'
-            +r'votes[\s,]+([\d\.]+)[\s\w\.]*\</span>')
+      regex = re.compile(\
+         r'(?mis)\<span class="average-score"\>(\d+\.?\d*) stars?\</span\>')
       results = re.search( regex, page )
       if results:
          try:
@@ -673,5 +628,29 @@ def __issue_scrape_extra_details(issue, page):
                issue.rating_n = rating
          except:
             log.debug_exc("Error parsing rating for " + sstr(issue) + ": ")
-            
-         
+         
+
+#===========================================================================
+def __parse_image_url(dom):
+   ''' Grab the image for this issue out of the given DOM fragment. '''
+   
+   imgurl_s = None
+   if "image" in dom.__dict__:
+      
+      if "small_url" in dom.image.__dict__ and \
+            is_string(dom.image.small_url):
+         imgurl_s = dom.image.small_url  
+      elif "medium_url" in dom.image.__dict__ and \
+            is_string(dom.image.medium_url):
+         imgurl_s = dom.image.medium_url  
+      elif "large_url" in dom.image.__dict__ and \
+            is_string(dom.image.large_url):
+         imgurl_s = dom.image.large_url
+      elif "super_url" in dom.image.__dict__ and \
+            is_string(dom.image.super_url):
+         imgurl_s = dom.image.super_url
+      elif "thumb_url" in dom.image.__dict__ and \
+            is_string(dom.image.thumb_url):
+         imgurl_s = dom.image.thumb_url
+         
+   return imgurl_s          

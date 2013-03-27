@@ -24,27 +24,26 @@ from System.IO import IOException
 __API_KEY = '4192f8503ea33364a23035827f40d415d5dc5d18'
 
 # =============================================================================
-def _query_series_ids_dom(searchterm_s, skip_n=0):
+def _query_series_ids_dom(searchterm_s, page_n=1):
    ''' 
    Performs a query that will obtain a dom containing all the comic book series
    from ComicVine that match a given search string.  You can also provide a 
-   second argument that specifies the number of results to skip over (i.e. 3 
-   means skip results 0, 1, and 2, so the first returned result is number 3.)  
-   This is useful, because this query will not necessarily return all available
-   results.
+   second argument that specifies the page of the results (each page contains
+   100 results) to display. This is useful, because this query will not 
+   necessarily return all available results.
    
    This method doesn't return null, but it may throw Exceptions.
    '''
    
-   # {0} is the search string, {1} is the number of issues to skip over
+   # {0} is the search string, {1} is the page number of the results we want
    QUERY = 'http://api.comicvine.com/search/?api_key=' + __API_KEY + \
-      '&format=xml&limit=20&resources=volume' + \
+      '&format=xml&limit=100&resources=volume' + \
       '&field_list=name,start_year,publisher,id,image,count_of_issues' + \
-      '&query={0}&offset={1}'
+      '&query={0}&page={1}'
       
-   if searchterm_s is None or searchterm_s == '' or skip_n < 0:
+   if searchterm_s is None or searchterm_s == '' or page_n < 0:
       raise ValueError('bad parameters')
-   return __get_dom( QUERY.format(searchterm_s, skip_n) )
+   return __get_dom( QUERY.format(searchterm_s, page_n) )
 
 
 
@@ -57,7 +56,7 @@ def _query_series_details_dom(seriesid_s):
    This method doesn't return null, but it may throw Exceptions.
    '''
    # {0} is the series id, an integer.
-   QUERY = 'http://api.comicvine.com/volume/{0}/?api_key=' + __API_KEY + \
+   QUERY = 'http://api.comicvine.com/volume/4050-{0}/?api_key=' + __API_KEY + \
      '&format=xml&field_list=name,start_year,publisher,image,count_of_issues,id'
       # parsing relies on 'field_list' specifying 2 or more elements!!
       
@@ -76,7 +75,7 @@ def _query_issue_ids_dom(seriesid_s):
    '''
    
    # {0} is the series ID, an integer     
-   QUERY = 'http://api.comicvine.com/volume/{0}/?api_key=' + __API_KEY + \
+   QUERY = 'http://api.comicvine.com/volume/4050-{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=issues'
    
    if seriesid_s is None or seriesid_s == '':
@@ -94,7 +93,7 @@ def _query_issue_details_dom(issueid_s):
    '''
    
    # {0} is the issue ID 
-   QUERY = 'http://api.comicvine.com/issue/{0}/?api_key=' \
+   QUERY = 'http://api.comicvine.com/issue/4000-{0}/?api_key=' \
       + __API_KEY + '&format=xml'
       
    if issueid_s is None or issueid_s == '':
@@ -115,7 +114,7 @@ def _query_issue_details_page(issueid_s):
    '''
    
    # {0} is the issue ID 
-   QUERY = 'http://www.comicvine.com/issue/37-{0}/' 
+   QUERY = 'http://www.comicvine.com/issue/4000-{0}/' 
       
    if issueid_s is None or issueid_s == '':
       return None
@@ -136,7 +135,7 @@ def _query_issue_image_dom(issueid_s):
    '''
    
    # {0} is the issue ID
-   QUERY = 'http://api.comicvine.com/issue/{0}/?api_key=' + __API_KEY + \
+   QUERY = 'http://api.comicvine.com/issue/4000-{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=image'
    
    if issueid_s is None or issueid_s == '':
