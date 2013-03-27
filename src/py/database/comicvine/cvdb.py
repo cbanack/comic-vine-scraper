@@ -425,37 +425,26 @@ def __issue_parse_image_url(dom):
    # note: we do a lot of string reversing here, because we want to replace
    #    only the LAST occurrence of a particular string.
    
-   # the target size for images that we're parsing
-   IMG_SIZE = "large"[::-1]
-   
    imgurl_s = None
    if "image" in dom.results.__dict__:
-      if "icon_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.icon_url):
-         imgurl_s = dom.results.image.icon_url[::-1]\
-            .replace(r"icon"[::-1], IMG_SIZE, 1);
+      
+      if "small_url" in dom.results.image.__dict__ and \
+            is_string(dom.results.image.small_url):
+         imgurl_s = dom.results.image.small_url  
       elif "medium_url" in dom.results.image.__dict__ and \
             is_string(dom.results.image.medium_url):
-         imgurl_s = dom.results.image.medium_url[::-1] \
-            .replace(r"medium"[::-1], IMG_SIZE, 1);  
-      elif "thumb_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.thumb_url):
-         imgurl_s = dom.results.image.thumb_url[::-1] \
-            .replace(r"thumb"[::-1], IMG_SIZE, 1);
-      elif "tiny_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.tiny_url):
-         imgurl_s = dom.results.image.tiny_url[::-1] \
-            .replace(r"tiny"[::-1], IMG_SIZE, 1);
-      elif "super_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.super_url):
-         imgurl_s = dom.results.image.super_url[::-1] \
-            .replace(r"super"[::-1], IMG_SIZE, 1);
+         imgurl_s = dom.results.image.medium_url  
       elif "large_url" in dom.results.image.__dict__ and \
             is_string(dom.results.image.large_url):
-         imgurl_s = dom.results.image.large_url[::-1] \
-            .replace(r"large"[::-1], IMG_SIZE, 1);
+         imgurl_s = dom.results.image.large_url
+      elif "super_url" in dom.results.image.__dict__ and \
+            is_string(dom.results.image.super_url):
+         imgurl_s = dom.results.image.super_url
+      elif "thumb_url" in dom.results.image.__dict__ and \
+            is_string(dom.results.image.thumb_url):
+         imgurl_s = dom.results.image.thumb_url
          
-   return imgurl_s[::-1] if imgurl_s else imgurl_s        
+   return imgurl_s        
 
 
 #===========================================================================
