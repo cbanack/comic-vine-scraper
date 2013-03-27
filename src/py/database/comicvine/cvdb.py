@@ -634,26 +634,23 @@ def __issue_parse_roles(issue, dom):
 #===========================================================================         
 def __issue_scrape_extra_details(issue, page):
    ''' Parse additional details from the issues ComicVine webpage. '''
-   
    if page:
       
       # first pass:  find all the alternate cover image urls
       regex = re.compile( \
-         r'(?mis)\<\s*div[^\>]*content-pod alt-cover[^\>]+\>.*?div(.*?)div')
-      for div_s in re.findall( regex, page ):
+         r'(?mis)\<\s*div[^\>]*img imgboxart issue-cover[^\>]+\>(.*?)div\s*>')
+      for div_s in re.findall( regex, page )[1:]:
          inner_search_results = re.search(\
             r'(?i)\<\s*img\s+.*src\s*=\s*"([^"]*)', div_s)
          if inner_search_results:
             image_url_s = inner_search_results.group(1)
             if image_url_s:
-               image_url_s = re.sub(r"_super", r"_large", image_url_s)
                issue.image_urls_sl.append(image_url_s)
                
 
       # second pass:  find the community rating (stars) for this comic
-      regex = re.compile( \
-         r'(?mis)\<span.*?>\s*user rating[\s-]+\d+\s+'
-            +r'votes[\s,]+([\d\.]+)[\s\w\.]*\</span>')
+      regex = re.compile(\
+         r'(?mis)\<span class="average-score"\>(\d+\.\d+) stars\</span\>')
       results = re.search( regex, page )
       if results:
          try:
