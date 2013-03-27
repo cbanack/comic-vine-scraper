@@ -76,8 +76,9 @@ class ComicBook(object):
    # which will be different for each series. will not be null or None.
    unique_series_s = property( lambda self : self.__unique_series_s() )  
 
-   # a comicvine IssueRef object based if this book has been scraped before,
-   # or None if it hasn't. 
+   # an IssueRef object identifying this book in the database, if available.
+   # will be None if not available, which is always the case for books that 
+   # haven't been scraped before.
    issue_ref = property( lambda self : None if 
       self.__extract_issue_ref() == 'skip' else self.__extract_issue_ref() )
     
