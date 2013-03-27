@@ -91,8 +91,8 @@ def _check_magic_file(path_s):
             with StreamReader(file_s, Encoding.UTF8, False) as sr:
                line = sr.ReadToEnd()
                line = line.strip() if line else line
-               match = re.match(r"^.*?\b49-(\d{2,})\b.*$", line)
-               line = match.group(1) if match else line
+               match = re.match(r"^.*?\b(49|4050)-(\d{2,})\b.*$", line)
+               line = match.group(2) if match else line
                if utils.is_number(line):
                   series_key_s = utils.sstr(int(line))
    except:
@@ -137,8 +137,8 @@ def _query_series_refs(search_terms_s, callback_function):
       #    a comicvine ID or the URL for a comicvine volume's webpage
       if not series_refs:
          search_terms_s = search_terms_s.strip()
-         pattern = r"(^(49-)?(?<num>\d+)$)|" + \
-            r"(^https?://.*comicvine\.com/.*/49-(?<num>\d+)(/.*)?$)"
+         pattern = r"(^(49-|4050-)?(?<num>\d+)$)|" + \
+            r"(^https?://.*comicvine\.com/.*/(49-|4050-)(?<num>\d+)(/.*)?$)"
             
          match = re.match(pattern, search_terms_s, re.I)
          if match:
