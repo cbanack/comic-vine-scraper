@@ -164,7 +164,7 @@ def __query_series_refs(search_terms_s, callback_function):
    # 1. do the initial query, record how many results in total we're getting
    num_results_n = 0
    if search_terms_s and search_terms_s.strip():
-      dom = cvconnection._query_series_ids_dom(search_terms_s, 0)
+      dom = cvconnection._query_series_ids_dom(search_terms_s, 1)
       num_results_n = int(dom.number_of_total_results)
    
    if num_results_n > 0:
@@ -178,26 +178,26 @@ def __query_series_refs(search_terms_s, callback_function):
          for volume in dom.results.volume:
             series_refs.add( __volume_to_seriesref(volume) )
 
-         # 3. if there were more than 20 results, we'll have to do some more 
+         # 3. if there were more than 100 results, we'll have to do some more 
          #    queries now to get the rest of them
-         RESULTS_PAGE_SIZE = 20
+         RESULTS_PAGE_SIZE = 100
          iteration = RESULTS_PAGE_SIZE
          if iteration < num_results_n:
-            num_remaining_steps = num_results_n // RESULTS_PAGE_SIZE
+            num_remaining_pages = num_results_n // RESULTS_PAGE_SIZE
             
             # 3a. do a callback for the first results (initial query)...
             cancelled_b[0] = callback_function(
-               iteration, num_remaining_steps)
+               iteration, num_remaining_pages)
 
             while iteration < num_results_n and not cancelled_b[0]:
                # 4. query for the next batch of results, in a new dom
                dom = cvconnection._query_series_ids_dom(
-                  search_terms_s, sstr(iteration))
+                  search_terms_s, sstr(iteration//RESULTS_PAGE_SIZE+1))
                iteration += RESULTS_PAGE_SIZE
                
                # 4a. do a callback for the most recent batch of results
                cancelled_b[0] = callback_function(
-                  iteration, num_remaining_steps)
+                  iteration, num_remaining_pages)
 
                if int(dom.number_of_page_results) < 1:
                   log.debug("WARNING: got empty results page") # issue 33
