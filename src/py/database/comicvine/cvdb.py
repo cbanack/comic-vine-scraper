@@ -619,7 +619,7 @@ def __issue_scrape_extra_details(issue, page):
 
       # second pass:  find the community rating (stars) for this comic
       regex = re.compile(\
-         r'(?mis)\<span class="average-score"\>(\d+\.\d+) stars\</span\>')
+         r'(?mis)\<span class="average-score"\>(\d+\.?\d*) stars?\</span\>')
       results = re.search( regex, page )
       if results:
          try:
