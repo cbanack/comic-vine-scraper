@@ -220,11 +220,9 @@ def __volume_to_seriesref(volume):
    ''' Converts a cvdb "volume" dom element into a SeriesRef. '''
    publisher = '' if len(volume.publisher.__dict__) <= 1 else \
       volume.publisher.name
-   thumb = None if len(volume.image.__dict__) <= 1 else \
-      volume.image.thumb_url.replace(r'thumb', "large")
    return SeriesRef( int(volume.id), sstr(volume.name), 
       sstr(volume.start_year), sstr(publisher), 
-      sstr(volume.count_of_issues), thumb)
+      sstr(volume.count_of_issues), __parse_image_url(volume))
 
 
 # ==========================================================================   
@@ -332,7 +330,7 @@ def _query_image(ref):
       image_url_s = ref.thumb_url_s
    elif isinstance(ref, IssueRef):
       dom = cvconnection._query_issue_image_dom(sstr(ref.issue_key))
-      image_url_s = __issue_parse_image_url(dom) if dom else None
+      image_url_s = __parse_image_url(dom.results) if dom else None
    elif is_string(ref):
       image_url_s = ref
    
@@ -413,38 +411,9 @@ def __issue_parse_simple_stuff(issue, dom):
       
    # grab the image for this issue and store it as the first element
    # in the list of issue urls.
-   image_url_s = __issue_parse_image_url(dom)
+   image_url_s = __parse_image_url(dom.results)
    if image_url_s:
       issue.image_urls_sl.append(image_url_s)
-         
-
-#===========================================================================
-def __issue_parse_image_url(dom):
-   ''' Grab the image for this issue out of the given DOM. '''
-   
-   # note: we do a lot of string reversing here, because we want to replace
-   #    only the LAST occurrence of a particular string.
-   
-   imgurl_s = None
-   if "image" in dom.results.__dict__:
-      
-      if "small_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.small_url):
-         imgurl_s = dom.results.image.small_url  
-      elif "medium_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.medium_url):
-         imgurl_s = dom.results.image.medium_url  
-      elif "large_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.large_url):
-         imgurl_s = dom.results.image.large_url
-      elif "super_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.super_url):
-         imgurl_s = dom.results.image.super_url
-      elif "thumb_url" in dom.results.image.__dict__ and \
-            is_string(dom.results.image.thumb_url):
-         imgurl_s = dom.results.image.thumb_url
-         
-   return imgurl_s        
 
 
 #===========================================================================
@@ -659,5 +628,29 @@ def __issue_scrape_extra_details(issue, page):
                issue.rating_n = rating
          except:
             log.debug_exc("Error parsing rating for " + sstr(issue) + ": ")
-            
-         
+         
+
+#===========================================================================
+def __parse_image_url(dom):
+   ''' Grab the image for this issue out of the given DOM fragment. '''
+   
+   imgurl_s = None
+   if "image" in dom.__dict__:
+      
+      if "small_url" in dom.image.__dict__ and \
+            is_string(dom.image.small_url):
+         imgurl_s = dom.image.small_url  
+      elif "medium_url" in dom.image.__dict__ and \
+            is_string(dom.image.medium_url):
+         imgurl_s = dom.image.medium_url  
+      elif "large_url" in dom.image.__dict__ and \
+            is_string(dom.image.large_url):
+         imgurl_s = dom.image.large_url
+      elif "super_url" in dom.image.__dict__ and \
+            is_string(dom.image.super_url):
+         imgurl_s = dom.image.super_url
+      elif "thumb_url" in dom.image.__dict__ and \
+            is_string(dom.image.thumb_url):
+         imgurl_s = dom.image.thumb_url
+         
+   return imgurl_s          
