@@ -379,15 +379,27 @@ def __issue_parse_simple_stuff(issue, dom):
 
    if is_string(dom.results.volume.name):
       issue.series_name_s = dom.results.volume.name.strip()
-   if is_string(dom.results.name):
-      issue.title_s = dom.results.name.strip()
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
    if is_string(dom.results.issue_number):
       issue.issue_num_s = __cleanup_trailing_zeroes( dom.results.issue_number )
    if is_string(dom.results.site_detail_url) and \
          dom.results.site_detail_url.startswith("http"):
-      issue.webpage_s = dom.results.site_detail_url 
+      issue.webpage_s = dom.results.site_detail_url
+      
+   # the title is a bit special; the series name and issue number are often
+   # unnecessarily prepended onto the front of it, strip that off if needed. 
+   if is_string(dom.results.name):
+      issue.title_s = dom.results.name.strip()
+      if issue.series_name_s and issue.issue_num_s:
+         title_s = issue.title_s
+         if title_s.startswith(issue.series_name_s):
+            title_s = title_s[len(issue.series_name_s):].lstrip()
+            if title_s.startswith("#"):
+               title_s = title_s[1:].lstrip()
+            if title_s.startswith(issue.issue_num_s):
+               title_s = title_s[len(issue.issue_num_s):].lstrip(" :-,")
+               issue.title_s = title_s
    
    # grab the published year, month and day
    if "publish_year" in dom.results.__dict__ and \
@@ -414,7 +426,7 @@ def __issue_parse_simple_stuff(issue, dom):
    image_url_s = __parse_image_url(dom.results)
    if image_url_s:
       issue.image_urls_sl.append(image_url_s)
-
+      
 
 #===========================================================================
 def __issue_parse_series_details(issue, dom):
