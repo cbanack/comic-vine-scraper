@@ -4,12 +4,14 @@ This module is home to the IssuesForm and IssuesFormResult classes.
 @author: Cory Banack
 '''
 
-from utils import sstr, is_number
 import clr
 import i18n
+from utils import sstr, is_number
 from buttondgv import ButtonDataGridView
 from issuecoverpanel import IssueCoverPanel
 from cvform import CVForm
+import re
+import utils
 
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection
@@ -365,28 +367,16 @@ class IssueForm(CVForm):
    def __sort_compare_fired(self, sender, args):
       ''' this method is called whenever the table is resorted '''
       
-      # without this listener, issue number column would sort like this:
-      #    1, 10, 12, 12, 2 ,3 ,4, 5, 6, 7, 8, 9
-      # instead of this:
+      # use a natural sort for the issue number column, so it sorts like this:
       #    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+      # instead of this:
+      #    1, 10, 12, 12, 2 ,3 ,4, 5, 6, 7, 8, 9
       
       if args.Column.Index == 0: 
-         a = args.CellValue1 # string NOT number
-         b = args.CellValue2 # string NOT number
-         a_isnum = is_number(a);
-         b_isnum = is_number(b);
-         
-         args.SortResult = 0
-         if a_isnum and b_isnum: 
-            args.SortResult = -1 if float(a) < float(b) else 1 \
-               if float(a) > float(b) else 0
-         elif a_isnum and not b_isnum:
-            args.SortResult = 1;
-         elif not a_isnum and b_isnum:
-            args.SortResult = -1;
-         else:
-            args.SortResult = String.Compare(a,b)
+         args.SortResult = utils.natural_compare( 
+            args.CellValue1, args.CellValue2 )
          args.Handled = True
+         
          
    #===========================================================================         
    def __key_was_pressed(self, sender, args):
