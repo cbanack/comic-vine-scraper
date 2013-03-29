@@ -1,3 +1,4 @@
+#coding: utf-8
 '''
 This module contains a variety of generally useful utility methods.
 
@@ -55,6 +56,52 @@ def sstr(object):
       return object 
    return str(object)
 
+
+# ==========================================================================
+def natural_compare(a, b): 
+   ''' 
+   Compares two strings using their "natural" ordering. Strings that don't 
+   contain numbers will sort alphabetically, but strings with numbers will
+   sort numerically first (["1","2" "11"] instead of ["1","11" "2"]).  
+   Natural comparison works between numerical strings with alphabetic characters 
+   (["4","4a","5"]) and even provides meaningful comparisons between numerical
+   strings containing unicode fractions (["5", "5¼", "5½", "6"]).
+     
+   Returns -1 if a<b, +1 if a>b, and 0 if a==b.
+   ''' 
+
+   def key(s):
+      unicode_float = __unicode_fraction_to_float(s)
+      if unicode_float:
+         return ['', unicode_float, '' ]
+      else:
+         pattern = r'((?:^\s*-)?(?:(?:\d+\.\d+)|(?:\.\d+)|(?:\d+)))'
+         convert = lambda text: float(text) if is_number(text) else text.lower()
+         return [ convert(c) for c in re.split( pattern, s) ]
+      
+   a, b = key(a), key(b)
+   return -1 if a < b else 1 if a > b else 0
+
+
+# ==========================================================================
+def __unicode_fraction_to_float(s):
+   ''' 
+   Converts unicode fractions (like '5½') into floats (like 5.5).
+   Returns None if the given string is not a unicode fractional number.
+   '''
+   number = None
+   match = re.match("\s*(-?)\s*(\d*)\s*([⅛⅙⅕¼⅓⅜⅖½⅗⅝⅔¾⅘⅚⅞])\s*", s) 
+   if match:
+      negative = match.group(1)
+      intpart = match.group(2)
+      intpart = float(intpart) if is_number(intpart) else 0
+      fracs = {"⅛":1.0/8 ,"⅙":1.0/6,"⅕":0.2,"¼":0.25,"⅓":1.0/3,
+               "⅜":3.0/8, "⅖":0.4,"½":0.5,"⅗":0.6,"⅝":5.0/8,
+               "⅔":2.0/3,"¾":0.75,"⅘":0.8,"⅚":5.0/6,"⅞":7.0/8}
+      fracpart = match.group(3)
+      fracpart = fracs[fracpart] if fracpart in fracs else 0
+      number = -1*(intpart+fracpart) if negative else intpart+fracpart
+   return number
 
 # ==========================================================================
 def invoke(control, delegate, synchronous = True): 

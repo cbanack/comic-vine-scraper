@@ -10,6 +10,7 @@ import sys
 import log
 import test_fnameparser
 import test_bookdata
+import test_utils
 
 #==============================================================================
 class AllTests(unittest.TestSuite):
@@ -21,8 +22,10 @@ class AllTests(unittest.TestSuite):
       unittest.TestSuite.__init__( self,
          # add new test cases and test modules here.
          [
-         loader.loadTestsFromModule(test_bookdata),
-         loader.loadTestsFromModule(test_fnameparser),
+          # coryhigh: put these back!
+        # loader.loadTestsFromModule(test_bookdata),
+        # loader.loadTestsFromModule(test_fnameparser),
+         loader.loadTestsFromModule(test_utils), 
          ] 
       )
    

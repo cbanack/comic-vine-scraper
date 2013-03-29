@@ -10,6 +10,10 @@ import utils
 import log
 import re
 import db
+import clr
+
+clr.AddReference('System')
+from System import DateTime
 
 #==============================================================================
 class PluginBookData(BookData):
@@ -218,6 +222,8 @@ class PluginBookData(BookData):
          self.__crbook.CommunityRating = self.rating_n
          ok_to_update.remove("rating_n")
          
+      # coryhigh: finish this
+      #self.__crbook.ReleasedTime = DateTime(1999,1,1)
    
       # we only download and install a thumbnail for fileless CR books, and
       # even then, only if the user's prefs indicate that they want us to      
