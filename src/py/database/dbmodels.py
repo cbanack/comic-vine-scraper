@@ -20,7 +20,7 @@ class IssueRef(object):
    '''
    
    #===========================================================================
-   def __init__(self, issue_num_s, issue_key, title_s):
+   def __init__(self, issue_num_s, issue_key, title_s, thumb_url_s):
       ''' 
       Initializes a newly created IssueRef, checking the given parameters to
       make sure they are legal, and then storing them as read-only properties.
@@ -34,6 +34,13 @@ class IssueRef(object):
       issue_num_s --> a string describing this comic's issue number (which may 
          not be a number at all, it can be '' or '1A' or 'A', etc. It cannot
          be None.)
+         
+      title_s --> a string describing the title of this comic book issue.
+         if no title is available, pass in "" here.
+         
+      thumb_url_s --> the (http) url of an appropriate thumbnail image for this
+         comic book issue (usually the cover.)  if no image is available, 
+         pass in None here.
       '''
 
       if not issue_key or len(sstr(issue_key).strip()) == 0 \
@@ -43,6 +50,11 @@ class IssueRef(object):
       self.__issue_key = issue_key
       self.__issue_num_s = issue_num_s.strip()
       self.__title_s = title_s if utils.is_string(title_s) else ""
+      
+      # make sure thumb_url_s is either valid, or none (but not '').
+      self.__thumb_url_s =None if not thumb_url_s else sstr(thumb_url_s).strip()
+      if self.__thumb_url_s == '':
+         self.__thumb_url_s = None 
       
       # used only for comparisons
       self._cmpkey_s = sstr(self.issue_key)
@@ -57,6 +69,9 @@ class IssueRef(object):
    
    # the title of this IssueRef's issue. not None, may be empty.
    title_s = property( lambda self : self.__title_s )
+   
+   # the url of this series's thumbnail, as a string. may be None.
+   thumb_url_s = property( lambda self : self.__thumb_url_s )
       
       
    #===========================================================================
