@@ -260,13 +260,13 @@ class IssueForm(CVForm):
       # 1. compute the best possible full name for the given SeriesRef   
       name_s = series_ref.series_name_s
       publisher_s = series_ref.publisher_s
-      year_n = series_ref.volume_year_n
-      year_s = sstr(year_n) if year_n > 0 else ''
+      vol_year_n = series_ref.volume_year_n
+      vol_year_s = sstr(vol_year_n) if vol_year_n > 0 else ''
       fullname_s = ''
       if name_s:
          if publisher_s:
-            if year_s:
-               fullname_s = "'"+name_s+"' (" + publisher_s + ", " + year_s + ")"
+            if vol_year_s:
+               fullname_s = "'"+name_s+"' ("+publisher_s+", " + vol_year_s + ")"
             else:
                fullname_s = "'"+name_s+"' (" + publisher_s + ")"
          else:
