@@ -522,52 +522,29 @@ def __issue_parse_story_credits(issue, dom):
    credits from the DOM. 
    '''
 
-   crossovers = []
+   # get any crossover details that might exist
    if ("story_arc_credits" in dom.results.__dict__) and \
       ("story_arc" in dom.results.story_arc_credits.__dict__) :
-      if type(dom.results.story_arc_credits.story_arc) == type([]):
-         for arc in dom.results.story_arc_credits.story_arc:
-            crossovers.append(arc.name)
-      elif is_string(dom.results.story_arc_credits.story_arc.name):
-         crossovers.append(dom.results.story_arc_credits.story_arc.name)
-      if len(crossovers) > 0:
-         issue.crossovers_sl = crossovers
+      issue.crossovers_sl = map( lambda x: x.name,
+         __as_list(dom.results.arc_credits.story_arc) )
 
    # get any character details that might exist
-   characters = []
    if ("character_credits" in dom.results.__dict__) and \
       ("character" in dom.results.character_credits.__dict__):
-      if type(dom.results.character_credits.character) == type([]):
-         for char in dom.results.character_credits.character:
-            characters.append(char.name)
-      elif is_string(dom.results.character_credits.character.name):
-         characters.append( dom.results.character_credits.character.name )
-      if len(characters) > 0:
-         issue.characters_sl = characters
+      issue.characters_sl = map( lambda x: x.name,
+         __as_list(dom.results.character_credits.character) )
          
    # get any team details that might exist
-   teams = []
    if ("team_credits" in dom.results.__dict__) and \
       ("team" in dom.results.team_credits.__dict__):
-      if type(dom.results.team_credits.team) == type([]):
-         for team in dom.results.team_credits.team:
-            teams.append(team.name)
-      elif is_string(dom.results.team_credits.team.name):
-         teams.append( dom.results.team_credits.team.name )
-      if len(teams) > 0:
-         issue.teams_sl = teams
+      issue.teams_sl = map( lambda x: x.name,
+         __as_list(dom.results.team_credits.team) )
          
    # get any location details that might exist
-   locations = []
    if ("location_credits" in dom.results.__dict__) and \
       ("location" in dom.results.location_credits.__dict__):
-      if type(dom.results.location_credits.location) == type([]):
-         for location in dom.results.location_credits.location:
-            locations.append(location.name)
-      elif is_string(dom.results.location_credits.location.name):
-         locations.append( dom.results.location_credits.location.name )
-      if len(locations) > 0:
-         issue.locations_sl = locations 
+      issue.locations_sl = map( lambda x: x.name,
+         __as_list(dom.results.location_credits.location) )
 
 
 #===========================================================================            
@@ -628,18 +605,8 @@ def __issue_parse_roles(issue, dom):
       "person" in dom.results.person_credits.__dict__ and \
       "role" in dom.results.person_credits.__dict__:
       
-      people = []
-      if type(dom.results.person_credits.person) == type([]):
-         people = dom.results.person_credits.person # a list of 'persons'
-      elif dom.results.person_credits.person is not None:
-         people = [dom.results.person_credits.person] # a 'person'
-      
-      roles = []
-      if type(dom.results.person_credits.role) == type([]):
-         roles = dom.results.person_credits.role # a list of 'roles'
-      elif dom.results.person_credits.person is not None:
-         roles = [dom.results.person_credits.role] # a 'role'
-      
+      people = __as_list(dom.results.person_credits.person)
+      roles = __as_list(dom.results.person_credits.role)
       if len(roles) == len(people):
          for i in range(len(roles)):
             person = people[i]
@@ -708,3 +675,12 @@ def __parse_image_url(dom):
          imgurl_s = dom.image.thumb_url
          
    return imgurl_s          
+
+
+#===========================================================================
+def __as_list(dom):
+   ''' 
+   Returns the given dom element if it is a list, or returns it as the
+   only element in a list if it is not.  Return [] if dom is None.
+   '''  
+   return dom if isinstance(dom, list) else [] if dom is None else [dom]
