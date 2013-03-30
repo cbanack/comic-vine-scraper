@@ -192,7 +192,7 @@ def __query_series_refs(search_terms_s, callback_function):
             while iteration < num_results_n and not cancelled_b[0]:
                # 4. query for the next batch of results, in a new dom
                dom = cvconnection._query_series_ids_dom(
-                  search_terms_s, sstr(iteration//RESULTS_PAGE_SIZE+1))
+                  search_terms_s, iteration//RESULTS_PAGE_SIZE+1)
                iteration += RESULTS_PAGE_SIZE
                
                # 4a. do a callback for the most recent batch of results
@@ -214,7 +214,7 @@ def __query_series_refs(search_terms_s, callback_function):
    # 6. Done.  series_refs now contained whatever SeriesRefs we could find
    return set() if cancelled_b[0] else series_refs   
 
-
+   
 # ==========================================================================   
 def __volume_to_seriesref(volume):
    ''' Converts a cvdb "volume" dom element into a SeriesRef. '''
@@ -291,31 +291,68 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
    
    # a comicvine series key can be interpreted as an integer
    series_id_n = int(series_ref.series_key)
+   cancelled_b = [False]
    issue_refs = set()
+   
+   # 1. do the initial query, record how many results in total we're getting
+   dom = cvconnection._query_issue_ids_dom(sstr(series_id_n), 1)
+   num_results_n = int(dom.number_of_total_results) if dom else 0
+   
+   if num_results_n > 0:
+    
+      # 2. convert the results of the initial query to IssueRefs and then add
+      #    them to the returned set. notice that the dom could contain single 
+      #    issue OR a list of issues in its 'issue' variable.  
+      if not isinstance(dom.results.issue, list):
+         issue_refs.add( __issue_to_issueref(dom.results.issue) )
+      else:
+         for issue in dom.results.issue:
+            issue_refs.add( __issue_to_issueref(issue) )
 
-   # 1. do a query to comicvine to get all the issues in this series
-   dom = cvconnection._query_issue_ids_dom(sstr(series_id_n)) 
-   if dom is None:
-      raise Exception("error getting issues in " + sstr(series_ref))
-   else:
-      # 2. parse the query results to find the total number of issues that 
-      #    comic vine has for our series.  
-      issues = []
-      if hasattr(dom.results, "__dict__") and \
-         "issues" in dom.results.__dict__ and \
-          hasattr(dom.results.issues, "__dict__") and \
-         "issue" in dom.results.issues.__dict__:
-            issues = dom.results.issues.issue \
-               if isinstance(dom.results.issues.issue, list) else \
-               [dom.results.issues.issue]
-      for issue in issues:
-         issue_num_s = issue.issue_number
-         if not is_string(issue_num_s): issue_num_s = ''
-         issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
-         title_s = issue.name 
-         if not is_string(title_s): title_s = ''
-         issue_refs.add(IssueRef(issue_num_s, issue.id, title_s))
-   return issue_refs
+         # 3. if there were more than 100 results, we'll have to do some more 
+         #    queries now to get the rest of them
+         RESULTS_PAGE_SIZE = 100
+         iteration = RESULTS_PAGE_SIZE
+         if iteration < num_results_n:
+
+            # 3a. do a callback for the first results (initial query)...
+            cancelled_b[0] = callback_function( float(iteration)/num_results_n )
+
+            while iteration < num_results_n and not cancelled_b[0]:
+               # 4. query for the next batch of results, in a new dom
+               dom = cvconnection._query_issue_ids_dom(sstr(series_id_n),
+                  iteration//RESULTS_PAGE_SIZE+1)
+               iteration += RESULTS_PAGE_SIZE
+               
+               # 4a. do a callback for the most recent batch of results
+               cancelled_b[0] =callback_function(float(iteration)/num_results_n)
+
+               if int(dom.number_of_page_results) < 1:
+                  log.debug("WARNING: got empty results page")
+               else:
+                  # 5. convert the current batch of results into IssueRefs,
+                  #    and then add them to the returned list.  Again, the dom
+                  #    could contain a single issue, OR a list.
+                  if not isinstance(dom.results.issue, list):
+                     issue_refs.add(__issue_to_issueref(dom.results.issue))
+                  else:
+                     for issue in dom.results.issue:
+                        issue_refs.add( __issue_to_issueref(issue) )
+                        
+   # 6. Done.  issue_refs now contained whatever IssueRefs we could find
+   return set() if cancelled_b[0] else issue_refs
+
+
+
+# ==========================================================================   
+def __issue_to_issueref(issue):
+   ''' Converts a cvdb "issue" dom element into an IssueRef. '''
+   issue_num_s = issue.issue_number
+   if not is_string(issue_num_s): issue_num_s = ''
+   issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
+   title_s = issue.name 
+   if not is_string(title_s): title_s = ''
+   return IssueRef(issue_num_s, issue.id, title_s)
 
 
 # =============================================================================

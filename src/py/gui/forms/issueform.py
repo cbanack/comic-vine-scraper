@@ -6,11 +6,10 @@ This module is home to the IssuesForm and IssuesFormResult classes.
 
 import clr
 import i18n
-from utils import sstr, is_number
+from utils import sstr
 from buttondgv import ButtonDataGridView
 from issuecoverpanel import IssueCoverPanel
 from cvform import CVForm
-import re
 import utils
 
 clr.AddReference('Microsoft.VisualBasic')
@@ -23,7 +22,6 @@ clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
    DataGridViewAutoSizeColumnMode, DataGridViewContentAlignment, \
    DataGridViewSelectionMode, DialogResult, Keys, Label
-from System import String
 
 
 

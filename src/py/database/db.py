@@ -145,7 +145,7 @@ def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
 
 
 # =============================================================================
-def query_issue_refs(series_ref, callback_function=lambda x,y : False):
+def query_issue_refs(series_ref, callback_function=lambda x : False):
    '''
    This method takes a SeriesRef object (not None) and uses it to 
    query the database for all comic book issues in that series.   
