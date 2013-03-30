@@ -435,7 +435,7 @@ def __issue_parse_simple_stuff(issue, dom):
          issue.pub_year_n, issue.pub_month_n, issue.pub_day_n = \
             [int(x) for x in dom.results.cover_date.split('-')]
       except:
-         pass # got an unrecognized "year" format...?
+         pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
    # grab the released (in store) date
    if "store_date" in dom.results.__dict__ and \
@@ -445,7 +445,7 @@ def __issue_parse_simple_stuff(issue, dom):
          issue.rel_year_n, issue.rel_month_n, issue.rel_day_n = \
             [int(x) for x in dom.results.store_date.split('-')]
       except:
-         pass # got an unrecognized "year" format...?
+         pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
    # grab the image for this issue and store it as the first element
    # in the list of issue urls.
@@ -599,7 +599,7 @@ def __issue_parse_roles(issue, dom):
       if len(roles) == len(people):
          for i in range(len(roles)):
             person = people[i]
-            for role in [r.strip() for r in roles[i].split(',')]:
+            for role in [r.strip() for r in sstr(roles[i]).split(',')]:
                if role in ROLE_DICT:
                   for cr_role in ROLE_DICT[role]:
                      rolemap[cr_role].append(person.name)

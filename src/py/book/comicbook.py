@@ -163,7 +163,7 @@ class ComicBook(object):
          if issue_key != None:
             # found a key tag! convert to an IssueRef
             retval = IssueRef(self.issue_num_s, issue_key, 
-               self.__bookdata.title_s, self.bookdata.cover_url_s);
+               self.__bookdata.title_s, self.__bookdata.cover_url_s);
    
       return retval
    
@@ -260,47 +260,31 @@ class ComicBook(object):
       if value is None: bd.dont_update("summary_s")
       else: bd.summary_s = value
       
-      # release (in store) year -----------------------
-      value = self.__massage_new_number("Year", issue.rel_year_n, \
-         bd.rel_year_n, config.update_released_b, config.ow_existing_b, \
-         config.ignore_blanks_b, -1, lambda x : x > 0 )
-      if value is None: bd.dont_update("rel_year_n")
-      else: bd.rel_year_n = value
-      
-      # release (in store) month ----------------------
-      value = self.__massage_new_number("Month", issue.rel_month_n, \
-         bd.rel_month_n,  config.update_released_b, config.ow_existing_b, \
-         config.ignore_blanks_b, -1, lambda x : x>=1 and x <= 12 ) 
-      if value is None: bd.dont_update("rel_month_n")
-      else: bd.rel_month_n = value
-      
-      # release (in store) day ------------------------
-      value = self.__massage_new_number("Day", issue.rel_day_n, \
-         bd.rel_day_n,  config.update_released_b, config.ow_existing_b, \
-         config.ignore_blanks_b, -1, lambda x : x >=1 and x <= 31 )
-      if value is None: bd.dont_update("rel_day_n")
-      else: bd.rel_day_n = value
-      
-      # publication (cover) year -----------------------
-      value = self.__massage_new_number("Year", issue.pub_year_n, \
-         bd.pub_year_n, config.update_published_b, config.ow_existing_b, \
-         config.ignore_blanks_b, -1, lambda x : x > 0 )
-      if value is None: bd.dont_update("pub_year_n")
-      else: bd.pub_year_n = value
-      
-      # publication (cover) month ----------------------
-      value = self.__massage_new_number("Month", issue.pub_month_n, \
-         bd.pub_month_n,  config.update_published_b, config.ow_existing_b, \
-         config.ignore_blanks_b, -1, lambda x : x>=1 and x <= 12 ) 
-      if value is None: bd.dont_update("pub_month_n")
-      else: bd.pub_month_n = value
-      
-      # publication (cover) day ------------------------
-      value = self.__massage_new_number("Day", issue.pub_day_n, \
-         bd.pub_day_n, config.update_published_b, config.ow_existing_b, \
-         config.ignore_blanks_b, -1, lambda x : x >=1 and x <= 31 )
-      if value is None: bd.dont_update("pub_day_n")
-      else: bd.pub_day_n = value
+      # release (in store) date -----------------------
+      value = self.__massage_new_date("Release Date", 
+         (issue.rel_year_n, issue.rel_month_n, issue.rel_day_n),
+         (bd.rel_year_n, bd.rel_month_n, bd.rel_day_n), 
+         config.update_released_b, config.ow_existing_b, 
+         config.ignore_blanks_b, -1)
+      if value is None: 
+         bd.dont_update("rel_year_n")
+         bd.dont_update("rel_month_n")
+         bd.dont_update("rel_day_n")
+      else:
+         bd.rel_year_n, bd.rel_month_n, bd.rel_day_n = value
+         
+      # published (cover) date -----------------------
+      value = self.__massage_new_date("Publish Date", 
+         (issue.pub_year_n, issue.pub_month_n, issue.pub_day_n),
+         (bd.pub_year_n, bd.pub_month_n, bd.pub_day_n), 
+         config.update_published_b, config.ow_existing_b, 
+         config.ignore_blanks_b, -1)
+      if value is None: 
+         bd.dont_update("pub_year_n")
+         bd.dont_update("pub_month_n")
+         bd.dont_update("pub_day_n")
+      else:
+         bd.pub_year_n, bd.pub_month_n, bd.pub_day_n = value
       
       # volume --------------------
       value = self.__massage_new_number("Volume", issue.volume_year_n, \
@@ -797,6 +781,66 @@ class ComicBook(object):
       # last minute type checking, just to be sure the returned value type is ok
       if retval != None:
          retval = float(retval) if type(old_value) == float else int(retval)
+      return retval
+   
+   #===========================================================================
+   @staticmethod 
+   def __massage_new_date(label, new_value, old_value, update, overwrite, \
+      ignoreblanks, blank_value):
+      ''' 
+      Returns a date tuple of three ints (YYYY,MM,DD) that should be copied into
+      our backing ComicBook object, IFF that tuple is not None.   Uses a number
+      of rules to decide what to return.
+      
+      label - a human readable description of the given date being changed.
+      new_value - proposed new date to copy over. a tuple of ints (YYYY,MM,DD)
+      old_value - original date.  a tuple of ints (YYYY,MM,DD)
+      update - if false, this method always returns None
+      overwrite - whether it's acceptable to overwrite the old value with the
+            new value when the old value is non-blank.
+      ignoreblanks - if true, we'll never overwrite with an old non-blank date
+            with a new date that has any blank values.
+      blank_value - the value that should be considered 'blank' for
+            any of the individual elements in the given date tuples.  any tuple
+            that contains even one blank value will be considered blank.
+      ''' 
+      
+      
+      # first, a little housekeeping so that we stay really robust
+      is_blank = lambda tuple: blank_value in tuple
+      if new_value is None or is_blank(new_value):
+         new_value = (blank_value,blank_value,blank_value)
+      if old_value is None or is_blank(old_value):
+         old_value = (blank_value, blank_value, blank_value)
+      if type(blank_value) != int:
+         raise TypeError("wrong type for blank value");
+      if len(old_value) != 3 or type(old_value[2]) != int:
+         raise TypeError("wrong type for old value");
+      if len(new_value) != 3 or type(new_value[2]) != int:
+         raise TypeError("wrong type for new value");
+            
+      # now decide about whether or not to actually do the update
+      # only update if all of the following are true:
+      #  1) the update option is turned on for this particular field
+      #  2) we can overwrite the existing value, or there is no existing value
+      #  3) we're not overwriting with a blank value unless we're allowed to
+      retval = None;
+      if update and (overwrite or is_blank(old_value)) and \
+            not (ignoreblanks and is_blank(new_value)):
+         retval = new_value
+         
+         marker = ' '
+         if old_value != new_value:
+            marker = '*'
+            
+         if is_blank(retval): 
+            log.debug("--> ", marker, label.ljust(15), ": ")
+         else: 
+            log.debug("--> ", marker, label.ljust(15), ": ", 
+               '-'.join([sstr(x) for x in retval]) )
+      else:
+         log.debug("-->  ", label.ljust(15), ": --- skipped ---")
+         
       return retval
    
    
