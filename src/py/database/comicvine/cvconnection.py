@@ -77,15 +77,14 @@ def _query_issue_ids_dom(seriesid_s, page_n=1):
    This method doesn't return null, but it may throw Exceptions.
    '''
    
-   # corynorm: switch back to paging from offset
-   
    # {0} is the series ID, an integer     
    QUERY = 'http://api.comicvine.com/issues/?api_key=' + __API_KEY + \
-      '&format=xml&field_list=name,issue_number,id&filter=volume:{0}&offset={1}'
+      '&format=xml&field_list=name,issue_number,id&filter=volume:{0}' +\
+      '&page={1}&offset={2}'
    
    if seriesid_s is None or seriesid_s == '':
       raise ValueError('bad parameters')
-   return __get_dom( QUERY.format(sstr(seriesid_s), (page_n-1)*100 ) )
+   return __get_dom( QUERY.format(sstr(seriesid_s), page_n, (page_n-1)*100 ) )
 
 
 # =============================================================================

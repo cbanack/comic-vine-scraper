@@ -598,7 +598,7 @@ def __issue_parse_summary(issue, dom):
       
 #===========================================================================         
 def __issue_parse_roles(issue, dom):
-   ''' Parse the current comic's roles from the DOM. '''
+   ''' Parse the current comic's creator roles from the DOM. '''
    
    # this is a dictionary of comicvine role descriptors, mapped to the 
    # 'issue' attribute names of the member variables that we want to 
@@ -617,36 +617,41 @@ def __issue_parse_roles(issue, dom):
    for symbol in test_symbols:
       if not hasattr(issue, symbol):
          raise Exception("missing symbol: " + symbol)
-      
    
-   # For creators, there are several different situations:
-   #   1) if there is one or more than one creator
-   #   2) if a given creator has one or more than one role
+   # keep in mind that for creators, there are several different situations:
+   #   1) there is zero, one or more than one creator for a given role
+   #   2) a given creator has one or more than one role (comma separated)
+   #   3) a single comicvine role role maps to more than one comicrack role
    
    rolemap = dict([(r, []) for l in ROLE_DICT.values() for r in l])
    if "person_credits" in dom.results.__dict__ and \
-      "person" in dom.results.person_credits.__dict__:
+      "person" in dom.results.person_credits.__dict__ and \
+      "role" in dom.results.person_credits.__dict__:
+      
       people = []
       if type(dom.results.person_credits.person) == type([]):
          people = dom.results.person_credits.person # a list of 'persons'
       elif dom.results.person_credits.person is not None:
          people = [dom.results.person_credits.person] # a 'person'
-      for person in people:
-         roles = []
-         if "roles" in person.__dict__:
-            if "role" in person.roles.__dict__ and \
-               type(person.roles.role) == type([]):
-               roles = person.roles.role # a list of strings
-            elif is_string(person.roles):
-               roles = [person.roles] # a string
-         for role in roles:
-            if role in ROLE_DICT:
-               for cr_role in ROLE_DICT[role]:
-                  rolemap[cr_role].append(person.name) 
+      
+      roles = []
+      if type(dom.results.person_credits.role) == type([]):
+         roles = dom.results.person_credits.role # a list of 'roles'
+      elif dom.results.person_credits.person is not None:
+         roles = [dom.results.person_credits.role] # a 'role'
+      
+      if len(roles) == len(people):
+         for i in range(len(roles)):
+            person = people[i]
+            for role in [r.strip() for r in roles[i].split(',')]:
+               if role in ROLE_DICT:
+                  for cr_role in ROLE_DICT[role]:
+                     rolemap[cr_role].append(person.name)
+      else:
+         log.debug("WARNING: number of people and roles do not match up!") 
                    
    for role in rolemap:
       setattr(issue, role, rolemap[role] )
-      
       
       
 #===========================================================================         
