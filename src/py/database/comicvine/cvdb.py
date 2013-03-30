@@ -427,25 +427,25 @@ def __issue_parse_simple_stuff(issue, dom):
       issue.title_s = dom.results.name.strip();
       issue.title_s = __clean_title_s( issue.title_s, issue.issue_num_s );
       
-   # grab the published year, month and day
-   if "publish_year" in dom.results.__dict__ and \
-      is_string(dom.results.publish_year):
+   # grab the published (front cover) date
+   if "cover_date" in dom.results.__dict__ and \
+      is_string(dom.results.cover_date) and \
+      len(dom.results.cover_date) > 7:
       try:
-         issue.year_n = int(dom.results.publish_year)
+         issue.pub_year_n, issue.pub_month_n, issue.pub_day_n = \
+            [int(x) for x in dom.results.cover_date.split('-')]
       except:
          pass # got an unrecognized "year" format...?
-   if "publish_month" in dom.results.__dict__ and \
-      is_string(dom.results.publish_month):
+      
+   # grab the released (in store) date
+   if "store_date" in dom.results.__dict__ and \
+      is_string(dom.results.store_date) and \
+      len(dom.results.store_date) > 7:
       try:
-         issue.month_n = int(dom.results.publish_month)
+         issue.rel_year_n, issue.rel_month_n, issue.rel_day_n = \
+            [int(x) for x in dom.results.store_date.split('-')]
       except:
-         pass # got an unrecognized "month" format...?
-   if "publish_day" in dom.results.__dict__ and \
-      is_string(dom.results.publish_day):
-      try:
-         issue.day_n = int(dom.results.publish_day)
-      except:
-         pass # got an unrecognized "day" format...?
+         pass # got an unrecognized "year" format...?
       
    # grab the image for this issue and store it as the first element
    # in the list of issue urls.

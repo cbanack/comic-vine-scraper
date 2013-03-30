@@ -18,9 +18,14 @@ class BookData(object):
       self.__series_s = ""
       self.__issue_num_s = ""
       self.__volume_year_n = -1 # -1 is a blank value
-      self.__year_n =  -1 # -1 is a blank value
-      self.__month_n = -1 # -1 is a blank value
-      self.__day_n = -1 # -1 is a blank value
+      self.__published_s = ""
+      self.__released_s = ""
+      self.__pub_year_n =  -1 # -1 is a blank value
+      self.__pub_month_n = -1 # -1 is a blank value
+      self.__pub_day_n = -1 # -1 is a blank value
+      self.__rel_year_n =  -1 # -1 is a blank value
+      self.__rel_month_n = -1 # -1 is a blank value
+      self.__rel_day_n = -1 # -1 is a blank value
       self.__format_s = ""
       self.__title_s =""
       self.__crossovers_sl = [] 
@@ -118,8 +123,8 @@ class BookData(object):
       '''
       Returns the blank value for the given property in this bookdata.  This 
       value should be interpreted as "I don't know" or "undefined".  All new 
-      BookData objects start with these properties by default, e.g.
-      year_n is blank("year_n"), series_s is blank("series_s"), etc.
+      BookData objects start with these properties by default, so volume_year_n
+      is blank("volume_year_n"), series_s is blank("series_s"), etc.
       
       Values return by this method will never be None.
       '''   
@@ -182,50 +187,69 @@ class BookData(object):
       __set_summary_s, __set_summary_s,
       "Plot summary of this book.  Not None, may be empty.")
    
-
    #===========================================================================   
-   def __set_year_n(self, year_n = None):
-      year_n = -1 if year_n is None else int(year_n)
-      self.__year_n = year_n if year_n >= 0 else BookData.blank("year_n")
+   def __set_pub_year_n(self, pub_year_n = None):
+      pub_year_n = -1 if pub_year_n is None else int(pub_year_n)
+      self.__pub_year_n = pub_year_n if 0 < pub_year_n < 9999 \
+         else BookData.blank("pub_year_n")
       
-   year_n = property( lambda self : self.__year_n, __set_year_n, __set_year_n, 
+   pub_year_n = property( lambda self : self.__pub_year_n, 
+      __set_pub_year_n, __set_pub_year_n, 
       "Publication year of this book, as an int >= -1, where -1 is unknown" )
       
       
    #===========================================================================   
-   def __set_month_n(self, month_n = None):
-      remap={ 1:1, 26:1, 2:2, 19:2, 3:3, 13:3, 27:3, 4:4, 20:4, 5:5, 28:5, \
-              6:6, 14:6, 21:6, 7:7, 29:7, 8:8, 22:8, 9:9, 15:9, 30:9, 10:10,\
-              23:10, 11:11, 31:11, 12:12, 16:12, 24:12, 25:12, 18:-1, 17:-1 }
-      month_n = -1 if month_n is None else int(month_n)
-      if month_n in remap:
-         month_n = remap[month_n]
-      self.__month_n = month_n if month_n <= 12 \
-         and month_n >= 1 else BookData.blank("month_n")
+   def __set_pub_month_n(self, pub_month_n = None):
+      pub_month_n = -1 if pub_month_n is None else int(pub_month_n)
+      self.__pub_month_n = pub_month_n \
+         if 1 <= pub_month_n <= 12 else BookData.blank("pub_month_n")
       
-   month_n = property( lambda self : self.__month_n, 
-      __set_month_n, __set_month_n, 
-      ''' Publication month of this book, as an int from 1 to 12. -1 is unknown.
-          Values from  13 to 31 are also allowed, but will be recoded as: 
-              13 = Spring (3)     23 = Sep/Oct (10)   
-              14 = Summer (6)     24 = Nov/Dec (12)
-              15 = Fall (9)       25 = Holiday (12)
-              16 = Winter (12)    26 = Dec/Jan (1)
-              17 = Annual (-1)    27 = Feb/Mar (3)
-              18 = None (-1)      28 = Apr/May (5)
-              19 = Jan/Feb (2)    29 = Jun/Jul (7)
-              20 = Mar/Apr (4)    30 = Aug/Sep (9)
-              21 = May/Jun (6)    31 = Oct/Nov (11)
-              22 = Jul/Aug (8)                         ''')
+   pub_month_n = property( lambda self : self.__pub_month_n,
+      __set_pub_month_n, __set_pub_month_n, 
+      "Publication month of this book, as an int from 1 to 12. -1 is unknown.")
    
    
    #===========================================================================   
-   def __set_day_n(self, day_n = None):
-      day_n = -1 if day_n is None else int(day_n)
-      self.__day_n = day_n if day_n >= 0 else BookData.blank("day_n")
+   def __set_pub_day_n(self, pub_day_n = None):
+      pub_day_n = -1 if pub_day_n is None else int(pub_day_n)
+      self.__pub_day_n = pub_day_n \
+         if pub_day_n >= 0 else BookData.blank("pub_day_n")
       
-   day_n = property( lambda self : self.__day_n, __set_day_n, __set_day_n, 
+   pub_day_n = property( lambda self : self.__pub_day_n, 
+      __set_pub_day_n, __set_pub_day_n,  
       "Publication day of this book, an int from 1 to 31, where -1 is unknown" )
+   
+   #===========================================================================   
+   def __set_rel_year_n(self, rel_year_n = None):
+      rel_year_n = -1 if rel_year_n is None else int(rel_year_n)
+      self.__rel_year_n = rel_year_n if 0 < rel_year_n < 9999 \
+         else BookData.blank("rel_year_n")
+      
+   rel_year_n = property( lambda self : self.__rel_year_n, 
+      __set_rel_year_n, __set_rel_year_n, 
+      "Release year of this book, as an int >= -1, where -1 is unknown")
+      
+      
+   #===========================================================================   
+   def __set_rel_month_n(self, rel_month_n = None):
+      rel_month_n = -1 if rel_month_n is None else int(rel_month_n)
+      self.__rel_month_n = rel_month_n \
+         if 1 <= rel_month_n <= 12 else BookData.blank("rel_month_n")
+      
+   rel_month_n = property( lambda self : self.__rel_month_n,
+      __set_rel_month_n, __set_rel_month_n, 
+      "Release month of this book, as an int from 1 to 12. -1 is unknown.")
+   
+   
+   #===========================================================================   
+   def __set_rel_day_n(self, rel_day_n = None):
+      rel_day_n = -1 if rel_day_n is None else int(rel_day_n)
+      self.__rel_day_n = rel_day_n \
+         if rel_day_n >= 0 else BookData.blank("rel_day_n")
+      
+   rel_day_n = property( lambda self : self.__rel_day_n, 
+      __set_rel_day_n, __set_rel_day_n,  
+      "Release day of this book, an int from 1 to 31, where -1 is unknown" )
 
    
    #===========================================================================   

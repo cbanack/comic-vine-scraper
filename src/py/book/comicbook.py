@@ -49,6 +49,7 @@ class ComicBook(object):
    
    #===========================================================================
 
+   # coryhigh: perhaps we can delete a bunch of these?
    # Series name of this book.  Not None, may be empty.
    series_s = property( lambda self : self.__bookdata.series_s )
    
@@ -59,7 +60,10 @@ class ComicBook(object):
    volume_year_n = property( lambda self :  self.__bookdata.volume_year_n )
    
    # Publication year of this book, as an int >= -1, where -1 is unknown
-   year_n = property( lambda self : self.__bookdata.year_n )
+   pub_year_n = property( lambda self : self.__bookdata.pub_year_n )
+   
+   # Release year of this book, as an int >= -1, where -1 is unknown
+   rel_year_n = property( lambda self : self.__bookdata.rel_year_n )
    
    # The format of this book (giant, annual, etc.)  Not None, may be empty.
    format_s = property( lambda self : self.__bookdata.format_s )
@@ -256,26 +260,47 @@ class ComicBook(object):
       if value is None: bd.dont_update("summary_s")
       else: bd.summary_s = value
       
-      # year -----------------------
-      value = self.__massage_new_number("Year", issue.year_n, \
-         bd.year_n, config.update_published_b, config.ow_existing_b, \
-         True, -1, lambda x : x > 0 ) # note: we ALWAYS ignore blanks for 'year'
-      if value is None: bd.dont_update("year_n")
-      else: bd.year_n = value
+      # release (in store) year -----------------------
+      value = self.__massage_new_number("Year", issue.rel_year_n, \
+         bd.rel_year_n, config.update_released_b, config.ow_existing_b, \
+         config.ignore_blanks_b, -1, lambda x : x > 0 )
+      if value is None: bd.dont_update("rel_year_n")
+      else: bd.rel_year_n = value
       
-      # month ----------------------
-      value = self.__massage_new_number("Month", issue.month_n, bd.month_n, \
-         config.update_published_b, config.ow_existing_b, True, -1, \
-         lambda x : x>=1 and x <= 31 ) # ALWAYS ignore blanks for 'month'
-      if value is None: bd.dont_update("month_n")
-      else: bd.month_n = value
+      # release (in store) month ----------------------
+      value = self.__massage_new_number("Month", issue.rel_month_n, \
+         bd.rel_month_n,  config.update_released_b, config.ow_existing_b, \
+         config.ignore_blanks_b, -1, lambda x : x>=1 and x <= 12 ) 
+      if value is None: bd.dont_update("rel_month_n")
+      else: bd.rel_month_n = value
       
-      # day ------------------------
-      value = self.__massage_new_number("Day", issue.day_n, bd.day_n, \
-         config.update_published_b, config.ow_existing_b, \
+      # release (in store) day ------------------------
+      value = self.__massage_new_number("Day", issue.rel_day_n, \
+         bd.rel_day_n,  config.update_released_b, config.ow_existing_b, \
          config.ignore_blanks_b, -1, lambda x : x >=1 and x <= 31 )
-      if value is None: bd.dont_update("day_n")
-      else: bd.day_n = value
+      if value is None: bd.dont_update("rel_day_n")
+      else: bd.rel_day_n = value
+      
+      # publication (cover) year -----------------------
+      value = self.__massage_new_number("Year", issue.pub_year_n, \
+         bd.pub_year_n, config.update_published_b, config.ow_existing_b, \
+         config.ignore_blanks_b, -1, lambda x : x > 0 )
+      if value is None: bd.dont_update("pub_year_n")
+      else: bd.pub_year_n = value
+      
+      # publication (cover) month ----------------------
+      value = self.__massage_new_number("Month", issue.pub_month_n, \
+         bd.pub_month_n,  config.update_published_b, config.ow_existing_b, \
+         config.ignore_blanks_b, -1, lambda x : x>=1 and x <= 12 ) 
+      if value is None: bd.dont_update("pub_month_n")
+      else: bd.pub_month_n = value
+      
+      # publication (cover) day ------------------------
+      value = self.__massage_new_number("Day", issue.pub_day_n, \
+         bd.pub_day_n, config.update_published_b, config.ow_existing_b, \
+         config.ignore_blanks_b, -1, lambda x : x >=1 and x <= 31 )
+      if value is None: bd.dont_update("pub_day_n")
+      else: bd.pub_day_n = value
       
       # volume --------------------
       value = self.__massage_new_number("Volume", issue.volume_year_n, \
@@ -787,7 +812,7 @@ class ComicBook(object):
       bd  = self.__bookdata
       no_series = BookData.blank("series_s") == bd.series_s
       no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
-      no_year = BookData.blank("year_n") == bd.year_n
+      no_year = BookData.blank("pub_year_n") == bd.pub_year_n
       if no_series or no_issuenum or no_year:
          if bd.path_s:
             # 1. at least one detail is missing, and we have a path name to
@@ -810,8 +835,8 @@ class ComicBook(object):
             if no_issuenum:
                bd.issue_num_s = extracted[1]
             if no_year:
-               bd.year_n = int(extracted[2]) \
+               bd.pub_year_n = int(extracted[2]) \
                   if is_number(extracted[2])\
-                     else BookData.blank("year_n")
+                     else BookData.blank("pub_year_n")
                
                

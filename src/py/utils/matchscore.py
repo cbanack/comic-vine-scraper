@@ -97,22 +97,23 @@ class MatchScore(object):
       # 4. get the 'yearscore', which severely penalizes (-500) any series 
       #    that started after the year that the current book was published.
       current_year_n = datetime.datetime.now().year
-      def valid_year_b(year_n):
-         return year_n > 1900 and year_n <= current_year_n+1
+      is_valid_year_b = lambda y : y > 1900 and y <= current_year_n+1 
       
       series_year_n = series_ref.volume_year_n
+      book_year_n = book.pub_year_n if is_valid_year_b(book.pub_year_n) \
+         else book.rel_year_n
       yearscore_n = 0
-      if valid_year_b(book.year_n):
-         if not valid_year_b(series_year_n):
+      if is_valid_year_b(book_year_n):
+         if not is_valid_year_b(series_year_n):
             yearscore_n = -100
-         elif series_year_n > book.year_n:
+         elif series_year_n > book_year_n:
             yearscore_n = -500
             
       # 5. get the 'recency score', which is a tiny negative value (usually
       #    around on the range [-0.50, 0]) that gets worse (smaller) the older 
       #    the series is.   this is really a tie-breaker for series with 
       #    otherwise identical scores. 
-      if valid_year_b(series_year_n):
+      if is_valid_year_b(series_year_n):
          recency_score_n = -(current_year_n - series_year_n) / 100.0;
       else:
          recency_score_n = -1.0
