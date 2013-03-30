@@ -352,6 +352,7 @@ def __issue_to_issueref(issue):
    issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
    title_s = issue.name 
    if not is_string(title_s): title_s = ''
+   title_s = __clean_title_s( title_s, issue_num_s );
    return IssueRef(issue_num_s, issue.id, title_s)
 
 
@@ -423,21 +424,10 @@ def __issue_parse_simple_stuff(issue, dom):
    if is_string(dom.results.site_detail_url) and \
          dom.results.site_detail_url.startswith("http"):
       issue.webpage_s = dom.results.site_detail_url
-      
-   # the title is a bit special; the series name and issue number are often
-   # unnecessarily prepended onto the front of it, strip that off if needed. 
    if is_string(dom.results.name):
-      issue.title_s = dom.results.name.strip()
-      if issue.series_name_s and issue.issue_num_s:
-         title_s = issue.title_s
-         if title_s.startswith(issue.series_name_s):
-            title_s = title_s[len(issue.series_name_s):].lstrip()
-            if title_s.startswith("#"):
-               title_s = title_s[1:].lstrip()
-            if title_s.startswith(issue.issue_num_s):
-               title_s = title_s[len(issue.issue_num_s):].lstrip(" :-,")
-               issue.title_s = title_s
-   
+      issue.title_s = dom.results.name.strip();
+      issue.title_s = __clean_title_s( issue.title_s, issue.issue_num_s );
+      
    # grab the published year, month and day
    if "publish_year" in dom.results.__dict__ and \
       is_string(dom.results.publish_year):
@@ -684,3 +674,12 @@ def __as_list(dom):
    only element in a list if it is not.  Return [] if dom is None.
    '''  
    return dom if isinstance(dom, list) else [] if dom is None else [dom]
+
+#===========================================================================
+def __clean_title_s(title_s, issue_num_s): # corylow: can we get rid of this?
+   ''' Cleans extra series details from the front of the issue title.  '''
+   
+   # the title is a bit special; the series name and issue number are often
+   # unnecessarily prepended onto the front of it, strip that off if needed.
+   i = title_s.find("#"+issue_num_s)
+   return title_s[i+len("#"+issue_num_s):].lstrip(" :-,") if i > 0 else title_s
