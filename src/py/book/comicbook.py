@@ -159,7 +159,7 @@ class ComicBook(object):
          if issue_key != None:
             # found a key tag! convert to an IssueRef
             retval = IssueRef(self.issue_num_s, issue_key, 
-               self.__bookdata.title_s);
+               self.__bookdata.title_s, self.bookdata.cover_url_s);
    
       return retval
    

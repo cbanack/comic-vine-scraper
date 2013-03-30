@@ -353,7 +353,7 @@ def __issue_to_issueref(issue):
    title_s = issue.name 
    if not is_string(title_s): title_s = ''
    title_s = __clean_title_s( title_s, issue_num_s );
-   return IssueRef(issue_num_s, issue.id, title_s)
+   return IssueRef(issue_num_s, issue.id, title_s, __parse_image_url(issue))
 
 
 # =============================================================================
@@ -367,8 +367,7 @@ def _query_image(ref):
    if isinstance(ref, SeriesRef):
       image_url_s = ref.thumb_url_s
    elif isinstance(ref, IssueRef):
-      dom = cvconnection._query_issue_image_dom(sstr(ref.issue_key))
-      image_url_s = __parse_image_url(dom.results) if dom else None
+      image_url_s = ref.thumb_url_s
    elif is_string(ref):
       image_url_s = ref
    

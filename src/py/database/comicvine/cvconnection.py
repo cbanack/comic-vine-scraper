@@ -79,7 +79,7 @@ def _query_issue_ids_dom(seriesid_s, page_n=1):
    
    # {0} is the series ID, an integer     
    QUERY = 'http://api.comicvine.com/issues/?api_key=' + __API_KEY + \
-      '&format=xml&field_list=name,issue_number,id&filter=volume:{0}' +\
+      '&format=xml&field_list=name,issue_number,id,image&filter=volume:{0}' +\
       '&page={1}&offset={2}'
    
    if seriesid_s is None or seriesid_s == '':
