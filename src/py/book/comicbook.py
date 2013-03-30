@@ -258,22 +258,22 @@ class ComicBook(object):
       
       # year -----------------------
       value = self.__massage_new_number("Year", issue.year_n, \
-         bd.year_n, config.update_year_b, config.ow_existing_b, \
+         bd.year_n, config.update_published_b, config.ow_existing_b, \
          True, -1, lambda x : x > 0 ) # note: we ALWAYS ignore blanks for 'year'
       if value is None: bd.dont_update("year_n")
       else: bd.year_n = value
       
       # month ----------------------
       value = self.__massage_new_number("Month", issue.month_n, bd.month_n, \
-         config.update_month_b, config.ow_existing_b, True, -1, \
+         config.update_published_b, config.ow_existing_b, True, -1, \
          lambda x : x>=1 and x <= 31 ) # ALWAYS ignore blanks for 'month'
       if value is None: bd.dont_update("month_n")
       else: bd.month_n = value
       
       # day ------------------------
       value = self.__massage_new_number("Day", issue.day_n, bd.day_n, \
-         config.update_day_b, config.ow_existing_b, config.ignore_blanks_b,\
-         -1, lambda x : x >=1 and x <= 31 )
+         config.update_published_b, config.ow_existing_b, \
+         config.ignore_blanks_b, -1, lambda x : x >=1 and x <= 31 )
       if value is None: bd.dont_update("day_n")
       else: bd.day_n = value
       
