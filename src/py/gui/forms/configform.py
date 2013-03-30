@@ -38,9 +38,8 @@ class ConfigForm(CVForm):
       # also be used to reference each checkbox inside the checkboxlist
       ConfigForm.__SERIES_CB = i18n.get("ConfigFormSeriesCB")
       ConfigForm.__NUMBER_CB = i18n.get("ConfigFormNumberCB")
-      ConfigForm.__YEAR_CB = i18n.get("ConfigFormYearCB")
-      ConfigForm.__MONTH_CB = i18n.get("ConfigFormMonthCB")
-      ConfigForm.__DAY_CB = i18n.get("ConfigFormDayCB")
+      ConfigForm.__PUBLISHED_CB = i18n.get("ConfigFormPublishedCB")
+      ConfigForm.__RELEASED_CB = i18n.get("ConfigFormReleasedCB")
       ConfigForm.__TITLE_CB = i18n.get("ConfigFormTitleCB")
       ConfigForm.__CROSSOVERS_CB = i18n.get("ConfigFormCrossoversCB")
       ConfigForm.__WRITER_CB = i18n.get("ConfigFormWriterCB")
@@ -189,7 +188,7 @@ class ConfigForm(CVForm):
       label = Label()
       label.UseMnemonic = False
       label.AutoSize = True
-      label.Location = Point(14, 25)
+      label.Location = Point(14, 35)
       label.Size = Size(299, 17)
       label.Text = i18n.get("ConfigFormDetailsText")
       
@@ -212,19 +211,18 @@ class ConfigForm(CVForm):
       self.__update_checklist.CheckOnClick = True
       self.__update_checklist.ColumnWidth = 125
       self.__update_checklist.ThreeDCheckBoxes = True
-      self.__update_checklist.Location = Point(15, 50)
+      self.__update_checklist.Location = Point(15, 65)
       self.__update_checklist.MultiColumn = True
       self.__update_checklist.SelectionMode = SelectionMode.One
-      self.__update_checklist.Size = Size(260, 200)
+      self.__update_checklist.Size = Size(260, 170)
       self.__update_checklist.ItemCheck += self.__fired_update_gui
       
       self.__update_checklist.Items.Add(ConfigForm.__SERIES_CB)
       self.__update_checklist.Items.Add(ConfigForm.__VOLUME_CB)
       self.__update_checklist.Items.Add(ConfigForm.__NUMBER_CB)
       self.__update_checklist.Items.Add(ConfigForm.__TITLE_CB)
-      self.__update_checklist.Items.Add(ConfigForm.__YEAR_CB)
-      self.__update_checklist.Items.Add(ConfigForm.__MONTH_CB)
-      self.__update_checklist.Items.Add(ConfigForm.__DAY_CB)
+      self.__update_checklist.Items.Add(ConfigForm.__PUBLISHED_CB)
+      self.__update_checklist.Items.Add(ConfigForm.__RELEASED_CB)
       self.__update_checklist.Items.Add(ConfigForm.__CROSSOVERS_CB)
       self.__update_checklist.Items.Add(ConfigForm.__PUBLISHER_CB)
       self.__update_checklist.Items.Add(ConfigForm.__IMPRINT_CB)
@@ -470,9 +468,8 @@ class ConfigForm(CVForm):
       # 1. --- first get the parts from the checklist box (data tab)
       config.update_series_b = is_checked(ConfigForm.__SERIES_CB)
       config.update_number_b = is_checked(ConfigForm.__NUMBER_CB)
-      config.update_year_b = is_checked(ConfigForm.__YEAR_CB)
-      config.update_month_b = is_checked(ConfigForm.__MONTH_CB)
-      config.update_day_b = is_checked(ConfigForm.__DAY_CB)
+      config.update_published_b = is_checked(ConfigForm.__PUBLISHED_CB)
+      config.update_released_b = is_checked(ConfigForm.__RELEASED_CB)
       config.update_title_b = is_checked(ConfigForm.__TITLE_CB)
       config.update_crossovers_b = is_checked(ConfigForm.__CROSSOVERS_CB)
       config.update_writer_b = is_checked(ConfigForm.__WRITER_CB)
@@ -526,9 +523,8 @@ class ConfigForm(CVForm):
       # 1. --- set get the parts in the checklist box (data tab)
       set_checked(ConfigForm.__SERIES_CB, config.update_series_b)
       set_checked(ConfigForm.__NUMBER_CB, config.update_number_b)
-      set_checked(ConfigForm.__YEAR_CB, config.update_year_b)
-      set_checked(ConfigForm.__MONTH_CB, config.update_month_b)
-      set_checked(ConfigForm.__DAY_CB, config.update_day_b)
+      set_checked(ConfigForm.__PUBLISHED_CB, config.update_published_b)
+      set_checked(ConfigForm.__RELEASED_CB, config.update_released_b)
       set_checked(ConfigForm.__TITLE_CB, config.update_title_b)
       set_checked(ConfigForm.__CROSSOVERS_CB, config.update_crossovers_b)
       set_checked(ConfigForm.__WRITER_CB, config.update_writer_b)
