@@ -704,7 +704,6 @@ class ScrapeEngine(object):
       
       log.debug("finding all issues for '", series_ref, "'...")
       with ProgressBarForm(self.comicrack.MainWindow, self) as progform:
-         # this function gets called each time another issue_ref is obtained
          def callback(complete_ratio_n):
             complete_ratio_n = max(0.0, min(1.0, complete_ratio_n))
             if complete_ratio_n < 1.0 and not progform.Visible\
