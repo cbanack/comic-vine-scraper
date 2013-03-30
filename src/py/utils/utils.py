@@ -24,6 +24,8 @@ from System.Web import HttpUtility
 clr.AddReference('IronPython')
 from IronPython.Compiler import CallTarget0 
 
+# unmodifiable cache for speeding up calls to natural_compare 
+__keys_cache = None 
 
 #==============================================================================
 def is_string(object):
@@ -68,40 +70,46 @@ def natural_compare(a, b):
    strings containing unicode fractions (["5", "5¼", "5½", "6"]).
      
    Returns -1 if a<b, +1 if a>b, and 0 if a==b.
-   ''' 
-
-   def key(s):
-      unicode_float = __unicode_fraction_to_float(s)
-      if unicode_float:
-         return ['', unicode_float, '' ]
-      else:
-         pattern = r'((?:^\s*-)?(?:(?:\d+\.\d+)|(?:\.\d+)|(?:\d+)))'
-         convert = lambda text: float(text) if is_number(text) else text.lower()
-         return [ convert(c) for c in re.split( pattern, s) ]
+   '''
+    
+   global __keys_cache
+   if __keys_cache is None:
+      __keys_cache = { str(x):__key(str(x)) for x in range(999) }
       
-   a, b = key(a), key(b)
+   a = __keys_cache[a] if a in __keys_cache else __key(a)
+   b = __keys_cache[b] if b in __keys_cache else __key(b)
    return -1 if a < b else 1 if a > b else 0
 
 
 # ==========================================================================
-def __unicode_fraction_to_float(s):
-   ''' 
-   Converts unicode fractions (like '5½') into floats (like 5.5).
-   Returns None if the given string is not a unicode fractional number.
-   '''
-   number = None
-   match = re.match("\s*(-?)\s*(\d*)\s*([⅛⅙⅕¼⅓⅜⅖½⅗⅝⅔¾⅘⅚⅞])\s*", s) 
-   if match:
-      negative = match.group(1)
-      intpart = match.group(2)
-      intpart = float(intpart) if is_number(intpart) else 0
-      fracs = {"⅛":1.0/8 ,"⅙":1.0/6,"⅕":0.2,"¼":0.25,"⅓":1.0/3,
-               "⅜":3.0/8, "⅖":0.4,"½":0.5,"⅗":0.6,"⅝":5.0/8,
-               "⅔":2.0/3,"¾":0.75,"⅘":0.8,"⅚":5.0/6,"⅞":7.0/8}
-      fracpart = match.group(3)
-      fracpart = fracs[fracpart] if fracpart in fracs else 0
-      number = -1*(intpart+fracpart) if negative else intpart+fracpart
-   return number
+def __key(s):
+   ''' Calculates the natural sort order key for the give string. '''
+   
+   # Converts unicode fractions (like '5½') into floats (like 5.5).
+   def unicode_fraction_to_float(s):
+      number = None
+      match = re.match("\s*(-?)\s*(\d*)\s*([⅛⅙⅕¼⅓⅜⅖½⅗⅝⅔¾⅘⅚⅞])\s*", s) 
+      if match:
+         negative = match.group(1)
+         intpart = match.group(2)
+         intpart = float(intpart) if is_number(intpart) else 0
+         fracs = {"⅛":1.0/8 ,"⅙":1.0/6,"⅕":0.2,"¼":0.25,"⅓":1.0/3,
+                  "⅜":3.0/8, "⅖":0.4,"½":0.5,"⅗":0.6,"⅝":5.0/8,
+                  "⅔":2.0/3,"¾":0.75,"⅘":0.8,"⅚":5.0/6,"⅞":7.0/8}
+         fracpart = match.group(3)
+         fracpart = fracs[fracpart] if fracpart in fracs else 0
+         number = -1*(intpart+fracpart) if negative else intpart+fracpart
+      return number
+   
+   unicode_float = unicode_fraction_to_float(s)
+   if unicode_float:
+      return ['', unicode_float, '' ]
+   else:
+      pattern = r'((?:^\s*-)?(?:(?:\d+\.\d+)|(?:\.\d+)|(?:\d+)))'
+      convert = lambda text: float(text) if is_number(text) else text.lower()
+      return [ convert(c) for c in re.split( pattern, s) ]
+
+
 
 # ==========================================================================
 def invoke(control, delegate, synchronous = True): 
