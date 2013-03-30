@@ -23,11 +23,8 @@ class Configuration(object):
    # map names for basic boolean settings (checkboxes)   
    __UPDATE_SERIES = 'updateSeries'
    __UPDATE_NUMBER = 'updateNumber'
-   __UPDATE_YEAR = 'updateYear'
    __UPDATE_RELEASED = 'updateReleased'
    __UPDATE_PUBLISHED = 'updatePublished'
-   __UPDATE_MONTH = 'updateMonth'
-   __UPDATE_DAY = 'updateDay'
    __UPDATE_TITLE = 'updateTitle'
    __UPDATE_CROSSOVERS = 'updateCrossovers'
    __UPDATE_WRITER = 'updateWriter'
@@ -89,9 +86,6 @@ class Configuration(object):
       self.update_number_b = True # scrape comic's issue number metadata
       self.update_published_b = True # scrape comic's published year metadata
       self.update_released_b = True # scrape comic's released year metadata
-      self.update_year_b = True # scrape comic's publication year metadata
-      self.update_month_b = True # scrape comic's publication month metadata
-      self.update_day_b = True # scrape comic's publication day metadata
       self.update_title_b = True # scrape comic's issue title metadata
       self.update_crossovers_b = True # scrape comic's crossovers metadata
       self.update_writer_b = True # scrape comic's writer metadata
@@ -322,15 +316,6 @@ class Configuration(object):
       if Configuration.__UPDATE_RELEASED in loaded:
          self.update_released_b = loaded[Configuration.__UPDATE_RELEASED]
          
-      if Configuration.__UPDATE_YEAR in loaded:
-         self.update_year_b = loaded[Configuration.__UPDATE_YEAR]
-         
-      if Configuration.__UPDATE_MONTH in loaded:
-         self.update_month_b = loaded[Configuration.__UPDATE_MONTH]
-         
-      if Configuration.__UPDATE_DAY in loaded:
-         self.update_day_b = loaded[Configuration.__UPDATE_DAY]
-         
       if Configuration.__UPDATE_TITLE in loaded:
          self.update_title_b = loaded[Configuration.__UPDATE_TITLE]
          
@@ -433,9 +418,6 @@ class Configuration(object):
       defaults[Configuration.__UPDATE_NUMBER] = self.update_number_b
       defaults[Configuration.__UPDATE_RELEASED] = self.update_released_b
       defaults[Configuration.__UPDATE_PUBLISHED] = self.update_published_b
-      defaults[Configuration.__UPDATE_YEAR] = self.update_year_b
-      defaults[Configuration.__UPDATE_MONTH] = self.update_month_b
-      defaults[Configuration.__UPDATE_DAY] = self.update_day_b
       defaults[Configuration.__UPDATE_TITLE] = self.update_title_b
       defaults[Configuration.__UPDATE_CROSSOVERS] = self.update_crossovers_b
       defaults[Configuration.__UPDATE_WRITER] = self.update_writer_b
@@ -498,9 +480,6 @@ class Configuration(object):
       self.update_number_b == other.update_number_b and \
       self.update_published_b == other.update_published_b and \
       self.update_released_b == other.update_released_b and \
-      self.update_year_b == other.update_year_b and \
-      self.update_month_b == other.update_month_b and \
-      self.update_day_b == other.update_day_b and \
       self.update_title_b == other.update_title_b and \
       self.update_crossovers_b == other.update_crossovers_b and \
       self.update_writer_b == other.update_writer_b and \
