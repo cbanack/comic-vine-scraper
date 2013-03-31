@@ -196,8 +196,8 @@ class ComicForm(CVForm):
          book_name += (' #' + book.issue_num_s) if book.issue_num_s else ''
          book_name += (' ({0} {1})'.format(
             i18n.get("ComicFormVolume"), sstr(book.volume_year_n) ) ) \
-            if book.volume_year_n >= 0 else (' (' + sstr(book.year_n) +')') \
-            if book.year_n >= 0 else ''
+            if book.volume_year_n >= 0 else (' ('+sstr(book.pub_year_n) +')') \
+            if book.pub_year_n >= 0 else ''
         
       # 2. obtain a copy of the first (cover) page of the book to install
       page_image = book.create_image_of_page(0)

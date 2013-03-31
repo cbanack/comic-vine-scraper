@@ -20,7 +20,7 @@ class IssueRef(object):
    '''
    
    #===========================================================================
-   def __init__(self, issue_num_s, issue_key, title_s):
+   def __init__(self, issue_num_s, issue_key, title_s, thumb_url_s):
       ''' 
       Initializes a newly created IssueRef, checking the given parameters to
       make sure they are legal, and then storing them as read-only properties.
@@ -34,6 +34,13 @@ class IssueRef(object):
       issue_num_s --> a string describing this comic's issue number (which may 
          not be a number at all, it can be '' or '1A' or 'A', etc. It cannot
          be None.)
+         
+      title_s --> a string describing the title of this comic book issue.
+         if no title is available, pass in "" here.
+         
+      thumb_url_s --> the (http) url of an appropriate thumbnail image for this
+         comic book issue (usually the cover.)  if no image is available, 
+         pass in None here.
       '''
 
       if not issue_key or len(sstr(issue_key).strip()) == 0 \
@@ -43,6 +50,11 @@ class IssueRef(object):
       self.__issue_key = issue_key
       self.__issue_num_s = sstr(issue_num_s).strip()
       self.__title_s = title_s if utils.is_string(title_s) else ""
+      
+      # make sure thumb_url_s is either valid, or none (but not '').
+      self.__thumb_url_s =None if not thumb_url_s else sstr(thumb_url_s).strip()
+      if self.__thumb_url_s == '':
+         self.__thumb_url_s = None 
       
       # used only for comparisons
       self._cmpkey_s = sstr(self.issue_key)
@@ -57,6 +69,9 @@ class IssueRef(object):
    
    # the title of this IssueRef's issue. not None, may be empty.
    title_s = property( lambda self : self.__title_s )
+   
+   # the url of this series's thumbnail, as a string. may be None.
+   thumb_url_s = property( lambda self : self.__thumb_url_s )
       
       
    #===========================================================================
@@ -242,9 +257,13 @@ class Issue(object):
       self.summary_s = ''
       self.webpage_s = '' 
       
-      self.day_n = -1
-      self.month_n = -1
-      self.year_n = -1
+      self.pub_day_n = -1
+      self.pub_month_n = -1
+      self.pub_year_n = -1
+      self.rel_day_n = -1
+      self.rel_month_n = -1
+      self.rel_year_n = -1
+      
       self.volume_year_n = -1
       self.rating_n = 0.0
       
@@ -326,37 +345,76 @@ class Issue(object):
       
    # the publication day for this Issue, as an int. not None. 
    # will always be <= 31 and >= 1, or else -1 for unknown.
-   def __set_day_n(self, day_n):
-      ''' called when you assign a value to 'self.day_n' '''
+   def __set_pub_day_n(self, pub_day_n):
+      ''' called when you assign a value to 'self.pub_day_n' '''
       try:
-         self.__day_n = int(day_n)
-         self.__day_n = self.__day_n if (1 <= self.__day_n <= 31) else -1
+         self.__pub_day_n = int(pub_day_n)
+         self.__pub_day_n = self.__pub_day_n \
+            if (1 <= self.__pub_day_n <= 31) else -1
       except:
-         self.__day_n = -1
-   day_n = property( lambda self : self.__day_n, __set_day_n )
+         self.__pub_day_n = -1
+   pub_day_n = property( lambda self : self.__pub_day_n, __set_pub_day_n )
    
    # the publication month for this Issue, as an int. not None. 
    # will always be <= 12 and >= 1, or else -1 for unknown.
-   def __set_month_n(self, month_n):
-      ''' called when you assign a value to 'self.month_n' '''
+   def __set_pub_month_n(self, pub_month_n):
+      ''' called when you assign a value to 'self.pub_month_n' '''
       try:
-         self.__month_n = int(month_n)
-         self.__month_n = self.__month_n if (1 <= self.__month_n <= 12) else -1
+         self.__pub_month_n = int(pub_month_n)
+         self.__pub_month_n = self.__pub_month_n \
+            if (1 <= self.__pub_month_n <= 12) else -1
       except:
-         self.__month_n = -1
-   month_n = property( lambda self : self.__month_n, __set_month_n )
+         self.__pub_month_n = -1
+   pub_month_n = property( lambda self : self.__pub_month_n, __set_pub_month_n )
    
       
    # the publication year for this Issue, as an int. not None. 
    # will always be >= 0 or else -1 for unknown.
-   def __set_year_n(self, year_n):
-      ''' called when you assign a value to 'self.year_n' '''
+   def __set_pub_year_n(self, pub_year_n):
+      ''' called when you assign a value to 'self.pub_year_n' '''
       try:
-         self.__year_n = int(year_n)
-         self.__year_n = self.__year_n if self.__year_n >= 0 else -1
+         self.__pub_year_n = int(pub_year_n)
+         self.__pub_year_n = self.__pub_year_n if self.__pub_year_n >= 0 else -1
       except:
-         self.__year_n = -1
-   year_n = property( lambda self : self.__year_n, __set_year_n )   
+         self.__pub_year_n = -1
+   pub_year_n = property( lambda self : self.__pub_year_n, __set_pub_year_n )   
+   
+   
+   # the release (in store) day for this Issue, as an int. not None. 
+   # will always be <= 31 and >= 1, or else -1 for unknown.
+   def __set_rel_day_n(self, rel_day_n):
+      ''' called when you assign a value to 'self.rel_day_n' '''
+      try:
+         self.__rel_day_n = int(rel_day_n)
+         self.__rel_day_n = self.__rel_day_n \
+            if (1 <= self.__rel_day_n <= 31) else -1
+      except:
+         self.__rel_day_n = -1
+   rel_day_n = property( lambda self : self.__rel_day_n, __set_rel_day_n )
+   
+   # the release (in store) month for this Issue, as an int. not None. 
+   # will always be <= 12 and >= 1, or else -1 for unknown.
+   def __set_rel_month_n(self, rel_month_n):
+      ''' called when you assign a value to 'self.rel_month_n' '''
+      try:
+         self.__rel_month_n = int(rel_month_n)
+         self.__rel_month_n = self.__rel_month_n \
+            if (1 <= self.__rel_month_n <= 12) else -1
+      except:
+         self.__rel_month_n = -1
+   rel_month_n = property( lambda self : self.__rel_month_n, __set_rel_month_n )
+   
+      
+   # the release (in store) year for this Issue, as an int. not None. 
+   # will always be >= 0 or else -1 for unknown.
+   def __set_rel_year_n(self, rel_year_n):
+      ''' called when you assign a value to 'self.rel_year_n' '''
+      try:
+         self.__rel_year_n = int(rel_year_n)
+         self.__rel_year_n = self.__rel_year_n if self.__rel_year_n >= 0 else -1
+      except:
+         self.__rel_year_n = -1
+   rel_year_n = property( lambda self : self.__rel_year_n, __set_rel_year_n )  
    
    
    # the FIRST publication year for this Issue, as an int. not None. 

@@ -23,9 +23,8 @@ class Configuration(object):
    # map names for basic boolean settings (checkboxes)   
    __UPDATE_SERIES = 'updateSeries'
    __UPDATE_NUMBER = 'updateNumber'
-   __UPDATE_YEAR = 'updateYear'
-   __UPDATE_MONTH = 'updateMonth'
-   __UPDATE_DAY = 'updateDay'
+   __UPDATE_RELEASED = 'updateReleased'
+   __UPDATE_PUBLISHED = 'updatePublished'
    __UPDATE_TITLE = 'updateTitle'
    __UPDATE_CROSSOVERS = 'updateCrossovers'
    __UPDATE_WRITER = 'updateWriter'
@@ -85,9 +84,8 @@ class Configuration(object):
 
       self.update_series_b = True # scrape comic's series metadata
       self.update_number_b = True # scrape comic's issue number metadata
-      self.update_year_b = True # scrape comic's publication year metadata
-      self.update_month_b = True # scrape comic's publication month metadata
-      self.update_day_b = True # scrape comic's publication day metadata
+      self.update_published_b = True # scrape comic's published year metadata
+      self.update_released_b = True # scrape comic's released year metadata
       self.update_title_b = True # scrape comic's issue title metadata
       self.update_crossovers_b = True # scrape comic's crossovers metadata
       self.update_writer_b = True # scrape comic's writer metadata
@@ -312,14 +310,11 @@ class Configuration(object):
       if Configuration.__UPDATE_NUMBER in loaded:
          self.update_number_b = loaded[Configuration.__UPDATE_NUMBER]
          
-      if Configuration.__UPDATE_YEAR in loaded:
-         self.update_year_b = loaded[Configuration.__UPDATE_YEAR]
+      if Configuration.__UPDATE_PUBLISHED in loaded:
+         self.update_published_b = loaded[Configuration.__UPDATE_PUBLISHED]
          
-      if Configuration.__UPDATE_MONTH in loaded:
-         self.update_month_b = loaded[Configuration.__UPDATE_MONTH]
-         
-      if Configuration.__UPDATE_DAY in loaded:
-         self.update_day_b = loaded[Configuration.__UPDATE_DAY]
+      if Configuration.__UPDATE_RELEASED in loaded:
+         self.update_released_b = loaded[Configuration.__UPDATE_RELEASED]
          
       if Configuration.__UPDATE_TITLE in loaded:
          self.update_title_b = loaded[Configuration.__UPDATE_TITLE]
@@ -421,9 +416,8 @@ class Configuration(object):
       defaults = {}
       defaults[Configuration.__UPDATE_SERIES] = self.update_series_b
       defaults[Configuration.__UPDATE_NUMBER] = self.update_number_b
-      defaults[Configuration.__UPDATE_YEAR] = self.update_year_b
-      defaults[Configuration.__UPDATE_MONTH] = self.update_month_b
-      defaults[Configuration.__UPDATE_DAY] = self.update_day_b
+      defaults[Configuration.__UPDATE_RELEASED] = self.update_released_b
+      defaults[Configuration.__UPDATE_PUBLISHED] = self.update_published_b
       defaults[Configuration.__UPDATE_TITLE] = self.update_title_b
       defaults[Configuration.__UPDATE_CROSSOVERS] = self.update_crossovers_b
       defaults[Configuration.__UPDATE_WRITER] = self.update_writer_b
@@ -484,9 +478,8 @@ class Configuration(object):
                                                         \
       self.update_series_b == other.update_series_b and \
       self.update_number_b == other.update_number_b and \
-      self.update_year_b == other.update_year_b and \
-      self.update_month_b == other.update_month_b and \
-      self.update_day_b == other.update_day_b and \
+      self.update_published_b == other.update_published_b and \
+      self.update_released_b == other.update_released_b and \
       self.update_title_b == other.update_title_b and \
       self.update_crossovers_b == other.update_crossovers_b and \
       self.update_writer_b == other.update_writer_b and \
@@ -498,7 +491,6 @@ class Configuration(object):
       self.update_editor_b == other.update_editor_b and \
       self.update_summary_b == other.update_summary_b and \
       self.update_imprint_b == other.update_imprint_b and \
-      self.update_year_b == other.update_year_b and \
       self.update_publisher_b == other.update_publisher_b and \
       self.update_volume_b == other.update_volume_b and \
       self.update_characters_b == other.update_characters_b and \
@@ -523,28 +515,26 @@ class Configuration(object):
       "[{0}] Number".format(x(self.update_number_b)).ljust(20) +\
       "\n" + \
       "[{0}] Title".format(x(self.update_title_b)).ljust(20) +\
-      "[{0}] Year".format(x(self.update_year_b)).ljust(20) +\
-      "[{0}] Month".format(x(self.update_month_b)).ljust(20) +\
+      "[{0}] Published".format(x(self.update_published_b)).ljust(20) +\
+      "[{0}] Released".format(x(self.update_released_b)).ljust(20) +\
       "\n" + \
-      "[{0}] Day".format(x(self.update_day_b)).ljust(20) +\
       "[{0}] Crossovers".format(x(self.update_crossovers_b)).ljust(20) +\
       "[{0}] Publisher".format(x(self.update_publisher_b)).ljust(20) +\
-      "\n" + \
       "[{0}] Imprint".format(x(self.update_imprint_b)).ljust(20) +\
+      "\n" + \
       "[{0}] Writer".format(x(self.update_writer_b)).ljust(20) +\
       "[{0}] Penciller".format(x(self.update_penciller_b)).ljust(20) +\
-      "\n" + \
       "[{0}] Inker".format(x(self.update_inker_b)).ljust(20) +\
+      "\n" + \
       "[{0}] Colorist".format(x(self.update_colorist_b)).ljust(20) +\
       "[{0}] Letterer".format(x(self.update_letterer_b)).ljust(20) +\
-      "\n" + \
       "[{0}] Cover Art".format(x(self.update_cover_artist_b)).ljust(20) +\
+      "\n" + \
       "[{0}] Editor".format(x(self.update_editor_b)).ljust(20) +\
       "[{0}] Summary".format(x(self.update_summary_b)).ljust(20) +\
-      "\n" + \
       "[{0}] Characters".format(x(self.update_characters_b)).ljust(20) +\
+      "\n" + \
       "[{0}] Teams".format(x(self.update_teams_b)).ljust(20) +\
-      "\n" +\
       "[{0}] Locations".format(x(self.update_locations_b)).ljust(20) +\
       "[{0}] Webpage".format(x(self.update_webpage_b)).ljust(20) +\
       "\n" +\

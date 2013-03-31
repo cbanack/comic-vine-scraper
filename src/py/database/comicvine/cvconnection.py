@@ -66,21 +66,25 @@ def _query_series_details_dom(seriesid_s):
 
 
 # =============================================================================
-def _query_issue_ids_dom(seriesid_s):
+def _query_issue_ids_dom(seriesid_s, page_n=1):
    '''
    Performs a query that will obtain a dom containing all of the issue IDs
-   for the given series name.
+   for the given series name.  You can also provide a second argument that 
+   specifies the page of the results (each page contains
+   100 results) to display. This is useful, because this query will not 
+   necessarily return all available results.
    
    This method doesn't return null, but it may throw Exceptions.
    '''
    
    # {0} is the series ID, an integer     
-   QUERY = 'http://api.comicvine.com/volume/4050-{0}/?api_key=' + __API_KEY + \
-      '&format=xml&field_list=issues'
+   QUERY = 'http://api.comicvine.com/issues/?api_key=' + __API_KEY + \
+      '&format=xml&field_list=name,issue_number,id,image&filter=volume:{0}' +\
+      '&page={1}&offset={2}'
    
    if seriesid_s is None or seriesid_s == '':
       raise ValueError('bad parameters')
-   return __get_dom( QUERY.format(sstr(seriesid_s) ) )
+   return __get_dom( QUERY.format(sstr(seriesid_s), page_n, (page_n-1)*100 ) )
 
 
 # =============================================================================
@@ -129,6 +133,7 @@ def _query_issue_details_page(issueid_s):
 
 # =============================================================================
 def _query_issue_image_dom(issueid_s):
+   #coryhigh: don't need this one?
    '''
    Performs a query that will obtain a dom containing the issue image url 
    for the given issue ID.
