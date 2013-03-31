@@ -10,6 +10,10 @@ import utils
 import log
 import re
 import db
+import clr
+
+clr.AddReference('System')
+from System import DateTime
 
 #==============================================================================
 class PluginBookData(BookData):
@@ -34,9 +38,9 @@ class PluginBookData(BookData):
       # load our own copy of all data from the ComicRack database
       self.series_s = crbook.Series    # don't use shadows!  we'll parse these 3
       self.issue_num_s = crbook.Number # values from the comic's filename our
-      self.year_n =  crbook.Year       # self if they are not present!
-      self.month_n = crbook.Month
-      self.day_n = crbook.Day
+      self.pub_year_n =  crbook.Year   # self if they are not present!
+      self.pub_month_n = crbook.Month
+      self.pub_day_n = crbook.Day
       self.volume_year_n = crbook.ShadowVolume
       self.format_s = crbook.ShadowFormat
       self.title_s = crbook.Title
@@ -114,17 +118,17 @@ class PluginBookData(BookData):
          self.__crbook.Volume = self.volume_year_n
          ok_to_update.remove("volume_year_n")
       
-      if "year_n" in ok_to_update:
-         self.__crbook.Year = self.year_n
-         ok_to_update.remove("year_n")
+      if "pub_year_n" in ok_to_update:
+         self.__crbook.Year = self.pub_year_n
+         ok_to_update.remove("pub_year_n")
          
-      if "month_n" in ok_to_update:
-         self.__crbook.Month = self.month_n
-         ok_to_update.remove("month_n")
+      if "pub_month_n" in ok_to_update:
+         self.__crbook.Month = self.pub_month_n
+         ok_to_update.remove("pub_month_n")
          
-      if "day_n" in ok_to_update:
-         self.__crbook.Day = self.day_n
-         ok_to_update.remove("day_n")
+      if "pub_day_n" in ok_to_update:
+         self.__crbook.Day = self.pub_day_n
+         ok_to_update.remove("pub_day_n")
          
       if "format_s" in ok_to_update:
          self.__crbook.Format = self.format_s
@@ -218,6 +222,18 @@ class PluginBookData(BookData):
          self.__crbook.CommunityRating = self.rating_n
          ok_to_update.remove("rating_n")
          
+      if "rel_year_n" in ok_to_update and \
+         "rel_month_n" in ok_to_update and \
+         "rel_day_n" in ok_to_update:
+         if self.rel_year_n != BookData.blank("rel_year_n") and \
+            self.rel_month_n != BookData.blank("rel_month_n") and \
+            self.rel_day_n != BookData.blank("rel_day_n"):
+            date = DateTime(self.rel_year_n, self.rel_month_n, self.rel_day_n)
+            self.__crbook.ReleasedTime = date
+         ok_to_update.remove("rel_year_n")
+         ok_to_update.remove("rel_month_n")
+         ok_to_update.remove("rel_day_n")
+      
    
       # we only download and install a thumbnail for fileless CR books, and
       # even then, only if the user's prefs indicate that they want us to      

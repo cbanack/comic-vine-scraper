@@ -49,6 +49,7 @@ class ComicBook(object):
    
    #===========================================================================
 
+   # coryhigh: perhaps we can delete a bunch of these?
    # Series name of this book.  Not None, may be empty.
    series_s = property( lambda self : self.__bookdata.series_s )
    
@@ -59,7 +60,10 @@ class ComicBook(object):
    volume_year_n = property( lambda self :  self.__bookdata.volume_year_n )
    
    # Publication year of this book, as an int >= -1, where -1 is unknown
-   year_n = property( lambda self : self.__bookdata.year_n )
+   pub_year_n = property( lambda self : self.__bookdata.pub_year_n )
+   
+   # Release year of this book, as an int >= -1, where -1 is unknown
+   rel_year_n = property( lambda self : self.__bookdata.rel_year_n )
    
    # The format of this book (giant, annual, etc.)  Not None, may be empty.
    format_s = property( lambda self : self.__bookdata.format_s )
@@ -160,7 +164,7 @@ class ComicBook(object):
          if issue_key != None:
             # found a key tag! convert to an IssueRef
             retval = IssueRef(self.issue_num_s, issue_key, 
-               self.__bookdata.title_s);
+               self.__bookdata.title_s, self.__bookdata.cover_url_s);
    
       return retval
    
@@ -257,26 +261,31 @@ class ComicBook(object):
       if value is None: bd.dont_update("summary_s")
       else: bd.summary_s = value
       
-      # year -----------------------
-      value = self.__massage_new_number("Year", issue.year_n, \
-         bd.year_n, config.update_year_b, config.ow_existing_b, \
-         True, -1, lambda x : x > 0 ) # note: we ALWAYS ignore blanks for 'year'
-      if value is None: bd.dont_update("year_n")
-      else: bd.year_n = value
-      
-      # month ----------------------
-      value = self.__massage_new_number("Month", issue.month_n, bd.month_n, \
-         config.update_month_b, config.ow_existing_b, True, -1, \
-         lambda x : x>=1 and x <= 31 ) # ALWAYS ignore blanks for 'month'
-      if value is None: bd.dont_update("month_n")
-      else: bd.month_n = value
-      
-      # day ------------------------
-      value = self.__massage_new_number("Day", issue.day_n, bd.day_n, \
-         config.update_day_b, config.ow_existing_b, config.ignore_blanks_b,\
-         -1, lambda x : x >=1 and x <= 31 )
-      if value is None: bd.dont_update("day_n")
-      else: bd.day_n = value
+      # release (in store) date -----------------------
+      value = self.__massage_new_date("Release Date", 
+         (issue.rel_year_n, issue.rel_month_n, issue.rel_day_n),
+         (bd.rel_year_n, bd.rel_month_n, bd.rel_day_n), 
+         config.update_released_b, config.ow_existing_b, 
+         config.ignore_blanks_b, -1)
+      if value is None: 
+         bd.dont_update("rel_year_n")
+         bd.dont_update("rel_month_n")
+         bd.dont_update("rel_day_n")
+      else:
+         bd.rel_year_n, bd.rel_month_n, bd.rel_day_n = value
+         
+      # published (cover) date -----------------------
+      value = self.__massage_new_date("Publish Date", 
+         (issue.pub_year_n, issue.pub_month_n, issue.pub_day_n),
+         (bd.pub_year_n, bd.pub_month_n, bd.pub_day_n), 
+         config.update_published_b, config.ow_existing_b, 
+         config.ignore_blanks_b, -1)
+      if value is None: 
+         bd.dont_update("pub_year_n")
+         bd.dont_update("pub_month_n")
+         bd.dont_update("pub_day_n")
+      else:
+         bd.pub_year_n, bd.pub_month_n, bd.pub_day_n = value
       
       # volume --------------------
       value = self.__massage_new_number("Volume", issue.volume_year_n, \
@@ -775,6 +784,66 @@ class ComicBook(object):
          retval = float(retval) if type(old_value) == float else int(retval)
       return retval
    
+   #===========================================================================
+   @staticmethod 
+   def __massage_new_date(label, new_value, old_value, update, overwrite, \
+      ignoreblanks, blank_value):
+      ''' 
+      Returns a date tuple of three ints (YYYY,MM,DD) that should be copied into
+      our backing ComicBook object, IFF that tuple is not None.   Uses a number
+      of rules to decide what to return.
+      
+      label - a human readable description of the given date being changed.
+      new_value - proposed new date to copy over. a tuple of ints (YYYY,MM,DD)
+      old_value - original date.  a tuple of ints (YYYY,MM,DD)
+      update - if false, this method always returns None
+      overwrite - whether it's acceptable to overwrite the old value with the
+            new value when the old value is non-blank.
+      ignoreblanks - if true, we'll never overwrite with an old non-blank date
+            with a new date that has any blank values.
+      blank_value - the value that should be considered 'blank' for
+            any of the individual elements in the given date tuples.  any tuple
+            that contains even one blank value will be considered blank.
+      ''' 
+      
+      
+      # first, a little housekeeping so that we stay really robust
+      is_blank = lambda tuple: blank_value in tuple
+      if new_value is None or is_blank(new_value):
+         new_value = (blank_value,blank_value,blank_value)
+      if old_value is None or is_blank(old_value):
+         old_value = (blank_value, blank_value, blank_value)
+      if type(blank_value) != int:
+         raise TypeError("wrong type for blank value");
+      if len(old_value) != 3 or type(old_value[2]) != int:
+         raise TypeError("wrong type for old value");
+      if len(new_value) != 3 or type(new_value[2]) != int:
+         raise TypeError("wrong type for new value");
+            
+      # now decide about whether or not to actually do the update
+      # only update if all of the following are true:
+      #  1) the update option is turned on for this particular field
+      #  2) we can overwrite the existing value, or there is no existing value
+      #  3) we're not overwriting with a blank value unless we're allowed to
+      retval = None;
+      if update and (overwrite or is_blank(old_value)) and \
+            not (ignoreblanks and is_blank(new_value)):
+         retval = new_value
+         
+         marker = ' '
+         if old_value != new_value:
+            marker = '*'
+            
+         if is_blank(retval): 
+            log.debug("--> ", marker, label.ljust(15), ": ")
+         else: 
+            log.debug("--> ", marker, label.ljust(15), ": ", 
+               '-'.join([sstr(x) for x in retval]) )
+      else:
+         log.debug("-->  ", label.ljust(15), ": --- skipped ---")
+         
+      return retval
+   
    
    # ==========================================================================
    def __parse_extra_details_from_path(self):
@@ -788,7 +857,7 @@ class ComicBook(object):
       bd  = self.__bookdata
       no_series = BookData.blank("series_s") == bd.series_s
       no_issuenum = BookData.blank("issue_num_s") == bd.issue_num_s
-      no_year = BookData.blank("year_n") == bd.year_n
+      no_year = BookData.blank("pub_year_n") == bd.pub_year_n
       if no_series or no_issuenum or no_year:
          if bd.path_s:
             # 1. at least one detail is missing, and we have a path name to
@@ -811,8 +880,8 @@ class ComicBook(object):
             if no_issuenum:
                bd.issue_num_s = extracted[1]
             if no_year:
-               bd.year_n = int(extracted[2]) \
+               bd.pub_year_n = int(extracted[2]) \
                   if is_number(extracted[2])\
-                     else BookData.blank("year_n")
+                     else BookData.blank("pub_year_n")
                
                

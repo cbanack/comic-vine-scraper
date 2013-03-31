@@ -192,7 +192,7 @@ def __query_series_refs(search_terms_s, callback_function):
             while iteration < num_results_n and not cancelled_b[0]:
                # 4. query for the next batch of results, in a new dom
                dom = cvconnection._query_series_ids_dom(
-                  search_terms_s, sstr(iteration//RESULTS_PAGE_SIZE+1))
+                  search_terms_s, iteration//RESULTS_PAGE_SIZE+1)
                iteration += RESULTS_PAGE_SIZE
                
                # 4a. do a callback for the most recent batch of results
@@ -214,7 +214,7 @@ def __query_series_refs(search_terms_s, callback_function):
    # 6. Done.  series_refs now contained whatever SeriesRefs we could find
    return set() if cancelled_b[0] else series_refs   
 
-
+   
 # ==========================================================================   
 def __volume_to_seriesref(volume):
    ''' Converts a cvdb "volume" dom element into a SeriesRef. '''
@@ -291,31 +291,69 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
    
    # a comicvine series key can be interpreted as an integer
    series_id_n = int(series_ref.series_key)
+   cancelled_b = [False]
    issue_refs = set()
+   
+   # 1. do the initial query, record how many results in total we're getting
+   dom = cvconnection._query_issue_ids_dom(sstr(series_id_n), 1)
+   num_results_n = int(dom.number_of_total_results) if dom else 0
+   
+   if num_results_n > 0:
+    
+      # 2. convert the results of the initial query to IssueRefs and then add
+      #    them to the returned set. notice that the dom could contain single 
+      #    issue OR a list of issues in its 'issue' variable.  
+      if not isinstance(dom.results.issue, list):
+         issue_refs.add( __issue_to_issueref(dom.results.issue) )
+      else:
+         for issue in dom.results.issue:
+            issue_refs.add( __issue_to_issueref(issue) )
 
-   # 1. do a query to comicvine to get all the issues in this series
-   dom = cvconnection._query_issue_ids_dom(sstr(series_id_n)) 
-   if dom is None:
-      raise Exception("error getting issues in " + sstr(series_ref))
-   else:
-      # 2. parse the query results to find the total number of issues that 
-      #    comic vine has for our series.  
-      issues = []
-      if hasattr(dom.results, "__dict__") and \
-         "issues" in dom.results.__dict__ and \
-          hasattr(dom.results.issues, "__dict__") and \
-         "issue" in dom.results.issues.__dict__:
-            issues = dom.results.issues.issue \
-               if isinstance(dom.results.issues.issue, list) else \
-               [dom.results.issues.issue]
-      for issue in issues:
-         issue_num_s = issue.issue_number
-         if not is_string(issue_num_s): issue_num_s = ''
-         issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
-         title_s = issue.name 
-         if not is_string(title_s): title_s = ''
-         issue_refs.add(IssueRef(issue_num_s, issue.id, title_s))
-   return issue_refs
+         # 3. if there were more than 100 results, we'll have to do some more 
+         #    queries now to get the rest of them
+         RESULTS_PAGE_SIZE = 100
+         iteration = RESULTS_PAGE_SIZE
+         if iteration < num_results_n:
+
+            # 3a. do a callback for the first results (initial query)...
+            cancelled_b[0] = callback_function( float(iteration)/num_results_n )
+
+            while iteration < num_results_n and not cancelled_b[0]:
+               # 4. query for the next batch of results, in a new dom
+               dom = cvconnection._query_issue_ids_dom(sstr(series_id_n),
+                  iteration//RESULTS_PAGE_SIZE+1)
+               iteration += RESULTS_PAGE_SIZE
+               
+               # 4a. do a callback for the most recent batch of results
+               cancelled_b[0] =callback_function(float(iteration)/num_results_n)
+
+               if int(dom.number_of_page_results) < 1:
+                  log.debug("WARNING: got empty results page")
+               else:
+                  # 5. convert the current batch of results into IssueRefs,
+                  #    and then add them to the returned list.  Again, the dom
+                  #    could contain a single issue, OR a list.
+                  if not isinstance(dom.results.issue, list):
+                     issue_refs.add(__issue_to_issueref(dom.results.issue))
+                  else:
+                     for issue in dom.results.issue:
+                        issue_refs.add( __issue_to_issueref(issue) )
+                        
+   # 6. Done.  issue_refs now contained whatever IssueRefs we could find
+   return set() if cancelled_b[0] else issue_refs
+
+
+
+# ==========================================================================   
+def __issue_to_issueref(issue):
+   ''' Converts a cvdb "issue" dom element into an IssueRef. '''
+   issue_num_s = issue.issue_number
+   if not is_string(issue_num_s): issue_num_s = ''
+   issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
+   title_s = issue.name 
+   if not is_string(title_s): title_s = ''
+   title_s = __clean_title_s( title_s, issue_num_s );
+   return IssueRef(issue_num_s, issue.id, title_s, __parse_image_url(issue))
 
 
 # =============================================================================
@@ -329,8 +367,7 @@ def _query_image(ref):
    if isinstance(ref, SeriesRef):
       image_url_s = ref.thumb_url_s
    elif isinstance(ref, IssueRef):
-      dom = cvconnection._query_issue_image_dom(sstr(ref.issue_key))
-      image_url_s = __parse_image_url(dom.results) if dom else None
+      image_url_s = ref.thumb_url_s
    elif is_string(ref):
       image_url_s = ref
    
@@ -379,42 +416,43 @@ def __issue_parse_simple_stuff(issue, dom):
 
    if is_string(dom.results.volume.name):
       issue.series_name_s = dom.results.volume.name.strip()
-   if is_string(dom.results.name):
-      issue.title_s = dom.results.name.strip()
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
    if is_string(dom.results.issue_number):
       issue.issue_num_s = __cleanup_trailing_zeroes( dom.results.issue_number )
    if is_string(dom.results.site_detail_url) and \
          dom.results.site_detail_url.startswith("http"):
-      issue.webpage_s = dom.results.site_detail_url 
-   
-   # grab the published year, month and day
-   if "publish_year" in dom.results.__dict__ and \
-      is_string(dom.results.publish_year):
+      issue.webpage_s = dom.results.site_detail_url
+   if is_string(dom.results.name):
+      issue.title_s = dom.results.name.strip();
+      issue.title_s = __clean_title_s( issue.title_s, issue.issue_num_s );
+      
+   # grab the published (front cover) date
+   if "cover_date" in dom.results.__dict__ and \
+      is_string(dom.results.cover_date) and \
+      len(dom.results.cover_date) > 7:
       try:
-         issue.year_n = int(dom.results.publish_year)
+         issue.pub_year_n, issue.pub_month_n, issue.pub_day_n = \
+            [int(x) for x in dom.results.cover_date.split('-')]
       except:
-         pass # got an unrecognized "year" format...?
-   if "publish_month" in dom.results.__dict__ and \
-      is_string(dom.results.publish_month):
+         pass # got an unrecognized date format...? should be "YYYY-MM-DD"
+      
+   # grab the released (in store) date
+   if "store_date" in dom.results.__dict__ and \
+      is_string(dom.results.store_date) and \
+      len(dom.results.store_date) > 7:
       try:
-         issue.month_n = int(dom.results.publish_month)
+         issue.rel_year_n, issue.rel_month_n, issue.rel_day_n = \
+            [int(x) for x in dom.results.store_date.split('-')]
       except:
-         pass # got an unrecognized "month" format...?
-   if "publish_day" in dom.results.__dict__ and \
-      is_string(dom.results.publish_day):
-      try:
-         issue.day_n = int(dom.results.publish_day)
-      except:
-         pass # got an unrecognized "day" format...?
+         pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
    # grab the image for this issue and store it as the first element
    # in the list of issue urls.
    image_url_s = __parse_image_url(dom.results)
    if image_url_s:
       issue.image_urls_sl.append(image_url_s)
-
+      
 
 #===========================================================================
 def __issue_parse_series_details(issue, dom):
@@ -473,52 +511,29 @@ def __issue_parse_story_credits(issue, dom):
    credits from the DOM. 
    '''
 
-   crossovers = []
+   # get any crossover details that might exist
    if ("story_arc_credits" in dom.results.__dict__) and \
       ("story_arc" in dom.results.story_arc_credits.__dict__) :
-      if type(dom.results.story_arc_credits.story_arc) == type([]):
-         for arc in dom.results.story_arc_credits.story_arc:
-            crossovers.append(arc.name)
-      elif is_string(dom.results.story_arc_credits.story_arc.name):
-         crossovers.append(dom.results.story_arc_credits.story_arc.name)
-      if len(crossovers) > 0:
-         issue.crossovers_sl = crossovers
+      issue.crossovers_sl = map( lambda x: x.name,
+         __as_list(dom.results.arc_credits.story_arc) )
 
    # get any character details that might exist
-   characters = []
    if ("character_credits" in dom.results.__dict__) and \
       ("character" in dom.results.character_credits.__dict__):
-      if type(dom.results.character_credits.character) == type([]):
-         for char in dom.results.character_credits.character:
-            characters.append(char.name)
-      elif is_string(dom.results.character_credits.character.name):
-         characters.append( dom.results.character_credits.character.name )
-      if len(characters) > 0:
-         issue.characters_sl = characters
+      issue.characters_sl = map( lambda x: x.name,
+         __as_list(dom.results.character_credits.character) )
          
    # get any team details that might exist
-   teams = []
    if ("team_credits" in dom.results.__dict__) and \
       ("team" in dom.results.team_credits.__dict__):
-      if type(dom.results.team_credits.team) == type([]):
-         for team in dom.results.team_credits.team:
-            teams.append(team.name)
-      elif is_string(dom.results.team_credits.team.name):
-         teams.append( dom.results.team_credits.team.name )
-      if len(teams) > 0:
-         issue.teams_sl = teams
+      issue.teams_sl = map( lambda x: x.name,
+         __as_list(dom.results.team_credits.team) )
          
    # get any location details that might exist
-   locations = []
    if ("location_credits" in dom.results.__dict__) and \
       ("location" in dom.results.location_credits.__dict__):
-      if type(dom.results.location_credits.location) == type([]):
-         for location in dom.results.location_credits.location:
-            locations.append(location.name)
-      elif is_string(dom.results.location_credits.location.name):
-         locations.append( dom.results.location_credits.location.name )
-      if len(locations) > 0:
-         issue.locations_sl = locations 
+      issue.locations_sl = map( lambda x: x.name,
+         __as_list(dom.results.location_credits.location) )
 
 
 #===========================================================================            
@@ -549,7 +564,7 @@ def __issue_parse_summary(issue, dom):
       
 #===========================================================================         
 def __issue_parse_roles(issue, dom):
-   ''' Parse the current comic's roles from the DOM. '''
+   ''' Parse the current comic's creator roles from the DOM. '''
    
    # this is a dictionary of comicvine role descriptors, mapped to the 
    # 'issue' attribute names of the member variables that we want to 
@@ -568,36 +583,31 @@ def __issue_parse_roles(issue, dom):
    for symbol in test_symbols:
       if not hasattr(issue, symbol):
          raise Exception("missing symbol: " + symbol)
-      
    
-   # For creators, there are several different situations:
-   #   1) if there is one or more than one creator
-   #   2) if a given creator has one or more than one role
+   # keep in mind that for creators, there are several different situations:
+   #   1) there is zero, one or more than one creator for a given role
+   #   2) a given creator has one or more than one role (comma separated)
+   #   3) a single comicvine role role maps to more than one comicrack role
    
    rolemap = dict([(r, []) for l in ROLE_DICT.values() for r in l])
    if "person_credits" in dom.results.__dict__ and \
-      "person" in dom.results.person_credits.__dict__:
-      people = []
-      if type(dom.results.person_credits.person) == type([]):
-         people = dom.results.person_credits.person # a list of 'persons'
-      elif dom.results.person_credits.person is not None:
-         people = [dom.results.person_credits.person] # a 'person'
-      for person in people:
-         roles = []
-         if "roles" in person.__dict__:
-            if "role" in person.roles.__dict__ and \
-               type(person.roles.role) == type([]):
-               roles = person.roles.role # a list of strings
-            elif is_string(person.roles):
-               roles = [person.roles] # a string
-         for role in roles:
-            if role in ROLE_DICT:
-               for cr_role in ROLE_DICT[role]:
-                  rolemap[cr_role].append(person.name) 
+      "person" in dom.results.person_credits.__dict__ and \
+      "role" in dom.results.person_credits.__dict__:
+      
+      people = __as_list(dom.results.person_credits.person)
+      roles = __as_list(dom.results.person_credits.role)
+      if len(roles) == len(people):
+         for i in range(len(roles)):
+            person = people[i]
+            for role in [r.strip() for r in sstr(roles[i]).split(',')]:
+               if role in ROLE_DICT:
+                  for cr_role in ROLE_DICT[role]:
+                     rolemap[cr_role].append(person.name)
+      else:
+         log.debug("WARNING: number of people and roles do not match up!") 
                    
    for role in rolemap:
       setattr(issue, role, rolemap[role] )
-      
       
       
 #===========================================================================         
@@ -654,3 +664,21 @@ def __parse_image_url(dom):
          imgurl_s = dom.image.thumb_url
          
    return imgurl_s          
+
+
+#===========================================================================
+def __as_list(dom):
+   ''' 
+   Returns the given dom element if it is a list, or returns it as the
+   only element in a list if it is not.  Return [] if dom is None.
+   '''  
+   return dom if isinstance(dom, list) else [] if dom is None else [dom]
+
+#===========================================================================
+def __clean_title_s(title_s, issue_num_s): # corylow: can we get rid of this?
+   ''' Cleans extra series details from the front of the issue title.  '''
+   
+   # the title is a bit special; the series name and issue number are often
+   # unnecessarily prepended onto the front of it, strip that off if needed.
+   i = title_s.find("#"+issue_num_s)
+   return title_s[i+len("#"+issue_num_s):].lstrip(" :-,") if i > 0 else title_s

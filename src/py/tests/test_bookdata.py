@@ -52,47 +52,89 @@ class TestBookData(TestCase):
       self.assertEquals(book.volume_year_n, BookData.blank("volume_year_n"))
       
    # --------------------------------------------------------------------------
-   def test_year_n(self):
-      ''' Checks to see if the BookData's year_n property works. '''
+   def test_pub_year_n(self):
+      ''' Checks to see if the BookData's pub_year_n property works. '''
       book = BookData()
-      self.assertEquals(book.year_n, BookData.blank("year_n"))
-      book.year_n = 2012
-      self.assertEquals(book.year_n, 2012)
-      book.year_n = "2013"
-      self.assertEquals(book.year_n, 2013)
-      book.year_n = None
-      self.assertEquals(book.year_n, BookData.blank("year_n"))
-      del book.year_n
-      self.assertEquals(book.year_n, BookData.blank("year_n"))
+      self.assertEquals(book.pub_year_n, BookData.blank("pub_year_n"))
+      book.pub_year_n = 2012
+      self.assertEquals(book.pub_year_n, 2012)
+      book.pub_year_n = "2013"
+      self.assertEquals(book.pub_year_n, 2013)
+      book.pub_year_n = None
+      self.assertEquals(book.pub_year_n, BookData.blank("pub_year_n"))
+      del book.pub_year_n
+      self.assertEquals(book.pub_year_n, BookData.blank("pub_year_n"))
       
    # --------------------------------------------------------------------------
-   def test_month_n(self):
-      ''' Checks to see if the BookData's month_n property works. '''
+   def test_pub_month_n(self):
+      ''' Checks to see if the BookData's pub_month_n property works. '''
       book = BookData()
-      self.assertEquals(book.month_n, BookData.blank("month_n"))
-      book.month_n = 15
-      self.assertEquals(book.month_n, 9)
-      book.month_n = " 11 "
-      self.assertEquals(book.month_n, 11)
-      book.month_n = None
-      self.assertEquals(book.month_n, BookData.blank("month_n"))
-      del book.month_n
-      self.assertEquals(book.month_n, BookData.blank("month_n"))
+      self.assertEquals(book.pub_month_n, BookData.blank("pub_month_n"))
+      book.pub_month_n = 9
+      self.assertEquals(book.pub_month_n, 9)
+      book.pub_month_n = " 11 "
+      self.assertEquals(book.pub_month_n, 11)
+      book.pub_month_n = None
+      self.assertEquals(book.pub_month_n, BookData.blank("pub_month_n"))
+      del book.pub_month_n
+      self.assertEquals(book.pub_month_n, BookData.blank("pub_month_n"))
       
    # --------------------------------------------------------------------------
-   def test_day_n(self):
-      ''' Checks to see if the BookData's day_n property works. '''
+   def test_pub_day_n(self):
+      ''' Checks to see if the BookData's pub_day_n property works. '''
       book = BookData()
-      self.assertEquals(book.day_n, BookData.blank("day_n"))
-      book.day_n = 15
-      self.assertEquals(book.day_n, 15)
-      book.day_n = "16"
-      self.assertEquals(book.day_n, 16)
-      book.day_n = None
-      self.assertEquals(book.day_n, BookData.blank("day_n"))
-      del book.year_n
-      self.assertEquals(book.day_n, BookData.blank("day_n"))
+      self.assertEquals(book.pub_day_n, BookData.blank("pub_day_n"))
+      book.pub_day_n = 15
+      self.assertEquals(book.pub_day_n, 15)
+      book.pub_day_n = "16"
+      self.assertEquals(book.pub_day_n, 16)
+      book.pub_day_n = None
+      self.assertEquals(book.pub_day_n, BookData.blank("pub_day_n"))
+      del book.pub_year_n
+      self.assertEquals(book.pub_day_n, BookData.blank("pub_day_n"))
+
+   # --------------------------------------------------------------------------
+   def test_rel_year_n(self):
+      ''' Checks to see if the BookData's rel_year_n property works. '''
+      book = BookData()
+      self.assertEquals(book.rel_year_n, BookData.blank("rel_year_n"))
+      book.rel_year_n = 2012
+      self.assertEquals(book.rel_year_n, 2012)
+      book.rel_year_n = "2013"
+      self.assertEquals(book.rel_year_n, 2013)
+      book.rel_year_n = None
+      self.assertEquals(book.rel_year_n, BookData.blank("rel_year_n"))
+      del book.rel_year_n
+      self.assertEquals(book.rel_year_n, BookData.blank("rel_year_n"))
       
+   # --------------------------------------------------------------------------
+   def test_rel_month_n(self):
+      ''' Checks to see if the BookData's rel_month_n property works. '''
+      book = BookData()
+      self.assertEquals(book.rel_month_n, BookData.blank("rel_month_n"))
+      book.rel_month_n = 9
+      self.assertEquals(book.rel_month_n, 9)
+      book.rel_month_n = " 11 "
+      self.assertEquals(book.rel_month_n, 11)
+      book.rel_month_n = None
+      self.assertEquals(book.rel_month_n, BookData.blank("rel_month_n"))
+      del book.rel_month_n
+      self.assertEquals(book.rel_month_n, BookData.blank("rel_month_n"))
+      
+   # --------------------------------------------------------------------------
+   def test_rel_day_n(self):
+      ''' Checks to see if the BookData's rel_day_n property works. '''
+      book = BookData()
+      self.assertEquals(book.rel_day_n, BookData.blank("rel_day_n"))
+      book.rel_day_n = 15
+      self.assertEquals(book.rel_day_n, 15)
+      book.rel_day_n = "16"
+      self.assertEquals(book.rel_day_n, 16)
+      book.rel_day_n = None
+      self.assertEquals(book.rel_day_n, BookData.blank("rel_day_n"))
+      del book.rel_year_n
+      self.assertEquals(book.rel_day_n, BookData.blank("rel_day_n"))
+
    # --------------------------------------------------------------------------
    def test_format_s(self):
       ''' Checks to see if the BookData's format_s property works. '''
