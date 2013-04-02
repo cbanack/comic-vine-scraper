@@ -49,7 +49,6 @@ class ComicBook(object):
    
    #===========================================================================
 
-   # coryhigh: perhaps we can delete a bunch of these?
    # Series name of this book.  Not None, may be empty.
    series_s = property( lambda self : self.__bookdata.series_s )
    
