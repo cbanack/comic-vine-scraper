@@ -433,23 +433,14 @@ class ScrapeEngine(object):
          scraped_series = scrape_cache[key]
 
 
-         # 5. now that we know the right series for this book, query the 
-         #    database for the issues in that series. then try to pick one, 
-         #    either  automatically, or by showing the use the "issues dialog".
-         #    also, cache the issue data, so we don't have to query again if we 
-         #    scrape another book from this series.  METHOD EXIT: if the user 
-         #    sees the query dialog, she may skip, cancel the whole scrape, 
-         #    go back to the series dialog, or actually an issue.
+         # 5. now that we know the right series for this book, try to find
+         #    the right issue, either automatically,  or by showing the user 
+         #    the "issues dialog".  METHOD EXIT: if the user sees the query 
+         #    dialog, she may skip, cancel the whole scrape,   go back to the 
+         #    series dialog, or actually an issue.
          log.debug("searching for the right issue in '", 
             scraped_series.series_ref, "'")
          
-         # get the issue refs for our chosen series
-         if not scraped_series.issue_refs:
-            scraped_series.issue_refs = \
-               self.__query_issue_refs(scraped_series.series_ref)
-            if self.__cancelled_b: 
-               return BookStatus("SKIPPED")
-
          # choose the issue that matches the book we are scraping
          issue_form_result = self.__choose_issue_ref( book, 
             scraped_series.series_ref, scraped_series.issue_refs, 
@@ -573,7 +564,9 @@ class ScrapeEngine(object):
       
       'book' -> the book that we are currently scraping
       'series_ref_s' -> the SeriesRef for the given set of issue refs
-      'issue_refs' -> a set of IssueRefs; the ones we're choosing from
+      'issue_refs' -> a set of IssueRefs; if empty, it MAY be filled with
+          the issue refs for the given series ref, if non-empty, this is the
+          list of IssueRefs we'll be choosing from.
       'force_b' -> whether we should force the IssueForm to be shown, or 
                    only show it when we have no choice.
       
@@ -584,18 +577,39 @@ class ScrapeEngine(object):
       
       series_name_s = series_ref.series_name_s
       issue_num_s = '' if not book.issue_num_s else book.issue_num_s
+      if issue_refs == None: raise "issue_refs must be a set we can populate"
 
+      # 1. are our issue refs empty? if so, try the shortcut way to find the
+      #    right issue ref.  if that fails, get all the issue refs for this
+      #    series (the long way.)  
+      if len(issue_refs) == 0 and issue_num_s:
+         issue_ref = db.query_issue_ref(series_ref, book.issue_num_s)
+         if issue_ref:
+            result = IssueFormResult("OK", issue_ref) # found it!
+            log.debug("   ...identified issue number ", issue_num_s, )
+            
+      # 2. if we don't have our issue_refs yet, and we're going to be 
+      #    displaying the issue dialog, then get the issue_refs
+      if len(issue_refs) == 0 and (not result or force_b):   
+         issue_refs |= self.__query_issue_refs(series_ref)
+         if self.__cancelled_b: 
+            result = IssueFormResult("CANCEL")
+         elif len(issue_refs) == 0:
+            MessageBox.Show(self.comicrack.MainWindow,
+            i18n.get("NoIssuesAvailableText").format(series_name_s),
+            i18n.get("NoIssuesAvailableTitle"), MessageBoxButtons.OK, 
+               MessageBoxIcon.Warning)
+            result = IssueFormResult("BACK")
+            log.debug("   ...no issues in this series; user must go back")
 
-      # 1. try to find the issue number directly in the given issue_refs.  
-      if issue_num_s:
+      # 3. try to find the issue number directly in the given issue_refs.  
+      if not result and len(issue_refs) == 0 and issue_num_s:
          counts = {}
          for ref in issue_refs:
             counts[ref.issue_num_s] = counts.get(ref.issue_num_s, 0) + 1
          if issue_num_s in counts and counts[issue_num_s] > 1:
             # the same issue number appears more than once! user must pick.
             log.debug("   ...found more than one issue number ", issue_num_s, )
-            issue_refs = \
-               [ref for ref in issue_refs if ref.issue_num_s == issue_num_s]
          else:
             for ref in issue_refs:
                # strip leading zeroes (see issue 81)
@@ -604,32 +618,27 @@ class ScrapeEngine(object):
                   log.debug("   ...identified issue number ", issue_num_s, )
                   break
 
-      # 2. if we don't know the issue number, and there is only one issue in 
+      # 4. if we don't know the issue number, and there is only one issue in 
       # the series, then it is very likely that the database simply has no issue
       # *number* for the book (this happens a lot).  the user has already seen
       # the cover for this issue in the series dialog and chosen it, so no 
       # point in making them choose it again...just use the one choice we have
-      if len(issue_refs) == 1 and not issue_num_s and not force_b:
+      if not result and not issue_num_s and len(issue_refs)==1:
          result = IssueFormResult("OK", list(issue_refs)[0])
 
-      # 3. if there are no issue_refs and that's a problem; tell the user
-      if len(issue_refs) == 0:
-         MessageBox.Show(self.comicrack.MainWindow,
-         i18n.get("NoIssuesAvailableText").format(series_name_s),
-         i18n.get("NoIssuesAvailableTitle"), MessageBoxButtons.OK, 
-         MessageBoxIcon.Warning)
-         result = IssueFormResult("BACK")
-         log.debug("   ...no issues in this series; forcing user to go back")
-      elif force_b or not result:
-         # 4. if we are forced to, or we have no result yet, display IssueForm
-         if not force_b:
-            log.debug("   ...could not identify issue number automatically")
-         hint = result.get_ref() if result else None
-         log.debug("displaying the issue selection dialog...")
-         with IssueForm(self, hint, issue_refs, series_ref) as issue_form:
-            result = issue_form.show_form()
-            result = result if result else IssueFormResult("BACK")
-         log.debug('   ...user chose to ', result.get_debug_string())
+      # 5. if we are forced to, or we have no result yet, display IssueForm
+      if not result or force_b:
+         if len(issue_refs) == 0:
+            result = IssueFormResult("BACK") # shouldn't happen
+         else:
+            if not force_b:
+               log.debug("   ...could not identify issue number automatically")
+            hint = result.get_ref() if result else None
+            log.debug("displaying the issue selection dialog...")
+            with IssueForm(self, hint, issue_refs, series_ref) as issue_form:
+               result = issue_form.show_form()
+               result = result if result else IssueFormResult("BACK")
+            log.debug('   ...user chose to ', result.get_debug_string())
 
       return result # will not be None now
 
@@ -732,7 +741,7 @@ class ScrapedSeries(object):
    '''
    def __init__(self):
       self.series_ref = None  
-      self.issue_refs = None
+      self.issue_refs = set()
  
 
 # ==========================================================================

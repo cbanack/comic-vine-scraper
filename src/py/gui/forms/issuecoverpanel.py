@@ -221,20 +221,12 @@ class IssueCoverPanel(Panel):
 
       run_in_background = type(ref) == SeriesRef and self.__issue_num_hint_s       
       if run_in_background:
-         # 1a. our ref is a SeriesRef
-         # check to see if our issue num hint matches one of the issues that
-         # the db has for the current series that we are displaying.  use a 
-         # simple cache to avoid querying for the same issue twice.
+         # 1a. our ref is a SeriesRef.  use our issue num hint to try to convert
+         #     it into an IssueRef.  use a simple cache to avoid requerying
          def maybe_convert_seriesref_to_issue_ref(ref):
             if not ref in self.__series_cache:
-               issue_refs = db.query_issue_refs(ref)
-               if issue_refs:
-                  for issue_ref in issue_refs:
-                     if issue_ref.issue_num_s == self.__issue_num_hint_s:
-                        self.__series_cache[ref] = issue_ref
-                        break
-               if not ref in self.__series_cache:
-                  self.__series_cache[ref] = ref
+               issue_ref = db.query_issue_ref(ref, self.__issue_num_hint_s)
+               self.__series_cache[ref] = issue_ref if issue_ref else ref
                   
             # 1b. go back to the application thread to do the actual ref change
             def change_ref():  

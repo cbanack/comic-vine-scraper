@@ -352,8 +352,16 @@ def __issue_to_issueref(issue):
    issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
    title_s = issue.name 
    if not is_string(title_s): title_s = ''
-   title_s = __clean_title_s( title_s, issue_num_s );
    return IssueRef(issue_num_s, issue.id, title_s, __parse_image_url(issue))
+
+
+# =============================================================================
+def query_issue_ref(series_ref, issue_num_s):
+   ''' ComicVine implementation of the identically named method in the db.py '''
+     
+   dom = cvconnection._query_issue_id_dom(series_ref.series_key, issue_num_s)
+   num_results_n = int(dom.number_of_total_results) if dom else 0
+   return __issue_to_issueref(dom.results.issue) if num_results_n==1 else None 
 
 
 # =============================================================================
@@ -425,7 +433,6 @@ def __issue_parse_simple_stuff(issue, dom):
       issue.webpage_s = dom.results.site_detail_url
    if is_string(dom.results.name):
       issue.title_s = dom.results.name.strip();
-      issue.title_s = __clean_title_s( issue.title_s, issue.issue_num_s );
       
    # grab the published (front cover) date
    if "cover_date" in dom.results.__dict__ and \
@@ -674,11 +681,3 @@ def __as_list(dom):
    '''  
    return dom if isinstance(dom, list) else [] if dom is None else [dom]
 
-#===========================================================================
-def __clean_title_s(title_s, issue_num_s): # corylow: can we get rid of this?
-   ''' Cleans extra series details from the front of the issue title.  '''
-   
-   # the title is a bit special; the series name and issue number are often
-   # unnecessarily prepended onto the front of it, strip that off if needed.
-   i = title_s.find("#"+issue_num_s)
-   return title_s[i+len("#"+issue_num_s):].lstrip(" :-,") if i > 0 else title_s

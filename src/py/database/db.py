@@ -182,6 +182,17 @@ def query_issue_refs(series_ref, callback_function=lambda x : False):
 
 
 # =============================================================================
+def query_issue_ref(series_ref, issue_num_s):
+   '''
+   This method takes a SeriesRef object (not None) and an issue number string
+   representing an issue in that series.  It converts these two objects into
+   a new IssueRef object if possible, or it returns None if it is not possible
+   (if, for example, the issue number string doesn't match any issue.)
+   '''
+   return cvdb.query_issue_ref(series_ref, issue_num_s)
+   
+
+# =============================================================================
 def query_issue(issue_ref, slow_data=False):
    '''
    This method takes an IssueRef object (not None) and uses it to query the
