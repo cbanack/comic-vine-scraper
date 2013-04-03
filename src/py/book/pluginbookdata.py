@@ -117,18 +117,6 @@ class PluginBookData(BookData):
       if "volume_year_n" in ok_to_update:
          self.__crbook.Volume = self.volume_year_n
          ok_to_update.remove("volume_year_n")
-      
-      if "pub_year_n" in ok_to_update:
-         self.__crbook.Year = self.pub_year_n
-         ok_to_update.remove("pub_year_n")
-         
-      if "pub_month_n" in ok_to_update:
-         self.__crbook.Month = self.pub_month_n
-         ok_to_update.remove("pub_month_n")
-         
-      if "pub_day_n" in ok_to_update:
-         self.__crbook.Day = self.pub_day_n
-         ok_to_update.remove("pub_day_n")
          
       if "format_s" in ok_to_update:
          self.__crbook.Format = self.format_s
@@ -222,6 +210,11 @@ class PluginBookData(BookData):
          self.__crbook.CommunityRating = self.rating_n
          ok_to_update.remove("rating_n")
          
+         
+      # dates are a little special.  any element in the data could be blank
+      # (missing), and we only update the released date if NONE of the 
+      # elements are missing.  the published date, however, can have a missing
+      # day, or a missing day and month, and we'll still update the rest
       if "rel_year_n" in ok_to_update and \
          "rel_month_n" in ok_to_update and \
          "rel_day_n" in ok_to_update:
@@ -233,6 +226,25 @@ class PluginBookData(BookData):
          ok_to_update.remove("rel_year_n")
          ok_to_update.remove("rel_month_n")
          ok_to_update.remove("rel_day_n")
+         
+        
+      if "pub_year_n" in ok_to_update:
+         if self.pub_year_n != BookData.blank("pub_year_n"):
+            self.__crbook.Year = self.pub_year_n
+         ok_to_update.remove("pub_year_n")
+         
+      if "pub_month_n" in ok_to_update:
+         if self.pub_year_n != BookData.blank("pub_year_n") and \
+            self.pub_month_n != BookData.blank("pub_month_n"):
+            self.__crbook.Month = self.pub_month_n
+         ok_to_update.remove("pub_month_n")
+         
+      if "pub_day_n" in ok_to_update:
+         if self.pub_year_n != BookData.blank("pub_year_n") and \
+            self.pub_month_n != BookData.blank("pub_month_n") and \
+            self.pub_day_n != BookData.blank("pub_day_n"):
+            self.__crbook.Day = self.pub_day_n
+         ok_to_update.remove("pub_day_n")
       
    
       # we only download and install a thumbnail for fileless CR books, and

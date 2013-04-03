@@ -437,20 +437,25 @@ def __issue_parse_simple_stuff(issue, dom):
    # grab the published (front cover) date
    if "cover_date" in dom.results.__dict__ and \
       is_string(dom.results.cover_date) and \
-      len(dom.results.cover_date) > 7:
+      len(dom.results.cover_date) > 1:
       try:
-         issue.pub_year_n, issue.pub_month_n, issue.pub_day_n = \
-            [int(x) for x in dom.results.cover_date.split('-')]
+         parts = [int(x) for x in dom.results.cover_date.split('-')]
+         issue.pub_year_n = parts[0] if len(parts) >= 1 else None
+         issue.pub_month_n = parts[1] if len(parts) >=2 else None
+         # corylow: can we ever add this back in??
+         #issue.pub_day_n = parts[2] if len(parts) >= 3 else None
       except:
          pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
    # grab the released (in store) date
    if "store_date" in dom.results.__dict__ and \
       is_string(dom.results.store_date) and \
-      len(dom.results.store_date) > 7:
+      len(dom.results.store_date) > 1:
       try:
-         issue.rel_year_n, issue.rel_month_n, issue.rel_day_n = \
-            [int(x) for x in dom.results.store_date.split('-')]
+         parts = [int(x) for x in dom.results.store_date.split('-')]
+         issue.rel_year_n = parts[0] if len(parts) >= 1 else None
+         issue.rel_month_n = parts[1] if len(parts) >=2 else None
+         issue.rel_day_n = parts[2] if len(parts) >= 3 else None
       except:
          pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
