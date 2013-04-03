@@ -1,3 +1,4 @@
+#coding: utf-8
 '''
 This module contains ComicVine=based implementations of the the functions 
 described in the db.py module.  That module can delegate its function calls to
@@ -358,11 +359,42 @@ def __issue_to_issueref(issue):
 # =============================================================================
 def query_issue_ref(series_ref, issue_num_s):
    ''' ComicVine implementation of the identically named method in the db.py '''
-     
-   dom = cvconnection._query_issue_id_dom(series_ref.series_key, issue_num_s)
+   
+   series_key = series_ref.series_key  
+   dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
    num_results_n = int(dom.number_of_total_results) if dom else 0
+   attempts = 1
+
+   # try again if we didn't find anything
+   while num_results_n == 0 and attempts <= 3:
+      new_issue_num_s = __alternate_issue_num_s(issue_num_s)
+      if new_issue_num_s == issue_num_s:
+         break
+      else:
+         issue_num_s = new_issue_num_s
+         dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
+         num_results_n = int(dom.number_of_total_results) if dom else 0
+         
    return __issue_to_issueref(dom.results.issue) if num_results_n==1 else None 
 
+
+# =============================================================================
+def __alternate_issue_num_s(issue_num_s):
+   ''' 
+   Computes an alternative form of the given issue number, i.e. '5.5' becomes
+   '5½'.  If no alterative form is available, return the given issue_num_s.
+   '''
+   if issue_num_s == "0.5" or issue_num_s == ".5":
+      issue_num_s = "0½"
+   elif issue_num_s == "½":
+      issue_num_s = "0½"
+   elif issue_num_s == "0½":
+      issue_num_s = "½"
+   else:
+      issue_num_s = issue_num_s.replace(r'\.50*[^0-9]*$', '½')
+      issue_num_s = issue_num_s.replace(r'\.250*[^0-9]*$', '¼')
+      issue_num_s = issue_num_s.replace(r'\.750*[^0-9]*$', '¾')
+   return issue_num_s
 
 # =============================================================================
 def _query_image(ref):
