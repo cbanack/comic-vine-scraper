@@ -49,7 +49,6 @@ class ComicBook(object):
    
    #===========================================================================
 
-   # coryhigh: perhaps we can delete a bunch of these?
    # Series name of this book.  Not None, may be empty.
    series_s = property( lambda self : self.__bookdata.series_s )
    
@@ -802,17 +801,14 @@ class ComicBook(object):
       ignoreblanks - if true, we'll never overwrite with an old non-blank date
             with a new date that has any blank values.
       blank_value - the value that should be considered 'blank' for
-            any of the individual elements in the given date tuples.  any tuple
-            that contains even one blank value will be considered blank.
+            any of the individual elements in the given date tuples.  
       ''' 
       
       
       # first, a little housekeeping so that we stay really robust
-      is_blank = lambda tuple: blank_value in tuple
-      if new_value is None or is_blank(new_value):
-         new_value = (blank_value,blank_value,blank_value)
-      if old_value is None or is_blank(old_value):
-         old_value = (blank_value, blank_value, blank_value)
+      blank_date = (blank_value,blank_value,blank_value)
+      new_value = blank_date if not new_value else new_value
+      old_value = blank_date if not old_value else old_value
       if type(blank_value) != int:
          raise TypeError("wrong type for blank value");
       if len(old_value) != 3 or type(old_value[2]) != int:
@@ -826,19 +822,19 @@ class ComicBook(object):
       #  2) we can overwrite the existing value, or there is no existing value
       #  3) we're not overwriting with a blank value unless we're allowed to
       retval = None;
-      if update and (overwrite or is_blank(old_value)) and \
-            not (ignoreblanks and is_blank(new_value)):
+      if update and (overwrite or old_value == blank_date) and \
+            not (ignoreblanks and new_value == blank_date):
          retval = new_value
          
          marker = ' '
          if old_value != new_value:
             marker = '*'
             
-         if is_blank(retval): 
+         if retval == blank_date: 
             log.debug("--> ", marker, label.ljust(15), ": ")
          else: 
-            log.debug("--> ", marker, label.ljust(15), ": ", 
-               '-'.join([sstr(x) for x in retval]) )
+            log.debug("--> ", marker, label.ljust(15), ": ", '-'.join(
+               ['??' if x == blank_value else sstr(x) for x in retval]) )
       else:
          log.debug("-->  ", label.ljust(15), ": --- skipped ---")
          

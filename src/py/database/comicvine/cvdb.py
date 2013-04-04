@@ -1,3 +1,4 @@
+#coding: utf-8
 '''
 This module contains ComicVine=based implementations of the the functions 
 described in the db.py module.  That module can delegate its function calls to
@@ -352,9 +353,48 @@ def __issue_to_issueref(issue):
    issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
    title_s = issue.name 
    if not is_string(title_s): title_s = ''
-   title_s = __clean_title_s( title_s, issue_num_s );
    return IssueRef(issue_num_s, issue.id, title_s, __parse_image_url(issue))
 
+
+# =============================================================================
+def query_issue_ref(series_ref, issue_num_s):
+   ''' ComicVine implementation of the identically named method in the db.py '''
+   
+   series_key = series_ref.series_key  
+   dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
+   num_results_n = int(dom.number_of_total_results) if dom else 0
+   attempts = 1
+
+   # try again if we didn't find anything
+   while num_results_n == 0 and attempts <= 3:
+      new_issue_num_s = __alternate_issue_num_s(issue_num_s)
+      if new_issue_num_s == issue_num_s:
+         break
+      else:
+         issue_num_s = new_issue_num_s
+         dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
+         num_results_n = int(dom.number_of_total_results) if dom else 0
+         
+   return __issue_to_issueref(dom.results.issue) if num_results_n==1 else None 
+
+
+# =============================================================================
+def __alternate_issue_num_s(issue_num_s):
+   ''' 
+   Computes an alternative form of the given issue number, i.e. '5.5' becomes
+   '5½'.  If no alterative form is available, return the given issue_num_s.
+   '''
+   if issue_num_s == "0.5" or issue_num_s == ".5":
+      issue_num_s = "0½"
+   elif issue_num_s == "½":
+      issue_num_s = "0½"
+   elif issue_num_s == "0½":
+      issue_num_s = "½"
+   else:
+      issue_num_s = issue_num_s.replace(r'\.50*[^0-9]*$', '½')
+      issue_num_s = issue_num_s.replace(r'\.250*[^0-9]*$', '¼')
+      issue_num_s = issue_num_s.replace(r'\.750*[^0-9]*$', '¾')
+   return issue_num_s
 
 # =============================================================================
 def _query_image(ref):
@@ -425,25 +465,29 @@ def __issue_parse_simple_stuff(issue, dom):
       issue.webpage_s = dom.results.site_detail_url
    if is_string(dom.results.name):
       issue.title_s = dom.results.name.strip();
-      issue.title_s = __clean_title_s( issue.title_s, issue.issue_num_s );
       
    # grab the published (front cover) date
    if "cover_date" in dom.results.__dict__ and \
       is_string(dom.results.cover_date) and \
-      len(dom.results.cover_date) > 7:
+      len(dom.results.cover_date) > 1:
       try:
-         issue.pub_year_n, issue.pub_month_n, issue.pub_day_n = \
-            [int(x) for x in dom.results.cover_date.split('-')]
+         parts = [int(x) for x in dom.results.cover_date.split('-')]
+         issue.pub_year_n = parts[0] if len(parts) >= 1 else None
+         issue.pub_month_n = parts[1] if len(parts) >=2 else None
+         # corylow: can we ever add this back in??
+         #issue.pub_day_n = parts[2] if len(parts) >= 3 else None
       except:
          pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
    # grab the released (in store) date
    if "store_date" in dom.results.__dict__ and \
       is_string(dom.results.store_date) and \
-      len(dom.results.store_date) > 7:
+      len(dom.results.store_date) > 1:
       try:
-         issue.rel_year_n, issue.rel_month_n, issue.rel_day_n = \
-            [int(x) for x in dom.results.store_date.split('-')]
+         parts = [int(x) for x in dom.results.store_date.split('-')]
+         issue.rel_year_n = parts[0] if len(parts) >= 1 else None
+         issue.rel_month_n = parts[1] if len(parts) >=2 else None
+         issue.rel_day_n = parts[2] if len(parts) >= 3 else None
       except:
          pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
@@ -674,11 +718,3 @@ def __as_list(dom):
    '''  
    return dom if isinstance(dom, list) else [] if dom is None else [dom]
 
-#===========================================================================
-def __clean_title_s(title_s, issue_num_s): # corylow: can we get rid of this?
-   ''' Cleans extra series details from the front of the issue title.  '''
-   
-   # the title is a bit special; the series name and issue number are often
-   # unnecessarily prepended onto the front of it, strip that off if needed.
-   i = title_s.find("#"+issue_num_s)
-   return title_s[i+len("#"+issue_num_s):].lstrip(" :-,") if i > 0 else title_s
