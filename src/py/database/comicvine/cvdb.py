@@ -559,7 +559,7 @@ def __issue_parse_story_credits(issue, dom):
    if ("story_arc_credits" in dom.results.__dict__) and \
       ("story_arc" in dom.results.story_arc_credits.__dict__) :
       issue.crossovers_sl = map( lambda x: x.name,
-         __as_list(dom.results.arc_credits.story_arc) )
+         __as_list(dom.results.story_arc_credits.story_arc) )
 
    # get any character details that might exist
    if ("character_credits" in dom.results.__dict__) and \
