@@ -16,6 +16,7 @@ import utils
 clr.AddReference('System')
 from System.Net import WebException
 from System.IO import IOException
+from System.Web import HttpUtility
 
 
 # This is the api key needed to access the comicvine website.
@@ -43,7 +44,8 @@ def _query_series_ids_dom(searchterm_s, page_n=1):
       
    if searchterm_s is None or searchterm_s == '' or page_n < 0:
       raise ValueError('bad parameters')
-   return __get_dom( QUERY.format(searchterm_s, page_n) )
+   return __get_dom( QUERY.format(
+      HttpUtility.UrlPathEncode(searchterm_s), page_n) )
 
 
 
@@ -69,7 +71,7 @@ def _query_series_details_dom(seriesid_s):
 def _query_issue_ids_dom(seriesid_s, page_n=1):
    '''
    Performs a query that will obtain a dom containing all of the issue IDs
-   for the given series name.  You can also provide a second argument that 
+   for the given series id.  You can also provide a second argument that 
    specifies the page of the results (each page contains
    100 results) to display. This is useful, because this query will not 
    necessarily return all available results.
@@ -85,6 +87,27 @@ def _query_issue_ids_dom(seriesid_s, page_n=1):
    if seriesid_s is None or seriesid_s == '':
       raise ValueError('bad parameters')
    return __get_dom( QUERY.format(sstr(seriesid_s), page_n, (page_n-1)*100 ) )
+
+
+# =============================================================================
+def _query_issue_id_dom(seriesid_s, issue_num_s):
+   '''
+   Performs a query that will obtain a dom containing the issue ID for the 
+   given issue number in the given series id.  
+   
+   This method doesn't return null, but it may throw Exceptions.
+   '''
+   
+   # {0} is the series ID, an integer, and {1} is issue number, a string     
+   QUERY = 'http://api.comicvine.com/issues/?api_key=' + __API_KEY + \
+      '&format=xml&field_list=name,issue_number,id,image' + \
+      '&filter=volume:{0},issue_number:{1}'
+   
+   if not seriesid_s or not issue_num_s:
+      raise ValueError('bad parameters')
+   return __get_dom( QUERY.format(sstr(seriesid_s), 
+      HttpUtility.UrlPathEncode(sstr(issue_num_s)) ) )
+
 
 
 # =============================================================================
@@ -133,7 +156,6 @@ def _query_issue_details_page(issueid_s):
 
 # =============================================================================
 def _query_issue_image_dom(issueid_s):
-   #coryhigh: don't need this one?
    '''
    Performs a query that will obtain a dom containing the issue image url 
    for the given issue ID.
