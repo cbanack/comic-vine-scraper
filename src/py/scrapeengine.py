@@ -5,7 +5,7 @@ This module is home to the ScrapeEngine class.
 import clr
 
 import log
-from utils import sstr
+from utils import sstr, natural_key
 from resources import Resources 
 from configuration import Configuration
 from comicform import ComicForm
@@ -579,10 +579,11 @@ class ScrapeEngine(object):
       issue_num_s = '' if not book.issue_num_s else book.issue_num_s
       if issue_refs == None: raise "issue_refs must be a set we can populate"
 
-      # 1. are our issue refs empty? if so, try the shortcut way to find the
-      #    right issue ref.  if that fails, get all the issue refs for this
-      #    series (the long way.)  
-      if len(issue_refs) == 0 and issue_num_s:
+      # 1. are our issue refs empty? if so, and we're not forced to display
+      #    the IssueForm, then try the shortcut way to find the right issue ref.
+      #    if that fails, get all the issue refs for this series (so we can
+      #    search for the issue the long way.)  
+      if len(issue_refs) == 0 and issue_num_s and not force_b:
          issue_ref = db.query_issue_ref(series_ref, book.issue_num_s)
          if issue_ref:
             result = IssueFormResult("OK", issue_ref) # found it!
@@ -613,8 +614,8 @@ class ScrapeEngine(object):
             log.debug("   ...found more than one issue number ", issue_num_s, )
          else:
             for ref in issue_refs:
-               # strip leading zeroes (see issue 81)
-               if ref.issue_num_s.lstrip('0') == issue_num_s.lstrip('0'):
+               # use natural keys for issue comparison
+               if natural_key(ref.issue_num_s) == natural_key(issue_num_s):
                   result = IssueFormResult("OK", ref) # found it!
                   log.debug("   ...identified issue number ", issue_num_s, )
                   break

@@ -8,7 +8,7 @@ Created on Jan 5, 2012
 
 from unittest import TestCase
 from unittest.loader import TestLoader
-from utils import natural_compare
+from utils import natural_compare, natural_key
 
 #==============================================================================
 def load_tests(loader, tests, pattern):
@@ -20,7 +20,7 @@ class TestUtils(TestCase):
 
    # --------------------------------------------------------------------------
    def test_natural_compare(self):
-      ''' Checks to see if the BookData's series_s property works. '''
+      ''' Checks to see if the utils.natural_compare() works. '''
       
       unsorted = ["10", "1", "23", "5", "1.2", "11", "1.01", "55" ]
       expected = ["1", "1.01", "1.2", "5", "10", "11", "23", "55" ]
@@ -50,4 +50,20 @@ class TestUtils(TestCase):
       expected = ["-6", "-5 ¾", "-5½", "- 5 ¼ ", "-5", "-0.6", "-½", "-.4"]
       self.assertEquals(expected, sorted(unsorted,natural_compare))
       
+   # --------------------------------------------------------------------------
+   def test_natural_key(self):
+      ''' Checks to see if the utils.natural_key() method works. '''
+      self.assertEquals( natural_key("0."), natural_key("0") )       
+      self.assertEquals( natural_key("0.a"), natural_key("0a") )       
+      self.assertEquals( natural_key("3.0"), natural_key("3.00") )       
+      self.assertEquals( natural_key("3.0"), natural_key("3") )       
+      self.assertEquals( natural_key("003"), natural_key("3") )       
+      self.assertEquals( natural_key("003a"), natural_key("3a  ") )       
+      self.assertEquals( natural_key("003"), natural_key("3  ") )       
+      self.assertEquals( natural_key("½"), natural_key("0.5000") )       
+      self.assertEquals( natural_key("3½"), natural_key("0003.5") )       
+      self.assertEquals( natural_key("6 au"), natural_key("6au") ) 
+      self.assertEquals( natural_key("0.0 final"), natural_key("0 final") ) 
+      self.assertEquals( natural_key(".5"), natural_key(" 0 ½") ) 
+      self.assertEquals( natural_key("000.5"), natural_key("0½") ) 
             

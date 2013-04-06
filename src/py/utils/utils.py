@@ -74,16 +74,21 @@ def natural_compare(a, b):
     
    global __keys_cache
    if __keys_cache is None:
-      __keys_cache = { str(x):__key(str(x)) for x in range(999) }
+      __keys_cache = { str(x): natural_key(str(x)) for x in range(999) }
       
-   a = __keys_cache[a] if a in __keys_cache else __key(a)
-   b = __keys_cache[b] if b in __keys_cache else __key(b)
+   a = __keys_cache[a] if a in __keys_cache else natural_key(a)
+   b = __keys_cache[b] if b in __keys_cache else natural_key(b)
    return -1 if a < b else 1 if a > b else 0
 
 
 # ==========================================================================
-def __key(s):
-   ''' Calculates the natural sort order key for the give string. '''
+def natural_key(s):
+   '''
+   Calculates the natural sort order key for the give string.   Two strings
+   that are 'naturally' identical will have identical keys, i.e. '1' and '1.0'
+   or '5 A' and '5A' or '.5' and '0.5000'.
+   '''
+   s = s.strip()
    
    # Converts unicode fractions (like '5½') into floats (like 5.5).
    def unicode_fraction_to_float(s):
@@ -105,8 +110,9 @@ def __key(s):
    if unicode_float:
       return ['', unicode_float, '' ]
    else:
-      pattern = r'((?:^\s*-)?(?:(?:\d+\.\d+)|(?:\.\d+)|(?:\d+)))'
-      convert = lambda text: float(text) if is_number(text) else text.lower()
+      pattern = r'((?:^\s*-)?(?:(?:\d+\.\d+)|(?:\.\d+)|(?:\d+\.)|(?:\d+)))'
+      convert = lambda text: float(text) if is_number(text) \
+         else text.lower().strip()
       return [ convert(c) for c in re.split( pattern, s) ]
 
 
