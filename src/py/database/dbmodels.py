@@ -48,7 +48,7 @@ class IssueRef(object):
          raise Exception()
       
       self.__issue_key = issue_key
-      self.__issue_num_s = issue_num_s.strip()
+      self.__issue_num_s = sstr(issue_num_s).strip()
       self.__title_s = title_s if utils.is_string(title_s) else ""
       
       # make sure thumb_url_s is either valid, or none (but not '').

@@ -20,6 +20,8 @@ from finishform import FinishForm
 import i18n
 from matchscore import MatchScore
 from comicbook import ComicBook
+import automatcher
+import dbutils
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -222,31 +224,39 @@ class ScrapeEngine(object):
 
             # 6b. ...keep trying to scrape that book until either it is scraped,
             #     the user chooses to skip it, or the user cancels altogether.
+            delayed_b = i >= orig_length
             manual_search_b = self.config.specify_series_b
-            fast_rescrape_b = self.config.fast_rescrape_b and i < orig_length
-            bookstatus = BookStatus("UNSCRAPED")
-            
-            while bookstatus.equals("UNSCRAPED") and not self.__cancelled_b:
+            fast_rescrape_b = self.config.fast_rescrape_b and not delayed_b
+            autoscrape_b = True and not delayed_b # cory: fix
+            bookstatus = BookStatus("DELAYED") \
+               if delayed_b else BookStatus("UNSCRAPED")
+               
+            while not self.__cancelled_b:
+               
                bookstatus = self.__scrape_book(book, scrape_cache,
-                 manual_search_b, fast_rescrape_b, bookstatus)
+                 manual_search_b, fast_rescrape_b, autoscrape_b, bookstatus)
                
                if bookstatus.equals("UNSCRAPED"):
                   # this return code means 'no series could be found using 
                   # the current (automatic or manual) search terms'.  when  
                   # that happens, force the user to chose the search terms.
                   manual_search_b = True
+                  continue;
                elif bookstatus.equals("SCRAPED"):
                   # book was scraped normally, all is good, update status
                   self.__status[0] += 1;
                   self.__status[1] -= 1;
+                  break;
                elif bookstatus.equals("SKIPPED"):
                   # book was skipped, status is already correct for that book
-                  pass;
+                  break;
                elif bookstatus.equals("DELAYED"):
                   # put this book into the end of the list, where we can try
-                  # rescraping (with fast_rescrape_b set to false this time)
-                  # after we've handled the ones that we can do automatically.
-                  books.append(book)
+                  # rescraping  after we've handled the ones that we can do
+                  # automatically.  ignore it if it's already been delayed.
+                  if not delayed_b: 
+                     books.append(book)
+                  break;
             log.debug()
             log.debug()
             i = i + 1
@@ -259,45 +269,50 @@ class ScrapeEngine(object):
 
    # ==========================================================================
    def __scrape_book(self, book, scrape_cache, 
-         manual_search_b, fast_rescrape_b, prev_status=None):
+         manual_search_b, fast_rescrape_b, autoscrape_b, prev_status=None):
       '''
       This method is the heart of the Main Processing Loop. It scrapes a single
       ComicBook object by first figuring out which issue entry in the database 
       matches that book, and then copying those details into the ComicBook 
       object's metadata fields.  
       
-      The steps involved are:
+      The 10000 foot view of the loop steps:
       
-       1.  Come up with search terms for the given 'book'
-            - if 'manual_search_b' then guess the terms based on the book's name
-            - else ask the user to provide search terms
-       2.  Search database for all comic series that match those search terms.
-       3.  Ask the user which of the resulting series is the correct one
-       4a. If the user picks a series:
+       1.  Attempt to scrape automatically.  If we succeed, we're done.
+       2.  Otherwise, obtain search terms for the given 'book'
+            - if 'manual_search_b' then ask the user to provide the search terms
+            - else guess the terms based on the book's name
+       3.  Search database for all comic series that match those search terms.
+       4.  Ask the user which of the series that we found is the correct one
+       5a. If the user picks a series:
             - we guess which issue in that series matches our ComicBook, OR
             - we ask the user to specify the correct issue (if we can't guess)
-       4b. Else the use might decide to skip scraping this book.
-       4c. Else the user might decide to start over with new search terms
-       4d. Else the user might choose to specify the correct issue manually
-       4e. Else the user might cancel the entire operation
+       5b. Else the use might decide to skip scraping this book.
+       5c. Else the user might decide to start over with new search terms
+       5d. Else the user might choose to specify the correct issue manually
+       5e. Else the user might cancel the entire operation
              
        Throughout this process, the 'scrape_cache' (a map, empty at first) is
        used to speed things up.  It caches details from previous calls to this 
        method, so if this method is called repeatedly, the same scrape_cache 
-       should be passed in each time.
+       must be passed in each time.
+       
+       AUTOMATIC SCRAPING
        
        Iff 'fast_rescrape_b' is set to true, this method will attempt to find 
        and use any database key that was written to the book during a previous
-       scrape.  This key allows us to instantly identify a comic, thus skipping
-       the steps described above.  If no key is available, just fall back to
-       the user-interactive method of identifying the comic.
-       
-       When this method is called repeatedly on the same book, a 'prev_status'
-       should be passed in, giving this method access to the BookStatus object 
-       that it returned the last time it was called (for the current book). 
+       scrape.  Else iff 'autoscrape_b' is true, this method attempts a search
+       algorithm on the database, again to obtain the key.  Iff either attempt
+       succeeds, the key allows us to instantly identify a comic, thus skipping
+       everything after step 1.  If no key is available, just fall back to
+       the user-interactive method of identifying the comic (step 2+).
        
        RETURN VALUES
        
+       When this method is called repeatedly on the same book, a 'prev_status'
+       should be passed in, giving this method access to the BookStatus object 
+       that it returned the last time it was called for that book. 
+              
        BookStatus("UNSCRAPED"): if the book wasn't be scraped, either because
           the search terms yielded no results, or the user opted to specify
           new search terms
@@ -309,9 +324,8 @@ class ScrapeEngine(object):
        BookStatus("SCRAPED"): if the book was scraped successfully, and now 
           contains updated metadata.
           
-       BookStatus("DELAYED"): if we attempted to do a fast_rescrape on the book,
-          but failed because the database key was invalid.  the book has not
-          been scraped successfully.
+       BookStatus("DELAYED"): if we attempted to automatically scrape the book,
+          but failed.  the book has not been scraped successfully.
           
        
       '''
@@ -323,15 +337,17 @@ class ScrapeEngine(object):
       Application.DoEvents()
       if self.__cancelled_b: return BookStatus("SKIPPED")
       if prev_status == None: prev_status = BookStatus("UNSCRAPED")
-
-      # 1. if this book is being 'rescraped', sometimes it already knows the 
-      #    correct issue_ref from a previous scrape. METHOD EXIT: if that 
-      #    rescrape issue_ref is available, we use it immediately and exit. and 
-      #    if the issue_ref is the string "skip", we skip this book.
+         
+      # 1. METHOD EXIT: if this book has been tagged to skip, do so.
       if book.skip_b: 
          log.debug("found SKIP tag, so skipping the scrape for this book.")
          return BookStatus("SKIPPED")
 
+      
+      # 2. if this book is being 'rescraped', sometimes it already knows the 
+      #    correct IssueRef from a previous scrape. METHOD EXIT: if that 
+      #    rescrape IssueRef is available, we use it immediately and exit.
+      #    if an error occurs, retry a manual scrape later on.
       issue_ref = book.issue_ref
       if issue_ref and fast_rescrape_b:
          log.debug("found rescraping details in book, using: "+sstr(issue_ref));
@@ -344,30 +360,52 @@ class ScrapeEngine(object):
             log.debug("we'll retry scraping this book again at the end.")
             return BookStatus("DELAYED")
 
+   
+      # 3. what follows is an attempt to get the unique series key for this book
+      #    into the scrape cache. this effectively tells us which series the 
+      #    book belongs to, and also allows us to automatically use the same
+      #    series for other books that have the same unique series key.
 
-      # 2. search for all the series in the database that match the current
-      #    book.  if info for this book's series has already been cached, we 
-      #    can skip this step.  METHOD EXIT: if we show the user the 'search' 
-      #    dialog, she may use it to skip this book or cancel the whole scrape.
-      search_terms_s = None
-      series_refs = None
       key = book.unique_series_s
       if key in scrape_cache and not self.config.scrape_in_groups_b:
          # uncaching this key forces the scraper to treat this comic series
          # as though this was the first time we'd seen it
          del scrape_cache[key]
    
-      # 3. check to see if this book has an special file in it's folder that
-      #    tells us what series the book belongs to.  if so, add the series to 
-      #    our scrape_cache, which causes us to skip the "Choose Series" form.      
-      magic_series_ref = db.check_magic_file(book.path_s)
-      if magic_series_ref:        
-         log.debug("a 'magic' file identified this book's series as: '",
+      # 3a. check to see if this book has an special file in it's folder that
+      #    tells us what series the book belongs to.  if so, add that map that
+      #    book to that series in the scrape_cache.
+      if key not in scrape_cache:
+         magic_series_ref = db.check_magic_file(book.path_s)
+         if magic_series_ref:        
+            log.debug("a 'magic' file identified this book's series as: '",
               magic_series_ref, "'")
-         scraped_series = ScrapedSeries()
-         scraped_series.series_ref = magic_series_ref
-         scrape_cache[key] = scraped_series
-          
+            scraped_series = ScrapedSeries()
+            scraped_series.series_ref = magic_series_ref
+            scrape_cache[key] = scraped_series
+         
+      # 3b. or maybe the user requested that we try the auto-scrape algorithm on 
+      #     all new (unscraped) books?  if so, now's the time to give it a try.  
+      #     if we find the series for this book, add it to the scrape cache.
+      if key not in scrape_cache and autoscrape_b:
+         log.debug("trying to match this book automatically...")
+         auto_series_ref = automatcher.find_series_ref(book, self.config) 
+         if auto_series_ref:
+            log.debug("...found a suitable match:  ", auto_series_ref)
+            scraped_series = ScrapedSeries()
+            scraped_series.series_ref = auto_series_ref
+            scrape_cache[key] = scraped_series
+         else:
+            log.debug("...couldn't find a match. leave it until the end.")
+            return BookStatus("DELAYED")
+
+      # 3c. if the book still hasn't been added to the scrape cache, the next
+      #     step is to search the online database for the book's series name.
+      #     the user may have to modify the auto-generated search terms. the
+      #     goal is to get some potential SeriesRefs to show the user. 
+      #     METHOD EXIT: if the user cancels or skips from the search dialog.          
+      search_terms_s = None
+      series_refs = None
       if key not in scrape_cache: 
          # get search terms for the book that we're scraping
          search_terms_s = book.series_s
@@ -398,12 +436,12 @@ class ScrapeEngine(object):
             # include failed search terms here, so search dialog mentions them
             return BookStatus("UNSCRAPED", search_terms_s)
 
-      # 4. now that we have a set if series_refs that match this book, 
-      #    show the user the 'series dialog' so they can pick the right one.  
-      #    put the chosen series into the cache so the user won't have to 
-      #    pick it again for any future books that are in this book's series.
-      #    METHOD EXIT: while viewing the series dialog, the user might skip,
-      #    request to re-search, or cancel the entire scrape operation.
+
+      # 3d. now that we have a set of SeriesRefs that match this book, 
+      #     show the user the Series dialog so he/she can choose the right one.
+      #     put the chosen series into the series cache.  METHOD EXIT: while 
+      #     viewing the series dialog, the user might skip, request to 
+      #     re-search, or cancel the entire scrape operation.
       while True:
          force_issue_dialog_b = False 
          if key not in scrape_cache: 
@@ -429,7 +467,13 @@ class ScrapeEngine(object):
                force_issue_dialog_b = series_form_result.equals("SHOW")
                scrape_cache[key] = scraped_series
                
-         # one way or another, the chosen series is now in the cache. get it.      
+
+         # 4. at this point, the 'correct' series for the book is now in the
+         #    series cache.  now we try to pick the matching issue in that 
+         #    series. do so automatically if possible, or show the user the
+         #    issue dialog if necessary.  METHOD EXIT: if the user see the 
+         #    issue dialog, she may skip, cancel the whole scrape operation, 
+         #    go back to the series dialog, or actually scrape an issue.
          scraped_series = scrape_cache[key]
 
 
@@ -674,23 +718,11 @@ class ScrapeEngine(object):
          series_refs = db.query_series_refs(search_terms_s, callback)
          
       # 2. filter out any series that the user has specified
-      filtered_refs = set() 
-      banned_publishers_sl = self.config.ignored_publishers_sl
-      threshold_n = self.config.never_ignore_threshold_n
-      ignored_before_n = self.config.ignored_before_year_n
-      ignored_after_n = self.config.ignored_after_year_n
-      for series_ref in series_refs:
-         if series_ref.issue_count_n >= threshold_n:
-            year_passes_filter = True
-            pub_passes_filter = True
-         else:
-            publisher_s = series_ref.publisher_s.lower().strip()
-            year_passes_filter = series_ref.volume_year_n == -1 \
-               or (series_ref.volume_year_n >= ignored_before_n \
-               and series_ref.volume_year_n <= ignored_after_n) 
-            pub_passes_filter = publisher_s not in banned_publishers_sl
-         if year_passes_filter and pub_passes_filter:    
-            filtered_refs.add(series_ref)
+      filtered_refs = dbutils.filter_series_refs(series_refs,
+         self.config.ignored_publishers_sl, 
+         self.config.ignored_before_year_n,
+         self.config.ignored_after_year_n,
+         self.config.never_ignore_threshold_n)
       
       # 3. some userful debug output
       filtered_n = len(series_refs) - len(filtered_refs) 
@@ -775,6 +807,9 @@ class BookStatus(object):
       self.__failed_search_terms_s = failed_search_terms_s \
           if id=="UNSCRAPED" and utils.is_string(failed_search_terms_s) else ""
       
+   #===========================================================================         
+   def __str__(self):
+      return self.__id
       
    #===========================================================================         
    def equals(self, id):
