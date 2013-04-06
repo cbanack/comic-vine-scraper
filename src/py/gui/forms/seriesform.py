@@ -21,7 +21,8 @@ from System.Drawing import Point, Size
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
    DataGridViewAutoSizeColumnMode, DataGridViewContentAlignment, \
-   DataGridViewSelectionMode, DialogResult, Keys, Label
+   DataGridViewSelectionMode, DataGridViewTriState, DialogResult, \
+   Keys, Label
 
 #==============================================================================
 class SeriesForm(CVForm):
@@ -162,26 +163,31 @@ class SeriesForm(CVForm):
       table.Columns[0].Name = i18n.get("SeriesFormSeriesCol")
       table.Columns[0].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleLeft
+      table.Columns[0].Resizable = DataGridViewTriState.True
+      table.Columns[0].FillWeight = 200
       table.Columns[0].AutoSizeMode = \
          DataGridViewAutoSizeColumnMode.Fill
       
       table.Columns[1].Name = i18n.get("SeriesFormYearCol")
       table.Columns[1].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleCenter
+      table.Columns[1].Resizable = DataGridViewTriState.True
       table.Columns[1].AutoSizeMode =\
          DataGridViewAutoSizeColumnMode.AllCells
       
       table.Columns[2].Name = i18n.get("SeriesFormIssuesCol")
       table.Columns[2].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleCenter
+      table.Columns[2].Resizable = DataGridViewTriState.True
       table.Columns[2].AutoSizeMode =\
          DataGridViewAutoSizeColumnMode.AllCells
          
       table.Columns[3].Name = i18n.get("SeriesFormPublisherCol")
       table.Columns[3].DefaultCellStyle.Alignment =\
          DataGridViewContentAlignment.MiddleLeft
+      table.Columns[3].Resizable = DataGridViewTriState.True
       table.Columns[3].AutoSizeMode =\
-         DataGridViewAutoSizeColumnMode.AllCells
+         DataGridViewAutoSizeColumnMode.Fill
          
       table.Columns[4].Name = "ID"
       table.Columns[4].Visible = False
