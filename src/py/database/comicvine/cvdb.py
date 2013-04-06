@@ -269,18 +269,8 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = ' '.join(word.findall(search_terms_s))
    
    return search_terms_s
+  
      
-# =============================================================================
-def __cleanup_trailing_zeroes(number_s):
-   # deal with things like 1.00 -> 1 and 1.50 -> 1.5
-   number_s = number_s.strip()
-   if '.' in number_s:
-      number_s = number_s.rstrip('0')
-      number_s = number_s.rstrip('.')
-   elif number_s.strip() != '0':
-      number_s = number_s.lstrip('0') # leave '0.5' and '0' alone (issue 183)
-   return number_s
-      
 # =============================================================================
 def _query_issue_refs(series_ref, callback_function=lambda x : False):
    ''' ComicVine implementation of the identically named method in the db.py '''
@@ -344,17 +334,14 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
 def __issue_to_issueref(issue):
    ''' Converts a cvdb "issue" dom element into an IssueRef. '''
    issue_num_s = issue.issue_number
-   if not is_string(issue_num_s): issue_num_s = ''
-   issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
-   title_s = issue.name 
-   if not is_string(title_s): title_s = ''
+   issue_num_s = issue_num_s.strip() if is_string(issue_num_s) else ''
+   title_s = issue.name.strip() if is_string(issue.name) else ''
    return IssueRef(issue_num_s, issue.id, title_s, __parse_image_url(issue))
 
 
 # =============================================================================
 def query_issue_ref(series_ref, issue_num_s):
    ''' ComicVine implementation of the identically named method in the db.py '''
-   
    series_key = series_ref.series_key  
    dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
    num_results_n = int(dom.number_of_total_results) if dom else 0
@@ -362,6 +349,7 @@ def query_issue_ref(series_ref, issue_num_s):
 
    # try again if we didn't find anything
    while num_results_n == 0 and attempts <= 3:
+      attempts += 1
       new_issue_num_s = __alternate_issue_num_s(issue_num_s)
       if new_issue_num_s == issue_num_s:
          break
@@ -379,7 +367,7 @@ def __alternate_issue_num_s(issue_num_s):
    Computes an alternative form of the given issue number, i.e. '5.5' becomes
    '5½'.  If no alterative form is available, return the given issue_num_s.
    '''
-   if issue_num_s == "0.5" or issue_num_s == ".5":
+   if re.match(r"0*.50*", issue_num_s):
       issue_num_s = "0½"
    elif issue_num_s == "½":
       issue_num_s = "0½"
@@ -454,7 +442,7 @@ def __issue_parse_simple_stuff(issue, dom):
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
    if is_string(dom.results.issue_number):
-      issue.issue_num_s = __cleanup_trailing_zeroes( dom.results.issue_number )
+      issue.issue_num_s = dom.results.issue_number.strip()
    if is_string(dom.results.site_detail_url) and \
          dom.results.site_detail_url.startswith("http"):
       issue.webpage_s = dom.results.site_detail_url
