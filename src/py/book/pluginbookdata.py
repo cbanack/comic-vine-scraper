@@ -210,6 +210,10 @@ class PluginBookData(BookData):
          self.__crbook.CommunityRating = self.rating_n
          ok_to_update.remove("rating_n")
          
+      # corynorm: implement this ?
+      #self.__crbook.SetCustomValue("cvissue", "33432")
+      #self.__crbook.SetCustomValue("cvvolume", "09000")
+         
          
       # dates are a little special.  any element in the data could be blank
       # (missing), and we only update the released date if NONE of the 

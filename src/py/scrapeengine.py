@@ -5,7 +5,7 @@ This module is home to the ScrapeEngine class.
 import clr
 
 import log
-from utils import sstr
+from utils import sstr, natural_key
 from resources import Resources 
 from configuration import Configuration
 from comicform import ComicForm
@@ -623,10 +623,11 @@ class ScrapeEngine(object):
       issue_num_s = '' if not book.issue_num_s else book.issue_num_s
       if issue_refs == None: raise "issue_refs must be a set we can populate"
 
-      # 1. are our issue refs empty? if so, try the shortcut way to find the
-      #    right issue ref.  if that fails, get all the issue refs for this
-      #    series (the long way.)  
-      if len(issue_refs) == 0 and issue_num_s:
+      # 1. are our issue refs empty? if so, and we're not forced to display
+      #    the IssueForm, then try the shortcut way to find the right issue ref.
+      #    if that fails, get all the issue refs for this series (so we can
+      #    search for the issue the long way.)  
+      if len(issue_refs) == 0 and issue_num_s and not force_b:
          issue_ref = db.query_issue_ref(series_ref, book.issue_num_s)
          if issue_ref:
             result = IssueFormResult("OK", issue_ref) # found it!
@@ -634,8 +635,9 @@ class ScrapeEngine(object):
             
       # 2. if we don't have our issue_refs yet, and we're going to be 
       #    displaying the issue dialog, then get the issue_refs
-      if len(issue_refs) == 0 and (not result or force_b):   
-         issue_refs |= self.__query_issue_refs(series_ref)
+      if len(issue_refs) == 0 and (not result or force_b):
+         for ref in self.__query_issue_refs(series_ref):
+            issue_refs.add(ref) # do NOT make a new set here!
          if self.__cancelled_b: 
             result = IssueFormResult("CANCEL")
          elif len(issue_refs) == 0:
@@ -647,7 +649,7 @@ class ScrapeEngine(object):
             log.debug("   ...no issues in this series; user must go back")
 
       # 3. try to find the issue number directly in the given issue_refs.  
-      if not result and len(issue_refs) == 0 and issue_num_s:
+      if not result and len(issue_refs) > 0 and issue_num_s:
          counts = {}
          for ref in issue_refs:
             counts[ref.issue_num_s] = counts.get(ref.issue_num_s, 0) + 1
@@ -656,8 +658,8 @@ class ScrapeEngine(object):
             log.debug("   ...found more than one issue number ", issue_num_s, )
          else:
             for ref in issue_refs:
-               # strip leading zeroes (see issue 81)
-               if ref.issue_num_s.lstrip('0') == issue_num_s.lstrip('0'):
+               # use natural keys for issue comparison
+               if natural_key(ref.issue_num_s) == natural_key(issue_num_s):
                   result = IssueFormResult("OK", ref) # found it!
                   log.debug("   ...identified issue number ", issue_num_s, )
                   break

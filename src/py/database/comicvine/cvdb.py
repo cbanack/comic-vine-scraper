@@ -241,9 +241,10 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    '''
    # all of the symbols below cause inconsistency in title searches
    search_terms_s = search_terms_s.lower()
-   search_terms_s = search_terms_s.replace('.', '')
-   search_terms_s = search_terms_s.replace('_', ' ')
-   search_terms_s = search_terms_s.replace('-', ' ')
+   search_terms_s = re.sub(r"[.`']", '', search_terms_s)
+   search_terms_s = search_terms_s.replace(r'_', ' ')
+   search_terms_s = search_terms_s.replace(r'-', ' ')
+   search_terms_s = re.sub(r":\s+", ' ', search_terms_s)
    search_terms_s = re.sub(r'\b(c2c|noads+)\b', '', search_terms_s)
    search_terms_s = re.sub(r'\b(vs\.?|versus|and|or|tbp|the|an|of|a|is)\b',
       '', search_terms_s)
@@ -255,12 +256,6 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = re.sub(r"\bvolume\b", r"\bvol\b", search_terms_s)
    search_terms_s = re.sub(r"\bvol\.\b", r"\bvol\b", search_terms_s)
    
-   # see issue 169.  search words with digits embedded between letters will
-   # fail unless we escape the first digit with \.  so, for example,
-   # se7en should be se\7en, revv3d should be rev\3d, etc.
-   search_terms_s = \
-      re.sub(r"(\b[a-z]+)(\d+)([a-z]+\b)", r"\1\\\2\3", search_terms_s)
-   
    # if the alternate search terms is requested, try to expand single number
    # words, and if that fails, try to contract them.
    orig_search_terms_s = search_terms_s
@@ -269,23 +264,13 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    if alt_b and search_terms_s == orig_search_terms_s:
       search_terms_s = utils.convert_number_words(search_terms_s, False)
       
-   # strip out punctuation
+   # strip out remaing punctuation
    word = re.compile(r'[\w]{1,}')
    search_terms_s = ' '.join(word.findall(search_terms_s))
    
    return search_terms_s
+  
      
-# =============================================================================
-def __cleanup_trailing_zeroes(number_s):
-   # deal with things like 1.00 -> 1 and 1.50 -> 1.5
-   number_s = number_s.strip()
-   if '.' in number_s:
-      number_s = number_s.rstrip('0')
-      number_s = number_s.rstrip('.')
-   elif number_s.strip() != '0':
-      number_s = number_s.lstrip('0') # leave '0.5' and '0' alone (issue 183)
-   return number_s
-      
 # =============================================================================
 def _query_issue_refs(series_ref, callback_function=lambda x : False):
    ''' ComicVine implementation of the identically named method in the db.py '''
@@ -349,17 +334,14 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
 def __issue_to_issueref(issue):
    ''' Converts a cvdb "issue" dom element into an IssueRef. '''
    issue_num_s = issue.issue_number
-   if not is_string(issue_num_s): issue_num_s = ''
-   issue_num_s = __cleanup_trailing_zeroes(issue_num_s)
-   title_s = issue.name 
-   if not is_string(title_s): title_s = ''
+   issue_num_s = issue_num_s.strip() if is_string(issue_num_s) else ''
+   title_s = issue.name.strip() if is_string(issue.name) else ''
    return IssueRef(issue_num_s, issue.id, title_s, __parse_image_url(issue))
 
 
 # =============================================================================
 def query_issue_ref(series_ref, issue_num_s):
    ''' ComicVine implementation of the identically named method in the db.py '''
-   
    series_key = series_ref.series_key  
    dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
    num_results_n = int(dom.number_of_total_results) if dom else 0
@@ -367,6 +349,7 @@ def query_issue_ref(series_ref, issue_num_s):
 
    # try again if we didn't find anything
    while num_results_n == 0 and attempts <= 3:
+      attempts += 1
       new_issue_num_s = __alternate_issue_num_s(issue_num_s)
       if new_issue_num_s == issue_num_s:
          break
@@ -384,7 +367,7 @@ def __alternate_issue_num_s(issue_num_s):
    Computes an alternative form of the given issue number, i.e. '5.5' becomes
    '5½'.  If no alterative form is available, return the given issue_num_s.
    '''
-   if issue_num_s == "0.5" or issue_num_s == ".5":
+   if re.match(r"0*.50*", issue_num_s):
       issue_num_s = "0½"
    elif issue_num_s == "½":
       issue_num_s = "0½"
@@ -397,7 +380,7 @@ def __alternate_issue_num_s(issue_num_s):
    return issue_num_s
 
 # =============================================================================
-def _query_image(ref):
+def _query_image( ref, lasttry = False ):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
    retval = None # the Image object that we will return
@@ -419,9 +402,16 @@ def _query_image(ref):
          response_stream = response.GetResponseStream()
          retval = Image.FromStream(response_stream)
       except:
-         log.debug_exc('ERROR loading cover image from comicvine:')
-         log.debug('--> imageurl: ', image_url_s)
-         retval = None
+         if lasttry:
+            log.debug_exc('ERROR loading cover image from comicvine:')
+            log.debug('--> imageurl: ', image_url_s)
+            retval = None
+         else:
+            log.debug('RETRY loading image: ', image_url_s)
+            retval = _query_image( ref, True )
+      finally: 
+         if response: response.Dispose()
+         if response_stream: response_stream.Dispose()
 
    # if this value is stil None, it means an error occurred, or else comicvine 
    # simply doesn't have any Image for the given ref object             
@@ -459,7 +449,7 @@ def __issue_parse_simple_stuff(issue, dom):
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
    if is_string(dom.results.issue_number):
-      issue.issue_num_s = __cleanup_trailing_zeroes( dom.results.issue_number )
+      issue.issue_num_s = dom.results.issue_number.strip()
    if is_string(dom.results.site_detail_url) and \
          dom.results.site_detail_url.startswith("http"):
       issue.webpage_s = dom.results.site_detail_url
@@ -559,7 +549,7 @@ def __issue_parse_story_credits(issue, dom):
    if ("story_arc_credits" in dom.results.__dict__) and \
       ("story_arc" in dom.results.story_arc_credits.__dict__) :
       issue.crossovers_sl = map( lambda x: x.name,
-         __as_list(dom.results.arc_credits.story_arc) )
+         __as_list(dom.results.story_arc_credits.story_arc) )
 
    # get any character details that might exist
    if ("character_credits" in dom.results.__dict__) and \

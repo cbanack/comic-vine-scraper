@@ -180,50 +180,54 @@ def __get_dom(url, lasttry=False):
    '''
    
    retval = None
-   xml = __get_page( url )
-   if xml is None or not xml.strip():
-      msg = 'comicvine query returned an empty document: ' + url
-      if lasttry:
-         raise Exception(msg)
-      else:
-         log.debug('ERROR: ', msg)
-         retval = None
-   else:
+   error_occurred = False
+   
+   #1. obtain xml from comicvine
+   xml = None
+   if not error_occurred:
+      try: xml = __get_page( url )
+      except Exception, ex:
+         if lasttry: raise ex
+         else: error_occurred = True
+   
+   #2. make the xml is not empty
+   if not error_occurred:
+      if xml is None or not xml.strip():
+         msg = 'comicvine query returned an empty document: ' + url
+         if lasttry: raise Exception(msg)
+         else: error_occurred = True
+         
+   # 3. convert the xml into a dom
+   dom = None   
+   if not error_occurred:
       try:
          xml = __strip_invalid_xml_chars(xml)
          dom = xml2py.parseString(xml)
-         
-         # for some reason, the comicvine server will return invalid xml
-         # for a while, I think just before it goes totally down.  bug 194
-         # describes why this is ugly, and it why we handle that specially here
-         if not "status_code" in dom.__dict__:
-            raise DatabaseConnectionError(
-               "Comic Vine", url, "empty comicvine dom: see bug 194")
-         
-         if int(dom.status_code) == 1:
-            retval = dom # success
-         else:
-            if lasttry:
-               raise _ComicVineError(dom.status_code, dom.error, url)
-            else:
-               log.debug()
-               retval = None
       except Exception, ex:
-         if lasttry:
-            raise ex
-         else:
-            log.debug_exc('ERROR: cannot parse results from comicvine: ' + url)
-            retval = None
+         if lasttry: raise ex
+         else: error_occurred = True
+   
+   # 4. make sure the dom is valid (see bug 194)   
+   if not error_occurred:
+      if not dom or not "status_code" in dom.__dict__:
+         if lasttry: raise DatabaseConnectionError(
+            "Comic Vine", url, "empty comicvine dom: see bug 194")
+         else: error_occurred = True
+
+   # 5. make sure the dom is valid             
+   if not error_occurred:
+      if int(dom.status_code) == 1:
+         retval = dom # success
+      else:
+         if lasttry: raise _ComicVineError(dom.status_code, dom.error, url)
+         else: error_occurred = True
       
-   # this next is an attempt to deal with issues #28 and #39.  sometimes 
-   # read_url does not seem to get a fully formed version of the xml file,
-   # or it even gets and empty file.  in such cases, a re-query normally 
-   # solves the problem.
-   if not retval and not lasttry:   
-      log.debug('RETRYING the query...')
-      retval = __get_dom(url, True)
-            
-   return retval
+   # 6. return the valid dom, or if error occurred, retry once
+   if error_occurred:   
+      log.debug('ERROR OCCURRED CONTACTING COMICVINE. RETRYING...')
+      return __get_dom(url, True)
+   else:            
+      return retval
         
          
 # =============================================================================
