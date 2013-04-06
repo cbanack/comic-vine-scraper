@@ -590,8 +590,9 @@ class ScrapeEngine(object):
             
       # 2. if we don't have our issue_refs yet, and we're going to be 
       #    displaying the issue dialog, then get the issue_refs
-      if len(issue_refs) == 0 and (not result or force_b):   
-         issue_refs |= self.__query_issue_refs(series_ref)
+      if len(issue_refs) == 0 and (not result or force_b):
+         for ref in self.__query_issue_refs(series_ref):
+            issue_refs.add(ref) # do NOT make a new set here!
          if self.__cancelled_b: 
             result = IssueFormResult("CANCEL")
          elif len(issue_refs) == 0:
@@ -603,7 +604,7 @@ class ScrapeEngine(object):
             log.debug("   ...no issues in this series; user must go back")
 
       # 3. try to find the issue number directly in the given issue_refs.  
-      if not result and len(issue_refs) == 0 and issue_num_s:
+      if not result and len(issue_refs) > 0 and issue_num_s:
          counts = {}
          for ref in issue_refs:
             counts[ref.issue_num_s] = counts.get(ref.issue_num_s, 0) + 1
