@@ -380,7 +380,7 @@ def __alternate_issue_num_s(issue_num_s):
    return issue_num_s
 
 # =============================================================================
-def _query_image(ref):
+def _query_image( ref, lasttry = False ):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
    retval = None # the Image object that we will return
@@ -402,9 +402,16 @@ def _query_image(ref):
          response_stream = response.GetResponseStream()
          retval = Image.FromStream(response_stream)
       except:
-         log.debug_exc('ERROR loading cover image from comicvine:')
-         log.debug('--> imageurl: ', image_url_s)
-         retval = None
+         if lasttry:
+            log.debug_exc('ERROR loading cover image from comicvine:')
+            log.debug('--> imageurl: ', image_url_s)
+            retval = None
+         else:
+            log.debug('RETRY loading image: ', image_url_s)
+            retval = _query_image( ref, True )
+      finally: 
+         if response: response.Dispose()
+         if response_stream: response_stream.Dispose()
 
    # if this value is stil None, it means an error occurred, or else comicvine 
    # simply doesn't have any Image for the given ref object             
