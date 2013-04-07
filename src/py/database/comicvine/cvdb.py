@@ -396,6 +396,8 @@ def _query_image( ref, lasttry = False ):
    
    # 2. attempt to load the image for the URL
    if image_url_s:
+      response = None
+      response_stream = None
       try:
          request = WebRequest.Create(image_url_s)
          response = request.GetResponse()
@@ -403,11 +405,10 @@ def _query_image( ref, lasttry = False ):
          retval = Image.FromStream(response_stream)
       except:
          if lasttry:
-            log.debug_exc('ERROR loading cover image from comicvine:')
-            log.debug('--> imageurl: ', image_url_s)
+            log.debug_exc('ERROR retry image load failed:')
             retval = None
          else:
-            log.debug('RETRY loading image: ', image_url_s)
+            log.debug('RETRY loading image -> ', image_url_s)
             retval = _query_image( ref, True )
       finally: 
          if response: response.Dispose()

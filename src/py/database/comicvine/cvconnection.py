@@ -18,6 +18,9 @@ from System.Net import WebException
 from System.IO import IOException
 from System.Web import HttpUtility
 
+clr.AddReference('IronPython')
+from System.Threading import Thread, ThreadStart
+
 
 # This is the api key needed to access the comicvine website.
 # This key belongs to Cory Banack.  If you fork this code to make your
@@ -225,6 +228,9 @@ def __get_dom(url, lasttry=False):
    # 6. return the valid dom, or if error occurred, retry once
    if error_occurred:   
       log.debug('ERROR OCCURRED CONTACTING COMICVINE. RETRYING...')
+      t = Thread(ThreadStart(lambda x=0: Thread.CurrentThread.Sleep(2500)))
+      t.Start()
+      t.Join()
       return __get_dom(url, True)
    else:            
       return retval
