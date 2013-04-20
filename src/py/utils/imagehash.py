@@ -9,16 +9,20 @@ clr.AddReference('System')
 from System import Array, Single
 
 clr.AddReference('System.Drawing')
-from System.Drawing import Bitmap, Graphics, GraphicsUnit, Rectangle
+from System.Drawing import Bitmap, Color, Graphics, GraphicsUnit, Rectangle
 from System.Drawing.Imaging import ColorMatrix, ImageAttributes
 from System.Drawing.Drawing2D import CompositingQuality, \
    SmoothingMode, InterpolationMode
 
 
 #==============================================================================
-def perceptual_hash(image):
+def perceptual_hash(image, ignore_lower_left=True):
    ''' 
    Returns an image hash for the given Image. 
+   
+   If ignore_lower_left is True, the lower left corner of the image does not
+   affect the returned hash result.
+   
    '''
    
    if image is not None:
@@ -49,6 +53,19 @@ def perceptual_hash(image):
             g.InterpolationMode = InterpolationMode.HighQualityBicubic
             g.DrawImage(image, Rectangle(0,0,SIZE,SIZE), 0, 0,
                image.Width, image.Height, GraphicsUnit.Pixel, attr)
+            
+            # blot out the lower left corner if requested 
+            # coryhigh: a better solution: in "similarity", allow corners or 
+            # bands to be ignored....?
+            if ignore_lower_left:
+               small_image.SetPixel(0,5,Color.Black)
+               small_image.SetPixel(0,6,Color.Black)
+               small_image.SetPixel(0,7,Color.Black)
+               small_image.SetPixel(1,5,Color.Black)
+               small_image.SetPixel(1,6,Color.Black)
+               small_image.SetPixel(1,7,Color.Black)
+               small_image.SetPixel(2,6,Color.Black)
+               small_image.SetPixel(2,7,Color.Black)
             
             # convert image pixels into bits, where 1 means pixel is greater
             # than image average, and 0 means pixel is less than average.
