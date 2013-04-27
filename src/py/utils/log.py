@@ -48,14 +48,14 @@ __logger = None
 __app_window = None
 
 #==============================================================================
-def install(app_window):
+def install(app_window=None):
    """
    Installs this module. This must be called before any other method in 
    this module is called.  You must take steps to GUARANTEE that this module's
    uninstall() method is called once you have called this method.
    
    Takes a single parameter, which is the Form/Window object that all error 
-   dialogs should be attached to.  This parameter may be null, but if it is the
+   dialogs should be attached to.  This parameter may be None, but if it is the
    'handle_error' method will not show any visible dialogs.
    """
 

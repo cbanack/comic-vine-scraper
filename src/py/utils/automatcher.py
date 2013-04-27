@@ -4,7 +4,6 @@ automatically find a good match for a given ComicBook object.
 
 @author: Cory Banack
 '''
-import clr
 from dbmodels import IssueRef
 import db
 import dbutils
@@ -12,7 +11,6 @@ from matchscore import MatchScore
 import log
 import imagehash
 import utils
-clr.AddReference('System')
 
 #==============================================================================
 def find_series_ref(book, config):
@@ -62,6 +60,11 @@ def __find_best_series(book, config):
          x if mscore.compute_n(book, x) >= mscore.compute_n(book,y) else y,
          series_refs)
       
+      
+   # coryhigh: we could add a test here to derail the found series if 
+   # a) we have no issue number, or issue 0 or 1, and 
+   # b) the second or third highest matchscore series have matching
+   #    cover art or contain the words TPB?  
    return series_ref; 
 
 
@@ -107,8 +110,10 @@ def __matches(image, image_ref):
       if image1 and image2:
          image1 = utils.strip_back_cover(image1) # dispose is handled when
          image2 = utils.strip_back_cover(image2) # a new image is created
-         hash1 = imagehash.perceptual_hash(image1)
-         hash2 = imagehash.perceptual_hash(image2)
+         hash1 = imagehash.hash(image1)
+         hash2 = imagehash.hash(image2)
+         #log.debug("hash1: ", bin(hash1)[2:].zfill(64))
+         #log.debug("hash2: ", bin(hash2)[2:].zfill(64)) 
          log.debug("similarity: ", imagehash.similarity(hash1, hash2) )
          matches = imagehash.similarity(hash1, hash2) > 0.85
    finally:
