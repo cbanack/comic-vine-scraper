@@ -8,9 +8,12 @@ from dbmodels import IssueRef
 import db
 import dbutils
 from matchscore import MatchScore
-import log
 import imagehash
 import utils
+
+# when comparing two comic covers, they must be this similar or greater
+# (when using imagehash.similarity()) to be considered "the same"
+__MATCH_THRESHOLD = 0.85
 
 #==============================================================================
 def find_series_ref(book, config):
@@ -24,19 +27,40 @@ def find_series_ref(book, config):
       
    Returns None if no clear seroes identification could be made. 
    '''
-   retval = None
    
-   candidate_ref = None
+   # tests to see if two hashes are close enough to be considered "the same"
+   def are_the_same(hash1, hash2):
+      x = imagehash.similarity(hash1, hash2)
+      return x > __MATCH_THRESHOLD
+   
+   
+   retval = None
    series_ref = __find_best_series(book, config)
    if series_ref:
-      # match issue cover if we have an issue; match series cover only if 
-      # we do NOT have an issue number for this comic (i.e. a oneshot)
-      candidate_ref = db.query_issue_ref(series_ref, book.issue_num_s) \
-         if book.issue_num_s else series_ref
-   if candidate_ref and __cover_matches_database(book, candidate_ref):
-      retval = series_ref
-   return retval;
+      matches = False
+      hash_local = __get_local_hash(book)
+      if hash_local:
+         # 1. convert SeriesRef + issue num to an IssueRef iff its possible.
+         ref = db.query_issue_ref(series_ref, book.issue_num_s) \
+            if book.issue_num_s else series_ref
+         ref = series_ref if not ref else ref
 
+         # 2. see if the local and remote hashes match up
+         hash_remote = __get_remote_hash(ref)
+         matches = are_the_same(hash_local, hash_remote)
+         
+         # 3. if the given ref is an IssueRef, we can try to load the issue's
+         #    additional cover images and see if any of them match, too.
+         if not matches and type(ref) == IssueRef:  
+            issue = db.query_issue(ref, True)
+            if issue:
+               for ref in issue.image_urls_sl:
+                  hash_remote = __get_remote_hash(ref)
+                  matches = are_the_same(hash_local, hash_remote)
+                  if matches: break
+      retval = series_ref if matches else None
+      
+   return retval;
 
 #==============================================================================
 def __find_best_series(book, config):      
@@ -46,6 +70,8 @@ def __find_best_series(book, config):
    
    Returns SeriesRef if a reasonable guess was found, or None if one wasn't.
    '''
+   
+   # 1. obtain SeriesRefs for this book, remove some as dictated by prefs
    series_refs = dbutils.filter_series_refs(
          db.query_series_refs(book.series_s),
          config.ignored_publishers_sl, 
@@ -53,69 +79,79 @@ def __find_best_series(book, config):
          config.ignored_after_year_n,
          config.never_ignore_threshold_n)
 
-   series_ref = None   
+   # 2. obtain the first, second, and third best matching SeriesRefs for the
+   #    give book, if there are any.
+   primary = None
+   secondary = None 
+   tertiary = None   
    if len(series_refs) > 0:
       mscore = MatchScore()
-      series_ref = reduce( lambda x,y: 
-         x if mscore.compute_n(book, x) >= mscore.compute_n(book,y) else y,
-         series_refs)
+      def find_best_score( refs ):
+         return reduce( lambda x,y: x if mscore.compute_n(book, x) 
+            >= mscore.compute_n(book,y) else y, refs) if refs else None
+      primary = find_best_score(series_refs)
+      if primary:
+         series_refs.remove(primary)
+         secondary = find_best_score(series_refs)
+         if secondary:
+            series_refs.remove(secondary)
+            tertiary = find_best_score(series_refs)
       
+      # 3. if our book is the first (or unknown) issue, figure out if the best  
+      #    matching series has a similar cover to the second or third best.
+      #    if it does, we're probably dealing with a trade paperback and a 
+      #    regular issue, and we can't find the best series reliably, so we bail
+      is_first_issue = (lambda i : not i or \
+         (utils.is_number(i) and float(i)==1.0))(book.issue_num_s)
+      if is_first_issue and primary and secondary:
+         too_similar = False
+         SIMILARITY_THRESHOLD = __MATCH_THRESHOLD - 0.10
+         hash1 = __get_remote_hash(primary)
+         hash2 = __get_remote_hash(secondary)
+         if imagehash.similarity(hash1, hash2) > SIMILARITY_THRESHOLD:
+            too_similar = True
+         elif tertiary:
+            hash3 = __get_remote_hash(tertiary)
+            if imagehash.similarity(hash1, hash3) > SIMILARITY_THRESHOLD:
+               too_similar = True
+         primary = None if too_similar else primary
       
-   # coryhigh: we could add a test here to derail the found series if 
-   # a) we have no issue number, or issue 0 or 1, and 
-   # b) the second or third highest matchscore series have matching
-   #    cover art or contain the words TPB?  
-   return series_ref; 
-
+   return primary
+            
 
 #==============================================================================
-def __cover_matches_database(book, ref):
-   '''
-   Checks to see if the cover of the given ComicBook "matches" the cover image
-   associated with the given database ref, which can be either a SeriesRef or an 
-   IssueRef.  This method may query the database multiple times.
-   '''
-   
-   matches = False
+def __get_local_hash(book):
+   ''' 
+   Gets the image hash for the cover of the give ComicBook object.  Returns
+   None if the cover image was empty or couldn't be hashed for any reason.
+   '''   
+   hash = None # matches nothing
    try:
-      image = book.create_image_of_page(0)
+      image = book.create_image_of_page(0) if book else None;
       if image:
-         matches = __matches(image, ref)
-         # if the given ref is an IssueRef, we can try to load the issue's
-         # additional cover images and see if any of them match, too.
-         if not matches and type(ref) == IssueRef:  
-            issue = db.query_issue(ref, True)
-            if issue:
-               for ref in issue.image_urls_sl:
-                  matches = __matches(image, ref)
-                  if matches: break
+         image = utils.strip_back_cover(image)
+         hash = imagehash.hash(image)
    finally:
       if "image" in locals() and image: image.Dispose()
-   return matches
+   return hash 
 
 
 #==============================================================================
-def __matches(image, image_ref):
+def __get_remote_hash(ref):
    ''' 
-   Compares the given image with the image loaded from the given image ref, 
-   and returns a boolean indicating whether they are the same or not.
+   Gets the image hash for a remote comic book resource.  This resource
+   can be a SeriesRef (hashes series art), an IssueRef (hashes the 
+   first issue cover) or a URL to an image on the web.
    
-   'image' - a .NET Image object.  Will NOT be disposed by this method.
-   'image_ref' - a remote image reference; an IssueRef, SeriesRef, or URL.
-   ''' 
-   matches = False
+   Returns None if the ref led to an image that was empty or 
+   couldn't be hashed for any reason.
+   '''  
+   hash = None # matches nothing
    try:
-      image1 = image
-      image2 = db.query_image(image_ref) if image1 and image_ref else None
-      if image1 and image2:
-         image1 = utils.strip_back_cover(image1) # dispose is handled when
-         image2 = utils.strip_back_cover(image2) # a new image is created
-         hash1 = imagehash.hash(image1)
-         hash2 = imagehash.hash(image2)
-         #log.debug("hash1: ", bin(hash1)[2:].zfill(64))
-         #log.debug("hash2: ", bin(hash2)[2:].zfill(64)) 
-         log.debug("similarity: ", imagehash.similarity(hash1, hash2) )
-         matches = imagehash.similarity(hash1, hash2) > 0.85
+      image = db.query_image(ref) if ref else None
+      if image:
+         image = utils.strip_back_cover(image)
+         hash = imagehash.hash(image)
    finally:
-      if "image2" in locals() and image2: image2.Dispose() 
-   return matches
+      if "image" in locals() and image: image.Dispose()
+   return hash 
