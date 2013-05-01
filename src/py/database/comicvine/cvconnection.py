@@ -1,7 +1,7 @@
 '''
 This module contains useful canned methods for accessing the Comic Vine
 database (API) over the Internet.  The documentation for this API and the 
-related queries can be found at:  http://api.comicvine.com/documentation/
+related queries can be found at:  http://comicvine.com/api/documentation/
 
 @author: Cory Banack
 '''
@@ -40,7 +40,7 @@ def _query_series_ids_dom(searchterm_s, page_n=1):
    '''
    
    # {0} is the search string, {1} is the page number of the results we want
-   QUERY = 'http://api.comicvine.com/search/?api_key=' + __API_KEY + \
+   QUERY = 'http://comicvine.com/api/search/?api_key=' + __API_KEY + \
       '&format=xml&limit=100&resources=volume' + \
       '&field_list=name,start_year,publisher,id,image,count_of_issues' + \
       '&query={0}&page={1}'
@@ -61,7 +61,7 @@ def _query_series_details_dom(seriesid_s):
    This method doesn't return null, but it may throw Exceptions.
    '''
    # {0} is the series id, an integer.
-   QUERY = 'http://api.comicvine.com/volume/4050-{0}/?api_key=' + __API_KEY + \
+   QUERY = 'http://comicvine.com/api/volume/4050-{0}/?api_key=' + __API_KEY + \
      '&format=xml&field_list=name,start_year,publisher,image,count_of_issues,id'
       # parsing relies on 'field_list' specifying 2 or more elements!!
       
@@ -83,7 +83,7 @@ def _query_issue_ids_dom(seriesid_s, page_n=1):
    '''
    
    # {0} is the series ID, an integer     
-   QUERY = 'http://api.comicvine.com/issues/?api_key=' + __API_KEY + \
+   QUERY = 'http://comicvine.com/api/issues/?api_key=' + __API_KEY + \
       '&format=xml&field_list=name,issue_number,id,image&filter=volume:{0}' +\
       '&page={1}&offset={2}'
    
@@ -102,7 +102,7 @@ def _query_issue_id_dom(seriesid_s, issue_num_s):
    '''
    
    # {0} is the series ID, an integer, and {1} is issue number, a string     
-   QUERY = 'http://api.comicvine.com/issues/?api_key=' + __API_KEY + \
+   QUERY = 'http://comicvine.com/api/issues/?api_key=' + __API_KEY + \
       '&format=xml&field_list=name,issue_number,id,image' + \
       '&filter=volume:{0},issue_number:{1}'
    
@@ -123,7 +123,7 @@ def _query_issue_details_dom(issueid_s):
    '''
    
    # {0} is the issue ID 
-   QUERY = 'http://api.comicvine.com/issue/4000-{0}/?api_key=' \
+   QUERY = 'http://comicvine.com/api/issue/4000-{0}/?api_key=' \
       + __API_KEY + '&format=xml'
       
    if issueid_s is None or issueid_s == '':
@@ -165,7 +165,7 @@ def _query_issue_image_dom(issueid_s):
    '''
    
    # {0} is the issue ID
-   QUERY = 'http://api.comicvine.com/issue/4000-{0}/?api_key=' + __API_KEY + \
+   QUERY = 'http://comicvine.com/api/issue/4000-{0}/?api_key=' + __API_KEY + \
       '&format=xml&field_list=image'
    
    if issueid_s is None or issueid_s == '':

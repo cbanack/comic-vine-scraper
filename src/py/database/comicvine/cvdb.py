@@ -626,15 +626,12 @@ def __issue_parse_roles(issue, dom):
    
    rolemap = dict([(r, []) for l in ROLE_DICT.values() for r in l])
    if "person_credits" in dom.results.__dict__ and \
-      "person" in dom.results.person_credits.__dict__ and \
-      "role" in dom.results.person_credits.__dict__:
+      "person" in dom.results.person_credits.__dict__:
       
       people = __as_list(dom.results.person_credits.person)
-      roles = __as_list(dom.results.person_credits.role)
-      if len(roles) == len(people):
-         for i in range(len(roles)):
-            person = people[i]
-            for role in [r.strip() for r in sstr(roles[i]).split(',')]:
+      for person in people:
+         if "role" in person.__dict__:
+            for role in [r.strip() for r in sstr(person.role).split(',')]:
                if role in ROLE_DICT:
                   for cr_role in ROLE_DICT[role]:
                      rolemap[cr_role].append(person.name)
