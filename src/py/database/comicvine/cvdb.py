@@ -635,8 +635,6 @@ def __issue_parse_roles(issue, dom):
                if role in ROLE_DICT:
                   for cr_role in ROLE_DICT[role]:
                      rolemap[cr_role].append(person.name)
-      else:
-         log.debug("WARNING: number of people and roles do not match up!") 
                    
    for role in rolemap:
       setattr(issue, role, rolemap[role] )
