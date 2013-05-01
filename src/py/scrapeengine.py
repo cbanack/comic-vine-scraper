@@ -227,7 +227,7 @@ class ScrapeEngine(object):
             delayed_b = i >= orig_length
             manual_search_b = self.config.specify_series_b
             fast_rescrape_b = self.config.fast_rescrape_b and not delayed_b
-            autoscrape_b = True and not delayed_b # cory: fix
+            autoscrape_b = False and not delayed_b # cory: fix
             bookstatus = BookStatus("DELAYED") \
                if delayed_b else BookStatus("UNSCRAPED")
                
