@@ -140,7 +140,7 @@ def __validate_environment():
    # the minimum versions required for a valid environment
    REQUIRED_MAJOR=0
    REQUIRED_MINOR=9
-   REQUIRED_BUILD=160
+   REQUIRED_BUILD=165
    
    valid_environment = True
    try:
