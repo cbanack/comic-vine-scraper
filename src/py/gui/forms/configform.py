@@ -70,12 +70,12 @@ class ConfigForm(CVForm):
       # "options" checkboxes
       self.__ow_existing_cb = None 
       self.__ignore_blanks_cb = None                                          
-      self.__specify_series_cb = None
+      self.__autochoose_series_cb = None
+      self.__confirm_issue_cb = None
       self.__convert_imprints_cb = None
       self.__summary_dialog_cb = None
       self.__download_thumbs_cb = None
       self.__preserve_thumbs_cb = None
-      self.__scrape_in_groups_cb = None
       self.__fast_rescrape_cb = None
       self.__rescrape_tags_cb = None
       self.__rescrape_notes_cb = None
@@ -256,29 +256,31 @@ class ConfigForm(CVForm):
       tabpage = TabPage()
       tabpage.Text = i18n.get("ConfigFormBehaviourTab")
       
-      # 1. --- build the 'scrape in groups'
-      self.__scrape_in_groups_cb = CheckBox()
-      self.__scrape_in_groups_cb.AutoSize = False
-      self.__scrape_in_groups_cb.FlatStyle = FlatStyle.System
-      self.__scrape_in_groups_cb.Location = Point(52, 20)
-      self.__scrape_in_groups_cb.Size = Size(275, 51)
-      self.__scrape_in_groups_cb.Text = i18n.get("ConfigFormAskGroupsCB")
-      self.__scrape_in_groups_cb.CheckedChanged += self.__fired_update_gui
+      # 1. --- build the 'autochoose series' checkbox
+      # coryhigh: internationalize this Text
+      self.__autochoose_series_cb = CheckBox()
+      self.__autochoose_series_cb.AutoSize = False
+      self.__autochoose_series_cb.FlatStyle = FlatStyle.System
+      self.__autochoose_series_cb.Location = Point(52, 25)
+      self.__autochoose_series_cb.Size = Size(275, 51)
+      self.__autochoose_series_cb.Text =i18n.get("ConfigFormAutochooseSeriesCB")
+      self.__autochoose_series_cb.CheckedChanged += self.__fired_update_gui
        
-      # 2. --- build the 'specify series name' checkbox
-      self.__specify_series_cb = CheckBox()
-      self.__specify_series_cb.AutoSize = False
-      self.__specify_series_cb.FlatStyle = FlatStyle.System
-      self.__specify_series_cb.Location = Point(52, 76)
-      self.__specify_series_cb.Size = Size(300, 34)
-      self.__specify_series_cb.Text = i18n.get("ConfigFormConfirmSeriesCB")
-      self.__specify_series_cb.CheckedChanged += self.__fired_update_gui
+      # 2. --- build the 'confirm issue' checkbox
+      # coryhigh: internationalize this Text
+      self.__confirm_issue_cb = CheckBox()
+      self.__confirm_issue_cb.AutoSize = False
+      self.__confirm_issue_cb.FlatStyle = FlatStyle.System
+      self.__confirm_issue_cb.Location = Point(52, 71)
+      self.__confirm_issue_cb.Size = Size(300, 34)
+      self.__confirm_issue_cb.Text = i18n.get("ConfigFormConfirmIssueCB")
+      self.__confirm_issue_cb.CheckedChanged += self.__fired_update_gui
       
       # 3. -- build the 'use fast rescrape' checkbox
       self.__fast_rescrape_cb = CheckBox()
       self.__fast_rescrape_cb.AutoSize = False
       self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
-      self.__fast_rescrape_cb.Location = Point(52, 121)
+      self.__fast_rescrape_cb.Location = Point(52, 116)
       self.__fast_rescrape_cb.Size = Size(300, 34)
       self.__fast_rescrape_cb.Text = i18n.get("ConfigFormRescrapeCB")
       self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
@@ -287,7 +289,7 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb = CheckBox()
       self.__rescrape_tags_cb.AutoSize = False
       self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_tags_cb.Location = Point(82, 156)
+      self.__rescrape_tags_cb.Location = Point(82, 151)
       self.__rescrape_tags_cb.Size = Size(270, 17)
       self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
       self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
@@ -296,7 +298,7 @@ class ConfigForm(CVForm):
       self.__rescrape_notes_cb = CheckBox()
       self.__rescrape_notes_cb.AutoSize = False
       self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_notes_cb.Location = Point(82, 186)
+      self.__rescrape_notes_cb.Location = Point(82, 181)
       self.__rescrape_notes_cb.Size = Size(270, 17)
       self.__rescrape_notes_cb.Text = i18n.get("ConfigFormRescrapeNotesCB")
       self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
@@ -305,14 +307,14 @@ class ConfigForm(CVForm):
       self.__summary_dialog_cb = CheckBox()
       self.__summary_dialog_cb.AutoSize = False
       self.__summary_dialog_cb.FlatStyle = FlatStyle.System
-      self.__summary_dialog_cb.Location = Point(52, 216)
+      self.__summary_dialog_cb.Location = Point(52, 214)
       self.__summary_dialog_cb.Size = Size(300, 34)
       self.__summary_dialog_cb.Text = i18n.get("ConfigFormShowSummaryCB")
       self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
             
       # 7. --- add 'em all to the tabpage 
-      tabpage.Controls.Add(self.__scrape_in_groups_cb)
-      tabpage.Controls.Add(self.__specify_series_cb)
+      tabpage.Controls.Add(self.__autochoose_series_cb)
+      tabpage.Controls.Add(self.__confirm_issue_cb)
       tabpage.Controls.Add(self.__fast_rescrape_cb)
       tabpage.Controls.Add(self.__rescrape_tags_cb)
       tabpage.Controls.Add(self.__rescrape_notes_cb)
@@ -492,12 +494,12 @@ class ConfigForm(CVForm):
       # 2. --- then get the parts from the other checkboxes (options tab)
       config.ow_existing_b = self.__ow_existing_cb.Checked
       config.convert_imprints_b = self.__convert_imprints_cb.Checked
-      config.specify_series_b = self.__specify_series_cb.Checked
+      config.autochoose_series_b = self.__autochoose_series_cb.Checked
+      config.confirm_issue_b = self.__confirm_issue_cb.Checked
       config.ignore_blanks_b = self.__ignore_blanks_cb.Checked
       config.download_thumbs_b = self.__download_thumbs_cb.Checked
       config.preserve_thumbs_b = self.__preserve_thumbs_cb.Checked
       config.fast_rescrape_b = self.__fast_rescrape_cb.Checked
-      config.scrape_in_groups_b = self.__scrape_in_groups_cb.Checked
       config.rescrape_notes_b = self.__rescrape_notes_cb.Checked
       config.rescrape_tags_b = self.__rescrape_tags_cb.Checked
       config.summary_dialog_b = self.__summary_dialog_cb.Checked
@@ -546,12 +548,12 @@ class ConfigForm(CVForm):
       # 2. --- then get the parts in the other checkboxes (options tab)
       self.__ow_existing_cb.Checked = config.ow_existing_b
       self.__convert_imprints_cb.Checked = config.convert_imprints_b
-      self.__specify_series_cb.Checked = config.specify_series_b
+      self.__autochoose_series_cb.Checked = config.autochoose_series_b
+      self.__confirm_issue_cb.Checked = config.confirm_issue_b
       self.__ignore_blanks_cb.Checked = config.ignore_blanks_b
       self.__download_thumbs_cb.Checked = config.download_thumbs_b
       self.__preserve_thumbs_cb.Checked = config.preserve_thumbs_b
       self.__fast_rescrape_cb.Checked = config.fast_rescrape_b
-      self.__scrape_in_groups_cb.Checked = config.scrape_in_groups_b
       self.__rescrape_notes_cb.Checked = config.rescrape_notes_b
       self.__rescrape_tags_cb.Checked = config.rescrape_tags_b
       self.__summary_dialog_cb.Checked = config.summary_dialog_b
