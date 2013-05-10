@@ -257,6 +257,7 @@ class ConfigForm(CVForm):
       tabpage.Text = i18n.get("ConfigFormBehaviourTab")
       
       # 1. --- build the 'autochoose series' checkbox
+      # coryhigh: internationalize this Text
       self.__autochoose_series_cb = CheckBox()
       self.__autochoose_series_cb.AutoSize = False
       self.__autochoose_series_cb.FlatStyle = FlatStyle.System
@@ -266,6 +267,7 @@ class ConfigForm(CVForm):
       self.__autochoose_series_cb.CheckedChanged += self.__fired_update_gui
        
       # 2. --- build the 'confirm issue' checkbox
+      # coryhigh: internationalize this Text
       self.__confirm_issue_cb = CheckBox()
       self.__confirm_issue_cb.AutoSize = False
       self.__confirm_issue_cb.FlatStyle = FlatStyle.System
