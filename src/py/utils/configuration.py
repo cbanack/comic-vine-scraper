@@ -45,10 +45,12 @@ class Configuration(object):
    __OVERWRITE_EXISTING = 'overwriteExisting'
    __IGNORE_BLANKS = 'ignoreBlanks'
    __CONVERT_IMPRINTS = 'convertImprints'
-   __SPECIFY_SERIES = 'specifySeriesName'
+   __AUTOCHOOSE_SERIES = 'autochooseSeries'
+   __CONFIRM_ISSUE = 'confirmIssue'
+   __SPECIFY_SERIES = 'specifySeriesName' # coryhigh: delete this one
    __DOWNLOAD_THUMBS = 'downloadThumbs'
    __PRESERVE_THUMBS = 'preserveThumbs'
-   __SCRAPE_IN_GROUPS = 'scrapeInGroups'
+   __SCRAPE_IN_GROUPS = 'scrapeInGroups' # coryhigh: delete this one
    __FAST_RESCRAPE = 'fastRescrape'
    __RESCRAPE_NOTES = 'updateNotes'
    __RESCRAPE_TAGS = 'updateTags'
@@ -73,6 +75,8 @@ class Configuration(object):
       self.ow_existing_b = True # scraper should overwrite existing metadata?
       self.ignore_blanks_b = False  # ...unless the new metada is blank?
       self.convert_imprints_b = True # convert imprints to parent publishers
+      self.autochoose_series_b = False # auto pick series by matching covers
+      self.confirm_issue_b = False # confirm each issue choice before scraper
       self.specify_series_b = False # user specify series search terms
       self.download_thumbs_b = True # download thumbnails for fileless comics
       self.preserve_thumbs_b = True # ...except when they already have thumbs
@@ -377,6 +381,12 @@ class Configuration(object):
       if Configuration.__CONVERT_IMPRINTS in loaded:
          self.convert_imprints_b = loaded[Configuration.__CONVERT_IMPRINTS]
 
+      if Configuration.__AUTOCHOOSE_SERIES in loaded:
+         self.autochoose_series_b = loaded[Configuration.__AUTOCHOOSE_SERIES]
+         
+      if Configuration.__CONFIRM_ISSUE in loaded:
+         self.confirm_issue_b = loaded[Configuration.__CONFIRM_ISSUE]
+
       if Configuration.__SPECIFY_SERIES in loaded:
          self.specify_series_b = loaded[Configuration.__SPECIFY_SERIES]
 
@@ -438,6 +448,8 @@ class Configuration(object):
       
       defaults[Configuration.__OVERWRITE_EXISTING] = self.ow_existing_b
       defaults[Configuration.__CONVERT_IMPRINTS] = self.convert_imprints_b
+      defaults[Configuration.__AUTOCHOOSE_SERIES] = self.autochoose_series_b
+      defaults[Configuration.__CONFIRM_ISSUE] = self.confirm_issue_b
       defaults[Configuration.__SPECIFY_SERIES] = self.specify_series_b
       defaults[Configuration.__IGNORE_BLANKS] = self.ignore_blanks_b
       defaults[Configuration.__DOWNLOAD_THUMBS] = self.download_thumbs_b
@@ -467,6 +479,8 @@ class Configuration(object):
       self.ow_existing_b == other.ow_existing_b and \
       self.ignore_blanks_b == other.ignore_blanks_b and \
       self.convert_imprints_b == other.convert_imprints_b and \
+      self.autochoose_series_b == other.autochoose_series_b and \
+      self.confirm_issue_b == other.confirm_issue_b and \
       self.specify_series_b == other.specify_series_b and \
       self.download_thumbs_b == other.download_thumbs_b and \
       self.preserve_thumbs_b == other.preserve_thumbs_b and \
@@ -543,12 +557,12 @@ class Configuration(object):
       "[{0}] Ignore Blanks".format(x(self.ignore_blanks_b)).ljust(30) +\
       "\n" + \
       "[{0}] Convert Imprints".format(x(self.convert_imprints_b)).ljust(30) +\
-      "[{0}] Specify Series".format(x(self.specify_series_b)).ljust(30)+\
+      "[{0}] Autochoose Series".format(x(self.autochoose_series_b)).ljust(30)+\
       "\n" + \
       "[{0}] Download Thumbs".format(x(self.download_thumbs_b)).ljust(30) +\
       "[{0}] Preserve Thumbs".format(x(self.preserve_thumbs_b)).ljust(30)+\
       "\n" + \
-      "[{0}] Scrape in Groups".format(x(self.scrape_in_groups_b)).ljust(30)+\
+      "[{0}] Confirm Issues".format(x(self.confirm_issue_b)).ljust(30)+\
       "[{0}] Rescraping: Notes".format(x(self.rescrape_notes_b)).ljust(30)+\
       "\n" + \
       "[{0}] Fast Rescrape".format(x(self.fast_rescrape_b)).ljust(30)+\
