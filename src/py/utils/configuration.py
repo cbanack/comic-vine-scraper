@@ -47,10 +47,8 @@ class Configuration(object):
    __CONVERT_IMPRINTS = 'convertImprints'
    __AUTOCHOOSE_SERIES = 'autochooseSeries'
    __CONFIRM_ISSUE = 'confirmIssue'
-   __SPECIFY_SERIES = 'specifySeriesName' # coryhigh: delete this one
    __DOWNLOAD_THUMBS = 'downloadThumbs'
    __PRESERVE_THUMBS = 'preserveThumbs'
-   __SCRAPE_IN_GROUPS = 'scrapeInGroups' # coryhigh: delete this one
    __FAST_RESCRAPE = 'fastRescrape'
    __RESCRAPE_NOTES = 'updateNotes'
    __RESCRAPE_TAGS = 'updateTags'
@@ -77,7 +75,6 @@ class Configuration(object):
       self.convert_imprints_b = True # convert imprints to parent publishers
       self.autochoose_series_b = False # auto pick series by matching covers
       self.confirm_issue_b = False # confirm each issue choice before scraper
-      self.specify_series_b = False # user specify series search terms
       self.download_thumbs_b = True # download thumbnails for fileless comics
       self.preserve_thumbs_b = True # ...except when they already have thumbs
       self.scrape_in_groups_b = True # group comics by series when scraping
@@ -387,9 +384,6 @@ class Configuration(object):
       if Configuration.__CONFIRM_ISSUE in loaded:
          self.confirm_issue_b = loaded[Configuration.__CONFIRM_ISSUE]
 
-      if Configuration.__SPECIFY_SERIES in loaded:
-         self.specify_series_b = loaded[Configuration.__SPECIFY_SERIES]
-
       if Configuration.__DOWNLOAD_THUMBS in loaded:
          self.download_thumbs_b=loaded[Configuration.__DOWNLOAD_THUMBS]
          
@@ -399,9 +393,6 @@ class Configuration(object):
       if Configuration.__FAST_RESCRAPE in loaded:
          self.fast_rescrape_b=loaded[Configuration.__FAST_RESCRAPE]
          
-      if Configuration.__SCRAPE_IN_GROUPS in loaded:
-         self.scrape_in_groups_b=loaded[Configuration.__SCRAPE_IN_GROUPS]
-
       if Configuration.__RESCRAPE_NOTES in loaded:
          self.rescrape_notes_b = loaded[Configuration.__RESCRAPE_NOTES]
          
@@ -450,11 +441,9 @@ class Configuration(object):
       defaults[Configuration.__CONVERT_IMPRINTS] = self.convert_imprints_b
       defaults[Configuration.__AUTOCHOOSE_SERIES] = self.autochoose_series_b
       defaults[Configuration.__CONFIRM_ISSUE] = self.confirm_issue_b
-      defaults[Configuration.__SPECIFY_SERIES] = self.specify_series_b
       defaults[Configuration.__IGNORE_BLANKS] = self.ignore_blanks_b
       defaults[Configuration.__DOWNLOAD_THUMBS] = self.download_thumbs_b
       defaults[Configuration.__PRESERVE_THUMBS] = self.preserve_thumbs_b
-      defaults[Configuration.__SCRAPE_IN_GROUPS] = self.scrape_in_groups_b
       defaults[Configuration.__FAST_RESCRAPE] = self.fast_rescrape_b
       defaults[Configuration.__RESCRAPE_NOTES] = self.rescrape_notes_b
       defaults[Configuration.__RESCRAPE_TAGS] = self.rescrape_tags_b
@@ -481,10 +470,8 @@ class Configuration(object):
       self.convert_imprints_b == other.convert_imprints_b and \
       self.autochoose_series_b == other.autochoose_series_b and \
       self.confirm_issue_b == other.confirm_issue_b and \
-      self.specify_series_b == other.specify_series_b and \
       self.download_thumbs_b == other.download_thumbs_b and \
       self.preserve_thumbs_b == other.preserve_thumbs_b and \
-      self.scrape_in_groups_b == other.scrape_in_groups_b and \
       self.fast_rescrape_b == other.fast_rescrape_b and \
       self.rescrape_notes_b == other.rescrape_notes_b and \
       self.rescrape_tags_b == other.rescrape_tags_b and \
