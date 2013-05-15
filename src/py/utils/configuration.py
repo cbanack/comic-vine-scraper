@@ -64,7 +64,8 @@ class Configuration(object):
    __DEFAULT_ALT_SEARCH_REGEX = "" 
    __DEFAULT_IGNORE_FOLDERS = False
    __DEFAULT_FORCE_SERIES_ART = False
-  
+   __DEFAULT_NOTE_SCRAPE_DATE = False
+
   
    #=========================================================================== 
    def __init__(self):
@@ -128,6 +129,7 @@ class Configuration(object):
       self.__alt_search_regex_s = None # alternate filename parsing regex
       self.__ignore_folders_b = None # use folders w/ grouping issue into series
       self.__force_series_art_b = None # series dialog always shows series art?
+      self.__note_scrape_date_b = None # put date when scraping the Notes field?
       self.__set_advanced_settings_s("")
       
       return self
@@ -157,6 +159,7 @@ class Configuration(object):
       self.__alt_search_regex_s = c.__DEFAULT_ALT_SEARCH_REGEX
       self.__ignore_folders_b = c.__DEFAULT_IGNORE_FOLDERS
       self.__force_series_art_b = c.__DEFAULT_FORCE_SERIES_ART
+      self.__note_scrape_date_b = c.__DEFAULT_NOTE_SCRAPE_DATE
       
       # 2. scan through the string looking at each line for advanced settings
       lines_s = [ x.strip() for x in self.__advanced_settings_s.split("\n") \
@@ -217,7 +220,12 @@ class Configuration(object):
          if match:
             self.__force_series_art_b = match.group(1).strip().lower()=="true"
             
-         # 2K. parse the "PUBLISHER_ALIAS=XXXX-->YYYY" line
+         # 2k. parse the "NOTE_SCRAPE_DATE=XXXX" line
+         match = re.match(pattern_s.format("NOTE_SCRAPE_DATE"), line_s)
+         if match:
+            self.__note_scrape_date_b = match.group(1).strip().lower()=="true"
+            
+         # 2l. parse the "PUBLISHER_ALIAS=XXXX-->YYYY" line
          match = re.match(pattern_s.format("PUBLISHER_ALIAS"), line_s)
          if match:
             match = re.match(r"^\s*(\S.*?)\s*[-=]+>\s*(\S.*?)$", match.group(1))
@@ -227,7 +235,7 @@ class Configuration(object):
                if pub and alias and len(alias) <= 50: 
                   self.__publisher_aliases_sm[pub] = alias
                   
-         # 2L. parse the "IMPRINT=IIII-->PPPP" line
+         # 2m. parse the "IMPRINT=IIII-->PPPP" line
          match = re.match(pattern_s.format("IMPRINT"), line_s)
          if match:
             match = re.match(r"^\s*(\S.*?)\s*[-=]+>\s*(\S.*?)$", match.group(1))
@@ -290,6 +298,10 @@ class Configuration(object):
    force_series_art_b = property( 
       lambda self : self.__force_series_art_b, None, None,
       "Whether or not to force the series dialog to always display series art.")
+   
+   note_scrape_date_b = property( 
+      lambda self : self.__note_scrape_date_b, None, None,
+      "Whether or not to include the date when scraping Notes.  Not None.")
       
    
    #===========================================================================
@@ -594,6 +606,9 @@ class Configuration(object):
          
       if self.force_series_art_b != c.__DEFAULT_FORCE_SERIES_ART:
          lines_sl.append("Always display Series Art in the Series dialog.\n")
+         
+      if self.note_scrape_date_b != c.__DEFAULT_NOTE_SCRAPE_DATE:
+         lines_sl.append("Include scrape date when scraping to Notes.\n")
        
       for publisher_s in self.ignored_publishers_sl:
          lines_sl.append("Ignore all series published by '{0}'\n"\

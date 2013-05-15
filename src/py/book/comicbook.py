@@ -548,10 +548,15 @@ class ComicBook(object):
       # 1. clean up whitespace and None in our notestring parameter
       notestring_s = notestring_s.strip() if notestring_s else ''
       
+      # Create a key-note that looks like either:
+      # 1) Scraped metadata from ComicVine [CVDB9999]. 
+      # 2) Scraped metadata from ComicVine [CVDB9999] on 2013.05.14 21:43:06. 
       key_tag_s = db.create_key_tag_s(issue_key) \
          if issue_key != None else ComicBook.CVDBSKIP
-      key_note_s = 'Scraped metadata from {0} [{1}] on {2}.'.format(
-         "ComicVine", key_tag_s, strftime(r'%Y.%m.%d %X')) if key_tag_s else ''
+      date_s = " on "+strftime(r'%Y.%m.%d %X') \
+         if self.__scraper.config.note_scrape_date_b else "" 
+      key_note_s = 'Scraped metadata from {0} [{1}]{2}.'.format(
+         "ComicVine", key_tag_s, date_s) if key_tag_s else ''
          
       if key_note_s and notestring_s:
          # 2. we have both a new key-note (based on the key tag), AND a 
@@ -562,8 +567,8 @@ class ComicBook(object):
          if prev_issue_key:
             prev_key_tag = db.create_key_tag_s(prev_issue_key)
             if prev_key_tag:
-               regexp = re.compile(
-                  r"(?i)Scraped.*?"+prev_key_tag+".*?[\d\.]{8,} [\d:]{6,}\.")                                   
+               regexp = re.compile( r"(?i)Scraped.*?" + prev_key_tag \
+                   + "(]\.|.*?[\d\.]{8,} [\d:]{6,}\.)")                                   
                matches = regexp.search(notestring_s) 
          if matches:
             # 2a. yup, found an existing key-note--replace it with the new one
