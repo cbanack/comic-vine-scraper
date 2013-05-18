@@ -80,8 +80,8 @@ class Configuration(object):
       self.preserve_thumbs_b = True # ...except when they already have thumbs
       self.scrape_in_groups_b = True # group comics by series when scraping
       self.fast_rescrape_b = True # use previous scrape choice when available
-      self.rescrape_notes_b = True # store prev scrape choice in notes field
-      self.rescrape_tags_b = True # store prev scrape choice in tags field
+      self.rescrape_notes_b = False # store prev scrape choice in notes field
+      self.rescrape_tags_b = False # store prev scrape choice in tags field
       self.summary_dialog_b = True # show summary dialog after scrape finishes
 
       self.update_series_b = True # scrape comic's series metadata

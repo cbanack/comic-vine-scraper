@@ -256,13 +256,22 @@ class ConfigForm(CVForm):
       tabpage = TabPage()
       tabpage.Text = i18n.get("ConfigFormBehaviourTab")
       
+      # 1. --- build the 'When scraping for the first time' label
+      # coryhigh: internationalize this Text
+      first_scrape_label = Label()
+      first_scrape_label.AutoSize = False
+      first_scrape_label.FlatStyle = FlatStyle.System
+      first_scrape_label.Location = Point(52, 27)
+      first_scrape_label.Text = i18n.get("ConfigFormFirstScrapeLabel")
+      first_scrape_label.Size = Size(300, 17)
+      
       # 1. --- build the 'autochoose series' checkbox
       # coryhigh: internationalize this Text
       self.__autochoose_series_cb = CheckBox()
       self.__autochoose_series_cb.AutoSize = False
       self.__autochoose_series_cb.FlatStyle = FlatStyle.System
-      self.__autochoose_series_cb.Location = Point(52, 25)
-      self.__autochoose_series_cb.Size = Size(275, 51)
+      self.__autochoose_series_cb.Location = Point(82, 45)
+      self.__autochoose_series_cb.Size = Size(300, 34)
       self.__autochoose_series_cb.Text =i18n.get("ConfigFormAutochooseSeriesCB")
       self.__autochoose_series_cb.CheckedChanged += self.__fired_update_gui
        
@@ -271,12 +280,13 @@ class ConfigForm(CVForm):
       self.__confirm_issue_cb = CheckBox()
       self.__confirm_issue_cb.AutoSize = False
       self.__confirm_issue_cb.FlatStyle = FlatStyle.System
-      self.__confirm_issue_cb.Location = Point(52, 71)
+      self.__confirm_issue_cb.Location = Point(82, 75)
       self.__confirm_issue_cb.Size = Size(300, 34)
       self.__confirm_issue_cb.Text = i18n.get("ConfigFormConfirmIssueCB")
       self.__confirm_issue_cb.CheckedChanged += self.__fired_update_gui
       
       # 3. -- build the 'use fast rescrape' checkbox
+      # coryhigh: re-internationalize this Text
       self.__fast_rescrape_cb = CheckBox()
       self.__fast_rescrape_cb.AutoSize = False
       self.__fast_rescrape_cb.FlatStyle = FlatStyle.System
@@ -313,6 +323,7 @@ class ConfigForm(CVForm):
       self.__summary_dialog_cb.CheckedChanged += self.__fired_update_gui 
             
       # 7. --- add 'em all to the tabpage 
+      tabpage.Controls.Add(first_scrape_label)
       tabpage.Controls.Add(self.__autochoose_series_cb)
       tabpage.Controls.Add(self.__confirm_issue_cb)
       tabpage.Controls.Add(self.__fast_rescrape_cb)
