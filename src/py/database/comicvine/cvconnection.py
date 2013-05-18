@@ -43,12 +43,13 @@ def _query_series_ids_dom(searchterm_s, page_n=1):
    QUERY = 'http://comicvine.com/api/search/?api_key=' + __API_KEY + \
       '&format=xml&limit=100&resources=volume' + \
       '&field_list=name,start_year,publisher,id,image,count_of_issues' + \
-      '&query={0}&page={1}'
+      '&query={0}'
+   # leave "page=1" off of query to fix a bug, e.g. search for 'bprd vampire'
+   PAGE = "" if page_n == 1 else "&page={0}".format(page_n)
       
    if searchterm_s is None or searchterm_s == '' or page_n < 0:
       raise ValueError('bad parameters')
-   return __get_dom( QUERY.format(
-      HttpUtility.UrlPathEncode(searchterm_s), page_n) )
+   return __get_dom(QUERY.format(HttpUtility.UrlPathEncode(searchterm_s))+PAGE)
 
 
 
@@ -84,12 +85,13 @@ def _query_issue_ids_dom(seriesid_s, page_n=1):
    
    # {0} is the series ID, an integer     
    QUERY = 'http://comicvine.com/api/issues/?api_key=' + __API_KEY + \
-      '&format=xml&field_list=name,issue_number,id,image&filter=volume:{0}' +\
-      '&page={1}&offset={2}'
+      '&format=xml&field_list=name,issue_number,id,image&filter=volume:{0}'
+   PAGE = "" if page_n == 1 \
+      else "&page={0}&offset={1}".format(page_n, (page_n-1)*100)
    
    if seriesid_s is None or seriesid_s == '':
       raise ValueError('bad parameters')
-   return __get_dom( QUERY.format(sstr(seriesid_s), page_n, (page_n-1)*100 ) )
+   return __get_dom(QUERY.format(sstr(seriesid_s)) + PAGE )
 
 
 # =============================================================================

@@ -126,12 +126,14 @@ def _query_series_refs(search_terms_s, callback_function):
    # databases) before our first attempt at searching with them
    search_s = __cleanup_search_terms(search_terms_s, False)
    if search_s:
+      log.debug("Querying: " + search_s)
       series_refs = __query_series_refs(search_s, callback_function)
       
       # 2. if first search failed, cleanup terms more aggressively, try again
       if not series_refs:
          altsearch_s = __cleanup_search_terms(search_s, True);
          if search_terms_s and altsearch_s != search_s:
+            log.debug("Querying: " + altsearch_s)
             series_refs = __query_series_refs(altsearch_s, callback_function)
             
       # 3. if second search failed, try interpreting the search terms as 
@@ -245,16 +247,18 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = search_terms_s.replace(r'_', ' ')
    search_terms_s = search_terms_s.replace(r'-', ' ')
    search_terms_s = re.sub(r":\s+", ' ', search_terms_s)
-   search_terms_s = re.sub(r'\b(c2c|noads+)\b', '', search_terms_s)
+   search_terms_s = re.sub(r'\b(c2c|noads+|presents)\b', '', search_terms_s)
    search_terms_s = re.sub(r'\b(vs\.?|versus|and|or|tbp|the|an|of|a|is)\b',
       '', search_terms_s)
    search_terms_s = re.sub(r'giantsize', r'giant size', search_terms_s)
    search_terms_s = re.sub(r'giant[- ]*sized', r'giant size', search_terms_s)
    search_terms_s = re.sub(r'kingsize', r'king size', search_terms_s)
    search_terms_s = re.sub(r'king[- ]*sized', r'king size', search_terms_s)
-   search_terms_s = re.sub(r"directors", r"director's", search_terms_s)
    search_terms_s = re.sub(r"\bvolume\b", r"\bvol\b", search_terms_s)
    search_terms_s = re.sub(r"\bvol\.\b", r"\bvol\b", search_terms_s)
+   
+   # here's a few comics that often get their names slightly wrong
+   search_terms_s = re.sub(r"cyberforce", r"\bcyber force\b", search_terms_s)
    
    # if the alternate search terms is requested, try to expand single number
    # words, and if that fails, try to contract them.
