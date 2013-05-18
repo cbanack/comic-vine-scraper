@@ -295,23 +295,23 @@ class ConfigForm(CVForm):
       self.__fast_rescrape_cb.Text = i18n.get("ConfigFormRescrapeCB")
       self.__fast_rescrape_cb.CheckedChanged += self.__fired_update_gui
       
-      # 4. -- build the 'add rescrape hints to tags' checkbox
-      self.__rescrape_tags_cb = CheckBox()
-      self.__rescrape_tags_cb.AutoSize = False
-      self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_tags_cb.Location = Point(82, 151)
-      self.__rescrape_tags_cb.Size = Size(270, 17)
-      self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
-      self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
-      
-      # 5. -- build the 'add rescrape hints to notes' checkbox
+      # 4. -- build the 'add rescrape hints to notes' checkbox
       self.__rescrape_notes_cb = CheckBox()
       self.__rescrape_notes_cb.AutoSize = False
       self.__rescrape_notes_cb.FlatStyle = FlatStyle.System
-      self.__rescrape_notes_cb.Location = Point(82, 181)
+      self.__rescrape_notes_cb.Location = Point(82, 151)
       self.__rescrape_notes_cb.Size = Size(270, 17)
       self.__rescrape_notes_cb.Text = i18n.get("ConfigFormRescrapeNotesCB")
       self.__rescrape_notes_cb.CheckedChanged += self.__fired_update_gui
+      
+      # 5. -- build the 'add rescrape hints to tags' checkbox
+      self.__rescrape_tags_cb = CheckBox()
+      self.__rescrape_tags_cb.AutoSize = False
+      self.__rescrape_tags_cb.FlatStyle = FlatStyle.System
+      self.__rescrape_tags_cb.Location = Point(82, 181)
+      self.__rescrape_tags_cb.Size = Size(270, 17)
+      self.__rescrape_tags_cb.Text = i18n.get("ConfigFormRescrapeTagsCB")
+      self.__rescrape_tags_cb.CheckedChanged += self.__fired_update_gui 
    
       # 6. --- build the 'specify series name' checkbox
       self.__summary_dialog_cb = CheckBox()
