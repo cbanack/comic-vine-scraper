@@ -58,11 +58,17 @@ def extract( filename_s ):
    at least a non-empty series name (even if it is just "unknown"), but the 
    issue number and year may be "" if they couldn't be determined.
    ''' 
-   
    # remove the file extension, unless it's the whole filename
    name_s = Path.GetFileName(filename_s.strip())
    last_period = name_s.rfind(r".")
    name_s = name_s if last_period <= 0 else name_s[0:last_period]
+
+   # see if the comic matches the following format, and if so, remove everything
+   # after the first number: "series name #xxx - issue title (etc) (etc)"
+   match = re.match(r"^((?:[a-zA-Z,.]+\s+)+" +    # "series name"
+                    "#?(?:\d+[.0-9]*))\s*(?:-|:)" +  # "#xxx"
+                    "[^(]*(.*)$", name_s)         # "- issue title (etc) (etc)"
+   if match: name_s = match.group(1) + " " + match.group(2)
    
    # try the extraction.  if anything goes wrong, or if we come up with a blank
    # series name, revert to the filename (without extension) as series name

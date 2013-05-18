@@ -126,14 +126,12 @@ def _query_series_refs(search_terms_s, callback_function):
    # databases) before our first attempt at searching with them
    search_s = __cleanup_search_terms(search_terms_s, False)
    if search_s:
-      log.debug("Querying: " + search_s)
       series_refs = __query_series_refs(search_s, callback_function)
       
       # 2. if first search failed, cleanup terms more aggressively, try again
       if not series_refs:
          altsearch_s = __cleanup_search_terms(search_s, True);
          if search_terms_s and altsearch_s != search_s:
-            log.debug("Querying: " + altsearch_s)
             series_refs = __query_series_refs(altsearch_s, callback_function)
             
       # 3. if second search failed, try interpreting the search terms as 

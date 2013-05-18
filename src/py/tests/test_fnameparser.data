@@ -152,7 +152,7 @@
 # should be parsed, EXCEPT when they look like a year
 "Conan - Free Comic Book Day 2006 Special V2006 (2006).cbz" "Conan - Free Comic Book Day 2006 Special" "" "2006"
 "Conan - Free Comic Book Day 2006a Special V2006 (2006).cbz" "Conan - Free Comic Book Day Special" "2006a" "2006"
-"Cobra 04 - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra - Cobra Civil War", "4" "2011"
+"Cobra 04 - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra", "4" "2011"
 "Cobra      05.3a - Cobra Civil War (2011)(noads)(Aardvark).cbr", "Cobra - Cobra Civil War", "05.3a" "2011"
 "G.I. Joe v2 06 - Cobra Civil War (2011)(noads)(Aardvark).cbr" "G.I. Joe - Cobra Civil War" "6" "2011"
 "Action Comics 200 V1 (1955-1)" "Action Comics" "200" "1955"
@@ -167,9 +167,6 @@
 # but we should never wreck valid titles like these:
 "4 Conan.cbz" "Conan" "4"
 "4.2a Conan the Man.cbr" "Conan the Man" "4.2a"
-
-# coryhigh: can we improve on parsing lines like  this (crossover numbering)?
-#"015 The Mighty Thor v1 411" "The Mighty Thor" "411"
 
 # test the extraction of year (volume) from the names
 "Conan is Cool (2006  ).cbz" "Conan is Cool" "" "2006"
@@ -205,6 +202,13 @@
 "Conan is Cool-v2003-#5" "Conan is Cool" "5" "2003"
 "Conan is Cool, v2003, 5" "Conan is Cool" "5" "2003"
 "Conan is Cool,v2003,#5" "Conan is Cool" "5" "2003"
+
+# sometimes the filename has the issue title embedded in it.  this is very
+# hard to deal with in all cases, but in the "standard" case we can handle it
+"Abe Sapien 001 - Dark and Terrible" "Abe Sapien" "1" ""
+"Star Wars Dark Times 33 -- The Fire Carrier (2013)(c2c)" "Star Wars Dark Times" "33" "2013"
+"Breakout #012- This is it - run for it (noads)(2011)" "Breakout" "12" "2011"
+"Buffy 55 - Can't stop the Signal (2015)" "Buffy" "55" "2015"
 
 
 # some very weird, pathological cases
