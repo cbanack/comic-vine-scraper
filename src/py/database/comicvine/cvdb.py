@@ -445,10 +445,12 @@ def _query_issue(issue_ref, slow_data):
 def __issue_parse_simple_stuff(issue, dom):
    ''' Parses in the 'easy' parts of the DOM '''
 
-   if is_string(dom.results.volume.name):
-      issue.series_name_s = dom.results.volume.name.strip()
    if is_string(dom.results.id):
       issue.issue_key = dom.results.id
+   if is_string(dom.results.volume.id):
+      issue.series_key = dom.results.volume.id
+   if is_string(dom.results.volume.name):
+      issue.series_name_s = dom.results.volume.name.strip()
    if is_string(dom.results.issue_number):
       issue.issue_num_s = dom.results.issue_number.strip()
    if is_string(dom.results.site_detail_url) and \

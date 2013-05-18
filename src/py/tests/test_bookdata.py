@@ -375,3 +375,24 @@ class TestBookData(TestCase):
       del book.page_count_n
       self.assertEquals(book.page_count_n, BookData.blank("page_count_n"))
       
+      
+   # --------------------------------------------------------------------------
+   def test_issue_key_s(self):
+      ''' Checks to see if the BookData's issue_key_s property works. '''
+      book = BookData()
+      self.assertEquals(book.issue_key_s, BookData.blank("issue_key_s"))
+      book.issue_key_s = "9393"
+      self.assertEquals(book.issue_key_s, "9393")
+      del book.issue_key_s
+      self.assertEquals(book.issue_key_s, BookData.blank("issue_key_s"))
+      
+      
+   # --------------------------------------------------------------------------
+   def test_series_key_s(self):
+      ''' Checks to see if the BookData's series_key_s property works. '''
+      book = BookData()
+      self.assertEquals(book.series_key_s, BookData.blank("series_key_s"))
+      book.series_key_s = "9393"
+      self.assertEquals(book.series_key_s, "9393")
+      del book.series_key_s
+      self.assertEquals(book.series_key_s, BookData.blank("series_key_s"))

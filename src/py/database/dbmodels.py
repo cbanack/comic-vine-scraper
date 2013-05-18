@@ -248,6 +248,7 @@ class Issue(object):
       # these all call the property setters defined below...
       
       self.issue_key = ref.issue_key
+      self.series_key = ''
       
       self.issue_num_s = ''
       self.title_s = ''
@@ -281,17 +282,18 @@ class Issue(object):
       self.image_urls_sl = []
       
 
-   # the db key (i.e. a memento object) of this Issue. not None. must be unique
-   # for this Issue, and should have a useful __str_ method. 
+   # the external, unique db key of this Issue, as a string 
    def __set_issue_key(self, issue_key):
-      ''' called when you assign a value to 'self.issue_key' '''   
-      if not issue_key or len(sstr(issue_key).strip()) == 0:
-         raise Exception("bad value for issue_key")
-      else :
-         self.__issue_key = issue_key
-         self._cmpkey_s = sstr(self.issue_key) # used only for comparisons
+      ''' called when you assign a value to 'self.issue_key' '''
+      self.__issue_key = '' if not issue_key else sstr(issue_key).strip();
+      self._cmpkey_s = self.__issue_key  # used only for comparisons
    issue_key = property( lambda self : self.__issue_key, __set_issue_key )
-
+   
+   # the external, unique db key of this Issue's series, as a string 
+   def __set_series_key(self, series_key):
+      ''' called when you assign a value to 'self.series_key' '''   
+      self.__series_key = '' if not series_key else sstr(series_key).strip();
+   series_key = property( lambda self : self.__series_key, __set_series_key )
 
    # the 'number' of this Issue, as a string. not None. maybe '' or non-numeric.
    def __set_issue_num_s(self, issue_num_s):

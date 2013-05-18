@@ -5,19 +5,23 @@ ComicRack's plugin api.
 
 @author: Cory Banack
 '''
+from System import DateTime
 from bookdata import BookData
-import utils
+from utils import sstr
+import clr
+import db
 import log
 import re
-import db
-import clr
+import utils
 
 clr.AddReference('System')
-from System import DateTime
 
 #==============================================================================
 class PluginBookData(BookData):
    ''' A BookData object customized for working with ComicRack directly. '''
+   
+   __ISSUE_KEY = "comicvine_issue"
+   __SERIES_KEY = "comicvine_volume"
    
    #===========================================================================   
    def __init__(self, crbook, scraper):
@@ -41,6 +45,9 @@ class PluginBookData(BookData):
       self.pub_year_n =  crbook.Year   # self if they are not present!
       self.pub_month_n = crbook.Month
       self.pub_day_n = crbook.Day
+      self.rel_year_n = crbook.ReleasedTime.Year
+      self.rel_month_n = crbook.ReleasedTime.Month
+      self.rel_day_n = crbook.ReleasedTime.Day
       self.volume_year_n = crbook.ShadowVolume
       self.format_s = crbook.ShadowFormat
       self.title_s = crbook.Title
@@ -64,7 +71,8 @@ class PluginBookData(BookData):
       self.webpage_s = crbook.Web
       self.rating_n = crbook.CommunityRating
       self.page_count_n = crbook.PageCount
-      
+      self.issue_key_s = crbook.GetCustomValue(PluginBookData.__ISSUE_KEY)
+      self.series_key_s = crbook.GetCustomValue(PluginBookData.__SERIES_KEY)
       self.__crbook = crbook;
       self.__scraper = scraper;
                                     
@@ -210,9 +218,15 @@ class PluginBookData(BookData):
          self.__crbook.CommunityRating = self.rating_n
          ok_to_update.remove("rating_n")
          
-      # corynorm: implement this ?
-      #self.__crbook.SetCustomValue("cvissue", "33432")
-      #self.__crbook.SetCustomValue("cvvolume", "09000")
+      if "issue_key_s" in ok_to_update:
+         self.__crbook.SetCustomValue(
+            PluginBookData.__ISSUE_KEY, sstr(self.issue_key_s))
+         ok_to_update.remove("issue_key_s")
+         
+      if "series_key_s" in ok_to_update:
+         self.__crbook.SetCustomValue(
+            PluginBookData.__SERIES_KEY, sstr(self.series_key_s))
+         ok_to_update.remove("series_key_s")
          
          
       # dates are a little special.  any element in the data could be blank

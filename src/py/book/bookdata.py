@@ -5,6 +5,7 @@ must have.  Various subclasses will implement the specific details.
 
 @author: Cory Banack
 '''
+from utils import sstr
 
 #==============================================================================
 class BookData(object):
@@ -49,6 +50,8 @@ class BookData(object):
       self.__cover_url_s = ""
       self.__rating_n = 0.0 # 0.0 to 5.0
       self.__page_count_n = 0
+      self.__issue_key_s = ""
+      self.__series_key_s = ""
       
       self.__updated_properties = BookData.all_properties();
       self.dont_update("page_count_n")
@@ -472,4 +475,23 @@ class BookData(object):
       __set_page_count_n, __set_page_count_n, 
       "The number of pages in this book, an integer >= 0." )
 
+   
+   #===========================================================================
+   def __set_issue_key_s(self, issue_key_s = None):
+      self.__issue_key_s = BookData.blank("issue_key_s") \
+         if issue_key_s is None else sstr(issue_key_s).strip()
+   
+   issue_key_s = property( lambda self : self.__issue_key_s, 
+      __set_issue_key_s, __set_issue_key_s,
+      "The db Issue Key object for this book.  Not None, may be empty.")   
+   
+   
+   #===========================================================================
+   def __set_series_key_s(self, series_key_s = None):
+      self.__series_key_s = BookData.blank("series_key_s") \
+         if series_key_s is None else sstr(series_key_s).strip()
+   
+   series_key_s = property( lambda self : self.__series_key_s, 
+      __set_series_key_s, __set_series_key_s,
+      "The db Series Key object for this book.  Not None, may be empty.")   
       

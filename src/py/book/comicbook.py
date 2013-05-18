@@ -133,10 +133,10 @@ class ComicBook(object):
    # =============================================================================
    def __extract_issue_ref(self): 
       '''
-      This method looks in the tags and notes fields of the this book for 
-      evidence that the it has been scraped before.   If possible, it will 
-      construct an IssueRef based on that evidence, and return it. If not, 
-      it will return None, or the string "skip" (see below).   
+      This method attempts to rebuild the IssueRef that the user chose the 
+      last time that they scraped this comic.  If it can do so, it will 
+      return that IssueRef. If not, it will return None, or the 
+      string "skip" (see below).   
       
       If the user has manually added the magic CVDBSKIP flag to the tags or 
       notes for this book, then this method will return the string "skip", 
@@ -159,6 +159,10 @@ class ComicBook(object):
          
          if issue_key == None:
             issue_key = db.parse_key_tag(bd.notes_s)
+      
+         if issue_key == None:
+            issue_key = int(bd.issue_key_s) if \
+               utils.is_number(bd.issue_key_s) else None
       
          if issue_key != None:
             # found a key tag! convert to an IssueRef
@@ -393,6 +397,18 @@ class ComicBook(object):
          bd.notes_s, config.rescrape_notes_b, True, False )
       if value is None: bd.dont_update("notes_s")
       else: bd.notes_s = value
+      
+      # issue_key ---------------------
+      value = self.__massage_new_string("Issue Key", issue.issue_key, \
+         bd.issue_key_s, True, True, False )
+      if value is None: bd.dont_update("issue_key_s") 
+      else: bd.issue_key_s = value
+      
+      # series_key ---------------------
+      value = self.__massage_new_string("Series Key", issue.series_key, \
+         bd.series_key_s, True, True, False )
+      if value is None: bd.dont_update("series_key_s") 
+      else: bd.series_key_s = value
       
       # cover url -------------
       self.__update_cover_url(issue)
