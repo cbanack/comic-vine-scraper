@@ -5,11 +5,12 @@ a given SeriesRef "matches" the a particular ComicBook.
 Created on Mar 3, 2012
 @author: cbanack
 '''
-import re
-import datetime
-import utils
 from resources import Resources
 from utils import sstr
+import datetime
+import log
+import re
+import utils
 
 #==============================================================================
 class MatchScore(object):
@@ -69,10 +70,18 @@ class MatchScore(object):
       # 2. if the series was one that the user has chosen in the past, give it's
       #    score a very small boost (about the equivalent of it matching one 
       #    more word on the namescore  
-      priorscore_n = 6 if sstr(series_ref.series_key) \
+      priorscore_n = 7 if sstr(series_ref.series_key) \
           in self.__prior_series_sl else 0
-      
-      # 3. get the 'bookscore', which compares our book's issue number
+
+      # 3. there are certain international "mirror" publishers that publish the
+      #    same series as much more common US publishers.  these should be 
+      #    penalized a bit, since we're rarely scraping comics from them          
+      pub_s = series_ref.publisher_s.lower()
+      publisherscore_n = -6 if "panini" in pub_s or "deagostina" in pub_s or \
+         "marvel italia" == pub_s or "marvel uk" == pub_s or \
+         "semic_as" == pub_s or "abril" == pub_s else 0
+         
+      # 4. get the 'bookscore', which compares our book's issue number
       #    with the number of issues in the series.  a step function that 
       #    returns a very high number (100) if the number of issues in the 
       #    series is compatible, and a very low one (-100) if it is not.  
@@ -96,7 +105,7 @@ class MatchScore(object):
          bookscore_n = 100 if booknumber_n-1 <= series_count_n else -100
       
 
-      # 4. get the 'yearscore', which severely penalizes (-500) any series 
+      # 5. get the 'yearscore', which severely penalizes (-500) any series 
       #    that started after the year that the current book was published.
       current_year_n = datetime.datetime.now().year
       is_valid_year_b = lambda y : y > 1900 and y <= current_year_n+1 
@@ -111,7 +120,7 @@ class MatchScore(object):
          elif series_year_n > book_year_n:
             yearscore_n = -500
             
-      # 5. get the 'recency score', which is a tiny negative value (usually
+      # 6. get the 'recency score', which is a tiny negative value (usually
       #    around on the range [-0.50, 0]) that gets worse (smaller) the older 
       #    the series is.   this is really a tie-breaker for series with 
       #    otherwise identical scores. 
@@ -120,8 +129,8 @@ class MatchScore(object):
       else:
          recency_score_n = -1.0
          
-      # 6. add up and return all the scores
-      return bookscore_n + namescore_n + \
+      # 7. add up and return all the scores
+      return bookscore_n + namescore_n + publisherscore_n +\
          priorscore_n + yearscore_n + recency_score_n
 
 
