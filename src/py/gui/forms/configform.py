@@ -591,6 +591,12 @@ class ConfigForm(CVForm):
       ''' called anytime the gui for this form should be updated '''
       self.__ignore_blanks_cb.Enabled = self.__ow_existing_cb.Checked
       self.__preserve_thumbs_cb.Enabled = self.__download_thumbs_cb.Checked
+      if self.__confirm_issue_cb.Checked:
+         self.__autochoose_series_cb.Checked = False
+      if self.__autochoose_series_cb.Checked:
+         self.__confirm_issue_cb.Checked = False
+      self.__confirm_issue_cb.Enabled = not self.__autochoose_series_cb.Checked
+      self.__autochoose_series_cb.Enabled = not self.__confirm_issue_cb.Checked
       
        
               
