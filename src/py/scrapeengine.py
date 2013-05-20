@@ -483,14 +483,20 @@ class ScrapeEngine(object):
          #    able to find the issue automatically, but if not we show the user
          #    the query dialog, and she may skip, cancel the whole scrape, go 
          #    back to the series dialog, or actually choose an issue.
-         log.debug("searching for the right issue in '", 
-            scraped_series.series_ref, "'")
+         log.debug("searching for the right issue in '",
+                   scraped_series.series_ref, "'")
 
          issue_ref = None         
          if autoscrape_b:
-            # autoscrape means we MUST find the issue interactively, or bail
-            issue_ref = None if book.issue_num_s == "" else \
-               db.query_issue_ref( scraped_series.series_ref, book.issue_num_s )
+            # 5a. autoscrape means we MUST find the issue interactively...
+            series_ref = scraped_series.series_ref
+            if book.issue_num_s == "":
+               if series_ref.issue_count_n <=1:
+                  refs = self.__query_issue_refs(series_ref)
+                  if len(refs) == 1: issue_ref = list(refs)[0]
+            else:
+               issue_ref = db.query_issue_ref( series_ref, book.issue_num_s )
+               
             if issue_ref == None:
                log.debug("couldn't find issue number.  leaving until the end.")
                del scrape_cache[key] # this was probably the wrong series, too
@@ -498,7 +504,7 @@ class ScrapeEngine(object):
             else: 
                log.debug("   ...identified issue number ", book.issue_num_s )
          else:            
-            # try to find the issue interactively         
+            # 5b. ...otherwise, try to find the issue interactively         
             issue_form_result = self.__choose_issue_ref( book, 
                scraped_series.series_ref, scraped_series.issue_refs, 
                force_issue_dialog_b)
