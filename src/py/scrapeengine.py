@@ -227,7 +227,8 @@ class ScrapeEngine(object):
             delayed_b = i >= orig_length
             manual_search_b = False;
             fast_rescrape_b = self.config.fast_rescrape_b and not delayed_b
-            autoscrape_b = self.config.autochoose_series_b and not delayed_b
+            autoscrape_b = self.config.autochoose_series_b and \
+                not self.config.confirm_issue_b and not delayed_b
             bookstatus = BookStatus("DELAYED") \
                if delayed_b else BookStatus("UNSCRAPED")
                
@@ -382,6 +383,8 @@ class ScrapeEngine(object):
       #     all new (unscraped) books?  if so, now's the time to give it a try.  
       #     if we find the series for this book, add it to the scrape cache.
       if key not in scrape_cache and autoscrape_b:
+         if self.config.confirm_issue_b:
+            raise Exception("can't confirm issues while autoscraping")
          log.debug("trying to match this book automatically...")
          auto_series_ref = automatcher.find_series_ref(book, self.config) 
          if auto_series_ref:
@@ -473,43 +476,59 @@ class ScrapeEngine(object):
 
 
          # 5. now that we know the right series for this book, try to find
-         #    the right issue, either automatically,  or by showing the user 
-         #    the "issues dialog".  METHOD EXIT: if the user sees the query 
-         #    dialog, she may skip, cancel the whole scrape,   go back to the 
-         #    series dialog, or actually an issue.
+         #    the right issue, either automatically, or by showing the user 
+         #    the "issues dialog".  METHOD EXIT: if we're scraping automatically
+         #    we MUST be able to find the issue num automatically too, or else
+         #    we delay the book til later.  if we're manual, we may still be 
+         #    able to find the issue automatically, but if not we show the user
+         #    the query dialog, and she may skip, cancel the whole scrape, go 
+         #    back to the series dialog, or actually choose an issue.
          log.debug("searching for the right issue in '", 
             scraped_series.series_ref, "'")
-         
-         # choose the issue that matches the book we are scraping
-         issue_form_result = self.__choose_issue_ref( book, 
-            scraped_series.series_ref, scraped_series.issue_refs, 
-            force_issue_dialog_b)
-         
-         if issue_form_result.equals("CANCEL") or self.__cancelled_b:
-            self.__cancelled_b = True
-            return BookStatus("SKIPPED")
-         elif issue_form_result.equals("SKIP") or \
-               issue_form_result.equals("PERMSKIP"):
-            if force_issue_dialog_b and not self.config.confirm_issue_b:
-               # the user clicked 'show issues', then 'skip', so we have to
-               # ignore his previous series selection.
+
+         issue_ref = None         
+         if autoscrape_b:
+            # autoscrape means we MUST find the issue interactively, or bail
+            issue_ref = None if book.issue_num_s == "" else \
+               db.query_issue_ref( scraped_series.series_ref, book.issue_num_s )
+            if issue_ref == None:
+               log.debug("couldn't find issue number.  leaving until the end.")
+               del scrape_cache[key] # this was probably the wrong series, too
+               return BookStatus("DELAYED")
+            else: 
+               log.debug("   ...identified issue number ", book.issue_num_s )
+         else:            
+            # try to find the issue interactively         
+            issue_form_result = self.__choose_issue_ref( book, 
+               scraped_series.series_ref, scraped_series.issue_refs, 
+               force_issue_dialog_b)
+            
+            if issue_form_result.equals("CANCEL") or self.__cancelled_b:
+               self.__cancelled_b = True
+               return BookStatus("SKIPPED")
+            elif issue_form_result.equals("SKIP") or \
+                  issue_form_result.equals("PERMSKIP"):
+               if force_issue_dialog_b and not self.config.confirm_issue_b:
+                  # the user clicked 'show issues', then 'skip', so we have to
+                  # ignore his previous series selection.
+                  del scrape_cache[key]
+               if issue_form_result.equals("PERMSKIP"):
+                  book.skip_forever()
+               return BookStatus("SKIPPED")
+            elif issue_form_result.equals("BACK"):
+               # ignore user's previous series selection
                del scrape_cache[key]
-            if issue_form_result.equals("PERMSKIP"):
-               book.skip_forever()
-            return BookStatus("SKIPPED")
-         elif issue_form_result.equals("BACK"):
-            # ignore users previous series selection
-            del scrape_cache[key]
-         else:
-            # we've got the right issue!  copy it's data into the book.
+            else:
+               issue_ref = issue_form_result.get_ref() # not None!
+         
+         if issue_ref != None:      
+            # we've found the right issue!  copy it's data into the book.
             log.debug("querying comicvine for issue details...")
-            issue = db.query_issue( issue_form_result.get_ref(), 
-               self.config.update_rating_b )
+            issue = db.query_issue( issue_ref, self.config.update_rating_b )
             book.update(issue)
             
             # record the users choice.  this allows the SeriesForm to give this
             # choice a higher priority (sort order) in the future
-            
             self.__matchscore.record_choice(scraped_series.series_ref)
             
             return BookStatus("SCRAPED")
@@ -598,7 +617,7 @@ class ScrapeEngine(object):
       '''
       This method chooses the IssueRef that matches the given book from among 
       the given set of IssueRefs.  It may do this automatically if it can, or 
-      it may display the IssueForm, a dialog that display the IssueRefs and 
+      it may display the IssueForm, a dialog that displays the IssueRefs and 
       asks the user to choose one.
       
       'book' -> the book that we are currently scraping
@@ -626,7 +645,7 @@ class ScrapeEngine(object):
          issue_ref = db.query_issue_ref(series_ref, book.issue_num_s)
          if issue_ref:
             result = IssueFormResult("OK", issue_ref) # found it!
-            log.debug("   ...identified issue number ", issue_num_s, )
+            log.debug("   ...identified issue number ", issue_num_s )
             
       # 2. if we don't have our issue_refs yet, and we're going to be 
       #    displaying the issue dialog, then get the issue_refs
