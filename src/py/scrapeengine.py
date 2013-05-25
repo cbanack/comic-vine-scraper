@@ -488,7 +488,7 @@ class ScrapeEngine(object):
 
          issue_ref = None         
          if autoscrape_b:
-            # 5a. autoscrape means we MUST find the issue interactively...
+            # 5a. autoscrape means we MUST find the issue automatically...
             series_ref = scraped_series.series_ref
             if book.issue_num_s == "":
                if series_ref.issue_count_n <=1:
@@ -503,6 +503,7 @@ class ScrapeEngine(object):
                return BookStatus("DELAYED")
             else: 
                log.debug("   ...identified issue number ", book.issue_num_s )
+               
          else:            
             # 5b. ...otherwise, try to find the issue interactively         
             issue_form_result = self.__choose_issue_ref( book, 

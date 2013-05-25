@@ -257,7 +257,6 @@ class ConfigForm(CVForm):
       tabpage.Text = i18n.get("ConfigFormBehaviourTab")
       
       # 1. --- build the 'When scraping for the first time' label
-      # coryhigh: internationalize this Text
       first_scrape_label = Label()
       first_scrape_label.AutoSize = False
       first_scrape_label.FlatStyle = FlatStyle.System
@@ -266,7 +265,6 @@ class ConfigForm(CVForm):
       first_scrape_label.Size = Size(300, 17)
       
       # 1. --- build the 'autochoose series' checkbox
-      # coryhigh: internationalize this Text
       self.__autochoose_series_cb = CheckBox()
       self.__autochoose_series_cb.AutoSize = False
       self.__autochoose_series_cb.FlatStyle = FlatStyle.System
@@ -276,7 +274,6 @@ class ConfigForm(CVForm):
       self.__autochoose_series_cb.CheckedChanged += self.__fired_update_gui
        
       # 2. --- build the 'confirm issue' checkbox
-      # coryhigh: internationalize this Text
       self.__confirm_issue_cb = CheckBox()
       self.__confirm_issue_cb.AutoSize = False
       self.__confirm_issue_cb.FlatStyle = FlatStyle.System
@@ -286,7 +283,6 @@ class ConfigForm(CVForm):
       self.__confirm_issue_cb.CheckedChanged += self.__fired_update_gui
       
       # 3. -- build the 'use fast rescrape' checkbox
-      # coryhigh: re-internationalize this Text
       self.__fast_rescrape_cb = CheckBox()
       self.__fast_rescrape_cb.AutoSize = False
       self.__fast_rescrape_cb.FlatStyle = FlatStyle.System

@@ -8,7 +8,6 @@ Created on Mar 3, 2012
 from resources import Resources
 from utils import sstr
 import datetime
-import log
 import re
 import utils
 
