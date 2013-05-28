@@ -131,14 +131,16 @@ def __extract(name_s):
       matches = __extract_numbers(s)
       
    # 10. if we parsed out some potential issue numbers, designate the LAST 
-   #    (rightmost) one s the actual issue number, and remove it from the name
+   #    (rightmost) one as the actual issue number, and remove it from the name
    if len(matches) > 0: 
       issue_num_s = matches[-1].group(2)
       series_s = s[:matches[-1].start(0)] +s[matches[-1].end(0):]
-      if re.match("^[-.0-9]+$", issue_num_s):
-         # 7a. strip of leading zeroes if this is an int/float
+      # 10a. strip off leading/trailing zeroes
+      matches = re.match("^(0+)([0-9].*)$", issue_num_s)
+      issue_num_s = matches.group(2) if matches else issue_num_s
+      if re.match("^-?[.0-9]+$", issue_num_s) and utils.is_number(issue_num_s):
          issue_num_s = utils.sstr(float(issue_num_s) \
-            if '.' in issue_num_s else int(issue_num_s))
+             if '.' in issue_num_s else int(issue_num_s))
    else:
       issue_num_s = ""
       series_s = s
@@ -189,8 +191,8 @@ def __extract_year(s):
 def __extract_numbers(s):
    '''  
    Searches through the given string left-to-right, building an ordered list of
-   "issue number-like" substrings.  For example, this method finds substrings 
-   like:  3, #4, 5a, 6.00, 10.0b, .5, -1.0
+   "issue number-like" re.match objects.  For example, this method finds 
+   matches substrings like:  3, #4, 5a, 6.00, 10.0b, .5, -1.0
    '''   
    matches = list(re.finditer(r"(?u)(^|[\s#])(-?\d*\.?\d\w*)", s))
    # remove matches that look like years, EXCEPT on the "2000AD" series
