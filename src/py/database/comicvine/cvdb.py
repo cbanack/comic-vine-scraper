@@ -167,6 +167,8 @@ def __query_series_refs(search_terms_s, callback_function):
    if search_terms_s and search_terms_s.strip():
       dom = cvconnection._query_series_ids_dom(search_terms_s, 1)
       num_results_n = int(dom.number_of_total_results)
+      if not "volume" in dom.results.__dict__:
+         num_results_n = 0 # bug 329 
    
    if num_results_n > 0:
 
