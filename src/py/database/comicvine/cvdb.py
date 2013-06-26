@@ -224,8 +224,8 @@ def __volume_to_seriesref(volume):
    publisher = '' if len(volume.publisher.__dict__) <= 1 else \
       volume.publisher.name
    return SeriesRef( int(volume.id), sstr(volume.name), 
-      sstr(volume.start_year), sstr(publisher), 
-      sstr(volume.count_of_issues), __parse_image_url(volume))
+      sstr(volume.start_year).rstrip("- "), # see bug 334 
+      sstr(publisher), sstr(volume.count_of_issues), __parse_image_url(volume))
 
 
 # ==========================================================================   
