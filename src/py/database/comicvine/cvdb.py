@@ -243,7 +243,9 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    '''
    # all of the symbols below cause inconsistency in title searches
    search_terms_s = search_terms_s.lower()
-   search_terms_s = re.sub(r"[.`]", '', search_terms_s)
+   search_terms_s = search_terms_s.replace(r'`', '')
+   search_terms_s = search_terms_s = re.sub(r'(?<!\d)\.(?!\d)', 
+      '', search_terms_s) # delete . in "b.a.t", not in "2.0", see issue 337
    search_terms_s = re.sub(r"'(?!s\b)", '', search_terms_s) \
       if not alt_b else re.sub(r"'", '', search_terms_s)  # see issue 327
    search_terms_s = search_terms_s.replace(r'_', ' ')
@@ -270,8 +272,8 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    if alt_b and search_terms_s == orig_search_terms_s:
       search_terms_s = utils.convert_number_words(search_terms_s, False)
       
-   # strip out remaing punctuation except ', which was handled above
-   word = re.compile(r"[\w']{1,}")
+   # strip out remaing punctuation except ' and ., which were handled above
+   word = re.compile(r"[\w'.]{1,}")
    search_terms_s = ' '.join(word.findall(search_terms_s))
    
    return search_terms_s
