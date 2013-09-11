@@ -25,6 +25,7 @@ class AllTests(unittest.TestSuite):
          loader.loadTestsFromModule(test_bookdata),
          loader.loadTestsFromModule(test_fnameparser),
          loader.loadTestsFromModule(test_utils), 
+         # corylow: can we make a test_cleanupsearchterms?
          ] 
       )
    
