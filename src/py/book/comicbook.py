@@ -5,7 +5,7 @@ from ComicRack that we are scraping data into.
 @author: Cory Banack
 '''
 
-from dbmodels import IssueRef
+from dbmodels import IssueRef, SeriesRef
 from pluginbookdata import PluginBookData
 from time import strftime
 from utils import sstr, is_number
@@ -84,6 +84,11 @@ class ComicBook(object):
    # haven't been scraped before.
    issue_ref = property( lambda self : None if 
       self.__extract_issue_ref() == 'skip' else self.__extract_issue_ref() )
+   
+   # a SeriesRef object identifying this book's series in the database, if 
+   # available.  will be None if not available, which is always the case for 
+   # books that haven't been scraped before.
+   series_ref = property( lambda self : self.__extract_series_ref() )
     
    # true if this book as has been marked to "skip forever" (the scraper should
    # silently skip this book if this value is true, regardless of self.issue_ref
@@ -169,6 +174,26 @@ class ComicBook(object):
             retval = IssueRef(self.issue_num_s, issue_key, 
                self.__bookdata.title_s, self.__bookdata.cover_url_s);
    
+      return retval
+   
+   # =============================================================================
+   def __extract_series_ref(self): 
+      '''
+      This method attempts to rebuild the SeriesRef that the user chose the 
+      last time that they scraped this comic.  If it can do so, it will 
+      return that SeriesRef, otherwise it will return None.
+      '''
+      
+      # in this method, its easier to work with tags as a single string
+      bd = self.__bookdata
+      retval = None
+      series_key = int(bd.series_key_s) if \
+         utils.is_number(bd.series_key_s) else None
+      
+      if series_key != None:
+         # found a key tag! convert to a sparse SeriesRef
+         retval = SeriesRef(series_key, None, -1, '', -1, None);
+          
       return retval
    
 
