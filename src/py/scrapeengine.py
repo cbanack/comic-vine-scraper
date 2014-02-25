@@ -351,7 +351,8 @@ class ScrapeEngine(object):
       #    if an error occurs, retry a manual scrape later on.
       issue_ref = book.issue_ref
       if issue_ref and fast_rescrape_b:
-         log.debug("found rescraping details in book, using: "+sstr(issue_ref));
+         log.debug("rescraping details in book identified its issue as: '",
+            sstr(issue_ref), "'");
          try:
             issue = db.query_issue(issue_ref, self.config.update_rating_b)
             book.update(issue)
@@ -367,11 +368,22 @@ class ScrapeEngine(object):
       #    book belongs to, and also allows us to automatically use the same
       #    series for other books that have the same unique series key.
       key = book.unique_series_s
+      
+      # 3a. see if the book already knows the correct series keys based on a 
+      #     previous scrape.  that's pretty unlikely since we didn't find the
+      #     IssueRef from a previous scrape, but in certain special cases, it
+      #     can happen (mostly compatibility with other scripts)
+      if key not in scrape_cache and not manual_search_b:
+         if book.series_ref and fast_rescrape_b:
+            log.debug("rescraping details in book identified its series as: '",
+               book.series_ref, "'")
+            scraped_series = ScrapedSeries( book.series_ref )
+            scrape_cache[key] = scraped_series
    
-      # 3a. check to see if this book has an special file in it's folder that
-      #    tells us what series the book belongs to.  if so, add that map that
-      #    book to that series in the scrape_cache.
-      if key not in scrape_cache:
+      # 3b. see if this book has an special file in it's folder that tells us
+      #     what series the book belongs to.  if so, add that map that book
+      #     to that series in the scrape_cache.
+      if key not in scrape_cache and not manual_search_b:
          magic_series_ref = db.check_magic_file(book.path_s)
          if magic_series_ref:        
             log.debug("a 'magic' file identified this book's series as: '",
@@ -379,7 +391,7 @@ class ScrapeEngine(object):
             scraped_series = ScrapedSeries( magic_series_ref )
             scrape_cache[key] = scraped_series
          
-      # 3b. or maybe the user requested that we try the auto-scrape algorithm on 
+      # 3c. or maybe the user requested that we try the auto-scrape algorithm on 
       #     all new (unscraped) books?  if so, now's the time to give it a try.  
       #     if we find the series for this book, add it to the scrape cache.
       if key not in scrape_cache and autoscrape_b:
@@ -395,7 +407,7 @@ class ScrapeEngine(object):
             log.debug("...couldn't find a match. leave it until the end.")
             return BookStatus("DELAYED")
 
-      # 3c. if the book still hasn't been added to the scrape cache, the next
+      # 3d. if the series still hasn't been added to the scrape cache, the next
       #     step is to search the online database for the book's series name.
       #     the user may have to modify the auto-generated search terms. the
       #     goal is to get some potential SeriesRefs to show the user. 
