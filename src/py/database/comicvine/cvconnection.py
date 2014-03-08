@@ -12,6 +12,7 @@ import xml2py
 from utils import sstr
 from dberrors import DatabaseConnectionError
 import utils
+import re
 
 clr.AddReference('System')
 from System.Net import WebException
@@ -49,7 +50,7 @@ def _query_series_ids_dom(searchterm_s, page_n=1):
       
    if searchterm_s is None or searchterm_s == '' or page_n < 0:
       raise ValueError('bad parameters')
-   # searchterm_s = " AND ".join( re.split(r'\s+', searchterm_s) ); # issue 349
+   searchterm_s = " AND ".join( re.split(r'\s+', searchterm_s) ); # issue 349
    return __get_dom(QUERY.format(HttpUtility.UrlPathEncode(searchterm_s))+PAGE)
 
 
