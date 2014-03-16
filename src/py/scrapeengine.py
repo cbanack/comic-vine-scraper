@@ -29,6 +29,7 @@ from System.Windows.Forms import Application, MessageBox, \
 
 clr.AddReference('System')
 from System.IO import Path
+from System import GC, GCCollectionMode
     
 # =============================================================================
 class ScrapeEngine(object):
@@ -258,6 +259,11 @@ class ScrapeEngine(object):
                   if not delayed_b: 
                      books.append(book)
                   break;
+            
+            # keep memory usage from getting out of control!
+            GC.Collect()
+            GC.WaitForPendingFinalizers()
+            
             log.debug()
             log.debug()
             i = i + 1
