@@ -29,7 +29,7 @@ from System.Windows.Forms import Application, MessageBox, \
 
 clr.AddReference('System')
 from System.IO import Path
-from System import GC, GCCollectionMode
+from System import GC
     
 # =============================================================================
 class ScrapeEngine(object):
