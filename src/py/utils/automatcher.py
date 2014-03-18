@@ -13,7 +13,7 @@ import utils
 
 # when comparing two comic covers, they must be this similar or greater
 # (when using imagehash.similarity()) to be considered "the same"
-__MATCH_THRESHOLD = 0.83
+__MATCH_THRESHOLD = 0.87
 
 #==============================================================================
 def find_series_ref(book, config):
