@@ -19,4 +19,5 @@
 <stringAttribute key="org.python.pydev.debug.ATTR_PROJECT" value="comic-vine-scraper"/>
 <intAttribute key="org.python.pydev.debug.ATTR_RESOURCE_TYPE" value="1"/>
 <stringAttribute key="org.python.pydev.debug.vm.arguments" value="-X:FullFrames"/>
+<stringAttribute key="process_factory_id" value="org.python.pydev.debug.processfactory.PyProcessFactory"/>
 </launchConfiguration>
