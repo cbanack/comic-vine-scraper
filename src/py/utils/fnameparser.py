@@ -107,7 +107,7 @@ def __extract(name_s):
    s = re.sub(r"_", " ", s)
     
    # 5. remove all trace of volume from the name (like "vol. 2a" and "vol -3.1")
-   s = re.sub(r"(?i)((v|vol)\.?|volume)\s*-?\s*[0-9]+[.0-9a-z]*", "", s)
+   s = re.sub(r"(?i)(\b((v|vol)\.?|volume))\s*-?\s*[0-9]+[.0-9a-z]*", "", s)
    
    # 6. remove all page counts, ie. "245p" or "50 pages"
    s = re.sub(r"(?i)\b[.,]?\s*\d+\s*(p|pg|pgs|pages)\b[.,]?", "", s)
