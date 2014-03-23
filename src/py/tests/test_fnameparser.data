@@ -211,6 +211,10 @@
 "Breakout #012- This is it - run for it (noads)(2011)" "Breakout" "12" "2011"
 "Buffy 55 - Can't stop the Signal (2015)" "Buffy" "55" "2015"
 
+# gotta be careful with the string "v8", see bug 364
+"DV8 #4" "DV8" "4"
+"DV8 28 V2007" "DV8" "28" "2007"
+"#2 - Dv8 (2005).cbz" "Dv8" "2" "2005"
 
 # some very weird, pathological cases
 "" "" ""
