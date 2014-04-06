@@ -27,17 +27,19 @@ __issue_refs_cache = None
 
 
 # =============================================================================
-def initialize():
+def initialize(**kwargs):
    ''' 
    Initializes this database connection.  Call this method once when the 
    application/script starts up (before using this module for anything else)
    and remember to call "shutdown()" at application shutdown.
+   
+   Some database implementations may have additional keyword arugments.
    '''
    
    global __series_ref_cache, __issue_refs_cache
    __series_ref_cache = {}
    __issue_refs_cache = {}
-   cvdb._initialize()
+   cvdb._initialize(**kwargs)
    
 # =============================================================================
 def shutdown():

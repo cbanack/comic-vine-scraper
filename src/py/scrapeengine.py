@@ -192,12 +192,15 @@ class ScrapeEngine(object):
       log.debug(self.config)
       log.debug()
       
-      # 4. sort the ComicBooks in the order that we're gonna loop them in
+      # 4. fire up our database connection
+      db.initialize(**{'cv_apikey':'4192f8503ea33364a23035827f40d415d5dc5d181'}) 
+      
+      # 5. sort the ComicBooks in the order that we're gonna loop them in
       #    (sort AFTER config is loaded cause config affects the sort!)
       books = [ ComicBook(book, self) for book in books ]
       books = self.__sort_books(books) 
 
-      # 5. display the ComicForm dialog.  it is a special dialog that stays 
+      # 6. display the ComicForm dialog.  it is a special dialog that stays 
       #    around for the entire time that the this scrape operation is running.
       comic_form = ComicForm.show_threadsafe(self)
       
@@ -205,7 +208,7 @@ class ScrapeEngine(object):
          # this caches the scraped data we've accumulated as we loop
          scrape_cache = {}
          
-         # 6. start the "Main Processing Loop". 
+         # 7. start the "Main Processing Loop". 
          #    notice the list of books can get longer while we're looping,
          #    if we choose to delay processing a book until the end.
          i = 0;
@@ -214,7 +217,7 @@ class ScrapeEngine(object):
             if self.__cancelled_b: break
             book = books[i]
 
-            # 6a. notify 'start_scrape_listeners' that we're scraping a new book
+            # 7a. notify 'start_scrape_listeners' that we're scraping a new book
             
             log.debug("======> scraping next comic book: '",
                'FILELESS ("' + book.series_s +" #"+ book.issue_num_s+ ''")"
@@ -223,7 +226,7 @@ class ScrapeEngine(object):
             for start_scrape in self.start_scrape_listeners:
                start_scrape(book, num_remaining)
 
-            # 6b. ...keep trying to scrape that book until either it is scraped,
+            # 7b. ...keep trying to scrape that book until either it is scraped,
             #     the user chooses to skip it, or the user cancels altogether.
             delayed_b = i >= orig_length
             manual_search_b = False;
