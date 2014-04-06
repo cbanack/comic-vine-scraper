@@ -29,11 +29,22 @@ from System.Drawing import Image
 # memory leak (until the main app shuts down), but it is small and worth it.
 __series_details_cache = None
 
+# this is the comicvine api key to use when accessing the comicvine api
+# it must be set when calling initialize.
+__api_key = ""
+
 # =============================================================================
-def _initialize():
-   ''' ComicVine implementation of the identically named method in the db.py '''
-   global __series_details_cache
+def _initialize(**kwargs):
+   ''' 
+   ComicVine implementation of the identically named method in the db.py 
+   You must pass in a valid Comic Vine api key as a keyword argument to this
+   method, like so:    _initialize(**{'cv_apikey','my-key-here'})
+   '''
+   global __series_details_cache, __api_key
    __series_details_cache = {}
+   __api_key = kwargs["cv_apikey"] if "cv_apikey" in kwargs else ""
+   
+   if not __api_key: raise Exception("You must set a ComicVine API key!") 
    
 # =============================================================================
 def _shutdown():
@@ -104,7 +115,8 @@ def _check_magic_file(path_s):
    series_ref = None
    if series_key_s:
       try:
-         dom = cvconnection._query_series_details_dom(utils.sstr(series_key_s))
+         dom = cvconnection._query_series_details_dom(
+            __api_key, utils.sstr(series_key_s))
          num_results_n = int(dom.number_of_total_results)
          series_ref =\
             __volume_to_seriesref(dom.results) if num_results_n==1 else None
@@ -145,7 +157,8 @@ def _query_series_refs(search_terms_s, callback_function):
          if match:
             series_key_s = match.group("num")
             try:
-               dom = cvconnection._query_series_details_dom(series_key_s)
+               dom = cvconnection._query_series_details_dom(
+                  __api_key, series_key_s)
                num_results_n = int(dom.number_of_total_results)
                if num_results_n == 1:
                   series_refs.add(__volume_to_seriesref(dom.results))
@@ -165,7 +178,7 @@ def __query_series_refs(search_terms_s, callback_function):
    # 1. do the initial query, record how many results in total we're getting
    num_results_n = 0
    if search_terms_s and search_terms_s.strip():
-      dom = cvconnection._query_series_ids_dom(search_terms_s, 1)
+      dom = cvconnection._query_series_ids_dom(__api_key, search_terms_s, 1)
       num_results_n = int(dom.number_of_total_results)
       if not "volume" in dom.results.__dict__:
          num_results_n = 0 # bug 329 
@@ -194,7 +207,7 @@ def __query_series_refs(search_terms_s, callback_function):
 
             while iteration < num_results_n and not cancelled_b[0]:
                # 4. query for the next batch of results, in a new dom
-               dom = cvconnection._query_series_ids_dom(
+               dom = cvconnection._query_series_ids_dom(__api_key,
                   search_terms_s, iteration//RESULTS_PAGE_SIZE+1)
                iteration += RESULTS_PAGE_SIZE
                
@@ -289,7 +302,7 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
    issue_refs = set()
    
    # 1. do the initial query, record how many results in total we're getting
-   dom = cvconnection._query_issue_ids_dom(sstr(series_id_n), 1)
+   dom = cvconnection._query_issue_ids_dom(__api_key, sstr(series_id_n), 1)
    num_results_n = int(dom.number_of_total_results) if dom else 0
    
    if num_results_n > 0:
@@ -314,8 +327,8 @@ def _query_issue_refs(series_ref, callback_function=lambda x : False):
 
             while iteration < num_results_n and not cancelled_b[0]:
                # 4. query for the next batch of results, in a new dom
-               dom = cvconnection._query_issue_ids_dom(sstr(series_id_n),
-                  iteration//RESULTS_PAGE_SIZE+1)
+               dom = cvconnection._query_issue_ids_dom(__api_key, 
+                  sstr(series_id_n), iteration//RESULTS_PAGE_SIZE+1)
                iteration += RESULTS_PAGE_SIZE
                
                # 4a. do a callback for the most recent batch of results
@@ -351,7 +364,7 @@ def __issue_to_issueref(issue):
 def query_issue_ref(series_ref, issue_num_s):
    ''' ComicVine implementation of the identically named method in the db.py '''
    series_key = series_ref.series_key  
-   dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
+   dom = cvconnection._query_issue_id_dom(__api_key, series_key, issue_num_s)
    num_results_n = int(dom.number_of_total_results) if dom else 0
    attempts = 1
 
@@ -363,7 +376,8 @@ def query_issue_ref(series_ref, issue_num_s):
          break
       else:
          issue_num_s = new_issue_num_s
-         dom = cvconnection._query_issue_id_dom(series_key, issue_num_s)
+         dom = cvconnection._query_issue_id_dom(
+                  __api_key, series_key, issue_num_s)
          num_results_n = int(dom.number_of_total_results) if dom else 0
          
    return __issue_to_issueref(dom.results.issue) if num_results_n==1 else None 
@@ -434,7 +448,8 @@ def _query_issue(issue_ref, slow_data):
    # interesting: can we implement a cache here?  could speed things up...
    issue = Issue(issue_ref)
    
-   dom = cvconnection._query_issue_details_dom(sstr(issue_ref.issue_key))
+   dom = cvconnection._query_issue_details_dom(
+            __api_key, sstr(issue_ref.issue_key))
    __issue_parse_simple_stuff(issue, dom)
    __issue_parse_series_details(issue, dom)
    __issue_parse_story_credits(issue, dom)
@@ -443,7 +458,8 @@ def _query_issue(issue_ref, slow_data):
    
    if slow_data:
       # grab extra cover images and a community rating score
-      page = cvconnection._query_issue_details_page(sstr(issue_ref.issue_key))
+      page = cvconnection._query_issue_details_page(
+                __api_key, sstr(issue_ref.issue_key))
       __issue_scrape_extra_details( issue, page )
    
    return issue
@@ -518,7 +534,7 @@ def __issue_parse_series_details(issue, dom):
       publisher_s = cache[series_id][1]
    else: 
       # contact comicvine to extract details for this comic book 
-      series_dom = cvconnection._query_series_details_dom(series_id)
+      series_dom = cvconnection._query_series_details_dom(__api_key, series_id)
       if series_dom is None:
          raise Exception("can't get details about series " + series_id)
 

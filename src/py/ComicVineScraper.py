@@ -101,9 +101,6 @@ def __launch(delegate):
       # fire up the localization/internationalization system
       i18n.install(ComicRack)
       
-      # fire up our database connection
-      db.initialize() 
-
       # see if we're in a valid environment
       if __validate_environment():
          delegate()
