@@ -65,6 +65,7 @@ class Configuration(object):
    __DEFAULT_IGNORE_FOLDERS = False
    __DEFAULT_FORCE_SERIES_ART = False
    __DEFAULT_NOTE_SCRAPE_DATE = False
+   __DEFAULT_API_KEY = '4192f8503ea33364a23035827f40d415d5dc5d181'
 
   
    #=========================================================================== 
@@ -130,6 +131,7 @@ class Configuration(object):
       self.__ignore_folders_b = None # use folders w/ grouping issue into series
       self.__force_series_art_b = None # series dialog always shows series art?
       self.__note_scrape_date_b = None # put date when scraping the Notes field?
+      self.__api_key_s = None # the api key to use for accessing comicvine
       self.__set_advanced_settings_s("")
       
       return self
@@ -160,6 +162,7 @@ class Configuration(object):
       self.__ignore_folders_b = c.__DEFAULT_IGNORE_FOLDERS
       self.__force_series_art_b = c.__DEFAULT_FORCE_SERIES_ART
       self.__note_scrape_date_b = c.__DEFAULT_NOTE_SCRAPE_DATE
+      self.__api_key_s = c.__DEFAULT_API_KEY
       
       # 2. scan through the string looking at each line for advanced settings
       lines_s = [ x.strip() for x in self.__advanced_settings_s.split("\n") \
@@ -245,6 +248,11 @@ class Configuration(object):
                if publisher_s and imprint_s and \
                      len(publisher_s) <= 50 and len(imprint_s) <= 50:  
                   self.__user_imprints_sm[imprint_s] = publisher_s
+         
+         # 2n. parse the "API_KEY=XXXX" line
+         match = re.match(pattern_s.format("API_KEY"), line_s)
+         if match:
+            self.__api_key_s = match.group(1).strip().lower()
       
    
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
@@ -302,6 +310,10 @@ class Configuration(object):
    note_scrape_date_b = property( 
       lambda self : self.__note_scrape_date_b, None, None,
       "Whether or not to include the date when scraping Notes.  Not None.")
+   
+   api_key_s = property( 
+      lambda self : self.__api_key_s, None, None,
+      "The API key to use when accessing the ComicVine database. Not None.")
       
    
    #===========================================================================
@@ -575,6 +587,8 @@ class Configuration(object):
       lines_sl = []
       c = Configuration
       
+      if self.api_key_s != c.__DEFAULT_API_KEY:
+         lines_sl.append("Using custom API key to access Comic Vine.\n")
       
       if self.ignored_before_year_n != c.__DEFAULT_IGNORED_BEFORE_YEAR:
          lines_sl.append("Ignore all series that start before {0}.\n"\
