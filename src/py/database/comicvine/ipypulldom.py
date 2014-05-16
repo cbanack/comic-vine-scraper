@@ -15,7 +15,7 @@ import clr
 clr.AddReference('System.Xml') 
 
 from System.String import IsNullOrEmpty
-from System.Xml import XmlReader, XmlNodeType
+from System.Xml import XmlReader, XmlNodeType, XmlReaderSettings, DtdProcessing
 from System.IO import StringReader
 
 class XmlNode(object):
@@ -42,15 +42,21 @@ class XmlNode(object):
     
   
 def parse(xml):
-   xr = XmlReader.Create(xml)
-   while xr.Read():
-      xr.MoveToContent()
-      node = XmlNode(xr)
-      yield node
-      if (xr.IsEmptyElement):
-         node.nodeType = XmlNodeType.EndElement
-         del node.attributes
+   # see issue 379, and https://stackoverflow.com/questions/215854/
+   settings = XmlReaderSettings();
+   settings.XmlResolver = None;
+   settings.DtdProcessing = DtdProcessing.Ignore;
+   settings.ProhibitDtd = False;
+   
+   with XmlReader.Create(xml, settings) as xr:
+      while xr.Read():
+         xr.MoveToContent()
+         node = XmlNode(xr)
          yield node
+         if (xr.IsEmptyElement):
+            node.nodeType = XmlNodeType.EndElement
+            del node.attributes
+            yield node
   
 def parseString(xml):
    return parse(StringReader(xml))
