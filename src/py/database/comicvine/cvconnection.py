@@ -210,7 +210,9 @@ def __get_dom(url, lasttry=False):
       if int(dom.status_code) == 1:
          retval = dom # success
       else:
-         if lasttry: raise _ComicVineError(dom.status_code, dom.error, url)
+         if lasttry: raise DatabaseConnectionError("Comic Vine", url, 
+            'code {0}: "{1}"'.format(dom.status_code, dom.error),
+            dom.status_code )
          else: error_occurred = True
       
    # 6. return the valid dom, or if error occurred, retry once
@@ -230,7 +232,7 @@ def __get_page(url):
    Reads the webpage at the given URL into a new string, which is returned.  
    The returned value may be None if a problem is encountered, OR an exception 
    may be thrown.   If the exception is a DatabaseConnectionError, that 
-   represents an actual network problem connecting to the Comic Vine database.
+   represents an problem connecting to the Comic Vine database.
    '''
    
    try:
@@ -261,34 +263,3 @@ def __strip_invalid_xml_chars(xml):
    if xml:
       xml = ''.join([c for c in xml if is_valid_xml(ord(c))])
    return xml
-      
-
-# =============================================================================
-class _ComicVineError(Exception):
-   ''' 
-   A special exception that gets thrown anytime when there is a semantic error
-   with a query to the comicvine database; that is, an error wherein comic
-   vine returns an error code.
-   
-   You can get the error code and name as a tuple via the get_error() method.
-   '''
-   
-   def __init__(self, error_code, error_name, url):
-      ''' 
-      error_code => the integer comic vine error code
-      error_name => the string name of the comic vine error code
-      url => the url that caused the problem
-      '''
-      self._error = int(error_code), error_name
-      msg = 'code {0}: "{1}" for: {2}'.format(error_code, error_name, url)
-      super(Exception,self).__init__( msg )
-      
-      
-   # ==========================================================================
-   def get_error(self):
-      '''
-      Returns a tuple containing the integer comic vine error code that was used
-      to construct this object, followed by the associated string error name.
-      '''  
-      return self._error
-   

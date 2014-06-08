@@ -151,16 +151,30 @@ def handle_error(error):
    
    
    if __app_window:     
+      handled = False
       if type(error) == DatabaseConnectionError:  
          # if this is a DatabaseConnectionError, then it is a semi-expected 
-         # error that usually occurs when the database website goes down.  
-         # Thus, it gets a special error message.
-         MessageBox.Show(__app_window, 
-            i18n.get("LogDBErrorText").format(error.db_name_s()), 
-            i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
-            MessageBoxIcon.Warning)
+         # error that may get a special error message
+         if error.get_error_code_s() == "100-remove-": 
+            MessageBox.Show(__app_window,  # invalid api key
+               "Your api key is invalid", 
+               "Invalid API Key", MessageBoxButtons.OK, 
+               MessageBoxIcon.Warning)
+            handled = True
+         elif error.get_error_code_s() == "107":
+            MessageBox.Show(__app_window,  # rate limit reached
+               i18n.get("LogDBErrorRateText").format(error.get_db_name_s()), 
+               i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
+               MessageBoxIcon.Warning)
+            handled = True
+         elif error.get_error_code_s() == "0":
+            MessageBox.Show(__app_window,  # generic 
+               i18n.get("LogDBErrorText").format(error.get_db_name_s()), 
+               i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
+               MessageBoxIcon.Warning)
+            handled = True
          
-      else:
+      if not handled:
          # all other errors are considered "unexpected", and handled generically
          result = MessageBox.Show(__app_window, i18n.get("LogErrorText"),
             i18n.get("LogErrorTitle"),  MessageBoxButtons.YesNo, 
