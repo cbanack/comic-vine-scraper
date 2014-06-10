@@ -20,7 +20,8 @@ class Configuration(object):
    methods for reading and writing those details to the filesystem.
    '''
    
-   # map names for basic boolean settings (checkboxes)   
+   # map names for basic settings (checkboxes, etc)
+   __API_KEY = 'apiKey'   
    __UPDATE_SERIES = 'updateSeries'
    __UPDATE_NUMBER = 'updateNumber'
    __UPDATE_RELEASED = 'updateReleased'
@@ -65,13 +66,12 @@ class Configuration(object):
    __DEFAULT_IGNORE_FOLDERS = False
    __DEFAULT_FORCE_SERIES_ART = False
    __DEFAULT_NOTE_SCRAPE_DATE = False
-   __DEFAULT_API_KEY = '4192f8503ea33364a23035827f40d415d5dc5d181'
 
   
    #=========================================================================== 
    def __init__(self):
       ''' Initializes a new Configuration object with default settings '''
-      
+      self.api_key_s = "" # the api key to use when contacting comicvine
       self.ow_existing_b = True # scraper should overwrite existing metadata?
       self.ignore_blanks_b = False  # ...unless the new metada is blank?
       self.convert_imprints_b = True # convert imprints to parent publishers
@@ -131,7 +131,6 @@ class Configuration(object):
       self.__ignore_folders_b = None # use folders w/ grouping issue into series
       self.__force_series_art_b = None # series dialog always shows series art?
       self.__note_scrape_date_b = None # put date when scraping the Notes field?
-      self.__api_key_s = None # the api key to use for accessing comicvine
       self.__set_advanced_settings_s("")
       
       return self
@@ -162,7 +161,6 @@ class Configuration(object):
       self.__ignore_folders_b = c.__DEFAULT_IGNORE_FOLDERS
       self.__force_series_art_b = c.__DEFAULT_FORCE_SERIES_ART
       self.__note_scrape_date_b = c.__DEFAULT_NOTE_SCRAPE_DATE
-      self.__api_key_s = c.__DEFAULT_API_KEY
       
       # 2. scan through the string looking at each line for advanced settings
       lines_s = [ x.strip() for x in self.__advanced_settings_s.split("\n") \
@@ -249,12 +247,7 @@ class Configuration(object):
                      len(publisher_s) <= 50 and len(imprint_s) <= 50:  
                   self.__user_imprints_sm[imprint_s] = publisher_s
          
-         # 2n. parse the "API_KEY=XXXX" line
-         match = re.match(pattern_s.format("API_KEY"), line_s)
-         if match:
-            self.__api_key_s = match.group(1).strip().lower()
-      
-   
+
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
       __set_advanced_settings_s, __set_advanced_settings_s,
       "The advanced settings string for this Configuration. Not None." )
@@ -311,10 +304,6 @@ class Configuration(object):
       lambda self : self.__note_scrape_date_b, None, None,
       "Whether or not to include the date when scraping Notes.  Not None.")
    
-   api_key_s = property( 
-      lambda self : self.__api_key_s, None, None,
-      "The API key to use when accessing the ComicVine database. Not None.")
-      
    
    #===========================================================================
    def load_defaults(self):
@@ -328,7 +317,10 @@ class Configuration(object):
       if File.Exists(Resources.SETTINGS_FILE):
          loaded = load_map(Resources.SETTINGS_FILE)
          
-      # any settings that the serialized dict happens to contain, u
+      # any settings that the serialized dict happens to contain
+      if Configuration.__API_KEY in loaded:
+         self.api_key_s = loaded[Configuration.__API_KEY]
+         
       if Configuration.__UPDATE_SERIES in loaded:
          self.update_series_b = loaded[Configuration.__UPDATE_SERIES]
       
@@ -439,6 +431,7 @@ class Configuration(object):
       '''
       
       defaults = {}
+      defaults[Configuration.__API_KEY] = self.api_key_s
       defaults[Configuration.__UPDATE_SERIES] = self.update_series_b
       defaults[Configuration.__UPDATE_NUMBER] = self.update_number_b
       defaults[Configuration.__UPDATE_RELEASED] = self.update_released_b
@@ -501,6 +494,7 @@ class Configuration(object):
       self.rescrape_tags_b == other.rescrape_tags_b and \
       self.summary_dialog_b == other.summary_dialog_b and \
                                                         \
+      self.api_key_s == other.api_key_s and \
       self.update_series_b == other.update_series_b and \
       self.update_number_b == other.update_number_b and \
       self.update_published_b == other.update_published_b and \
@@ -586,9 +580,6 @@ class Configuration(object):
       # display details about any advanced settings that may be in effect      
       lines_sl = []
       c = Configuration
-      
-      if self.api_key_s != c.__DEFAULT_API_KEY:
-         lines_sl.append("Using custom API key to access Comic Vine.\n")
       
       if self.ignored_before_year_n != c.__DEFAULT_IGNORED_BEFORE_YEAR:
          lines_sl.append("Ignore all series that start before {0}.\n"\

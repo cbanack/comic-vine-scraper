@@ -22,6 +22,7 @@ from matchscore import MatchScore
 from comicbook import ComicBook
 import automatcher
 import dbutils
+from configform import ConfigForm
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -139,16 +140,17 @@ class ScrapeEngine(object):
             #books = books[0:1]
             
             # this populates the "status" variable, and the "config" variable
-            self.__scrape(books) 
+            cancelled = self.__scrape(books) 
             
          log.debug("Scraper terminated normally (scraped {0}, skipped {1})."\
             .format(self.__status[0], self.__status[1]))
             
       except Exception, ex:
+         cancelled = True;
          log.handle_error(ex)
          
       finally:
-         if self.config.summary_dialog_b:
+         if self.config.summary_dialog_b and not cancelled:
             try:
                # show the user a dialog describing what was scraped
                with FinishForm(self, self.__status) as finish_form:
@@ -172,9 +174,19 @@ class ScrapeEngine(object):
       # from now on (so that it can be used to report the status of this 
       # scrape, even if an error occurs.)
       self.__status = [0, len(books)];
+      
       # 1. load the currently saved configuration settings from disk
       self.config = Configuration()
       self.config.load_defaults()
+      
+      if not self.config.api_key_s:
+         with ConfigForm(self.comicrack.MainWindow) as config_form:
+            config_form.show_form() # blocks
+         self.config.load_defaults()
+         if not self.config.api_key_s:
+            log.debug("API key not available.  Cancelling.")
+            return True # user cancelled the scrape
+         
       
       # 2. show the welcome form. in addition to being a friendly summary of 
       #    what's about to happen, it allows the user to tweak the 
@@ -186,7 +198,7 @@ class ScrapeEngine(object):
          self.config.load_defaults()
          if self.__cancelled_b:
             log.debug("Cancelled!")
-            return # user cancelled the scrape
+            return True # user cancelled the scrape
 
       # 3. print the entire configuration to the debug stream
       log.debug(self.config)
@@ -274,6 +286,8 @@ class ScrapeEngine(object):
       finally:
          self.comicrack.MainWindow.Activate() # fixes issue 159
          if comic_form: comic_form.close_threadsafe()
+         
+      return False # user did not cancel the scrape
 
 
 
