@@ -140,17 +140,17 @@ class ScrapeEngine(object):
             #books = books[0:1]
             
             # this populates the "status" variable, and the "config" variable
-            cancelled = self.__scrape(books) 
+            show_summary = self.__scrape(books) 
             
          log.debug("Scraper terminated normally (scraped {0}, skipped {1})."\
             .format(self.__status[0], self.__status[1]))
             
       except Exception, ex:
-         cancelled = True;
+         show_summary = False;
          log.handle_error(ex)
          
       finally:
-         if self.config.summary_dialog_b and not cancelled:
+         if self.config.summary_dialog_b and show_summary:
             try:
                # show the user a dialog describing what was scraped
                with FinishForm(self, self.__status) as finish_form:
@@ -165,9 +165,8 @@ class ScrapeEngine(object):
       '''
       The private implementation of the 'scrape' method.
       
-      This method returns a list containing two integers.  The first integer 
-      is the number of books that were scraped, the second is the number that 
-      were skipped over. 
+      This method returns a boolean indicating whether or not we should show 
+      a summary dialog (if preferences allow) about what was just scraped.
       '''
       
       # initialize the status member variable, and then keep it up-to-date 
@@ -180,12 +179,13 @@ class ScrapeEngine(object):
       self.config.load_defaults()
       
       if not self.config.api_key_s:
+         log.debug("API key not available.  Showing config dialog.")
          with ConfigForm(self.comicrack.MainWindow) as config_form:
             config_form.show_form() # blocks
          self.config.load_defaults()
          if not self.config.api_key_s:
-            log.debug("API key not available.  Cancelling.")
-            return True # user cancelled the scrape
+            log.debug("API key still not available.  Aborting.")
+            return False # user aborted the scrape
          
       
       # 2. show the welcome form. in addition to being a friendly summary of 
@@ -198,7 +198,7 @@ class ScrapeEngine(object):
          self.config.load_defaults()
          if self.__cancelled_b:
             log.debug("Cancelled!")
-            return True # user cancelled the scrape
+            return False # user aborted the scrape
 
       # 3. print the entire configuration to the debug stream
       log.debug(self.config)
@@ -287,7 +287,7 @@ class ScrapeEngine(object):
          self.comicrack.MainWindow.Activate() # fixes issue 159
          if comic_form: comic_form.close_threadsafe()
          
-      return False # user did not cancel the scrape
+      return True # user did not cancel the scrape; show a summary dialog
 
 
 
