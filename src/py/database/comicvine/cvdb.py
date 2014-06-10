@@ -752,12 +752,10 @@ def __wait_until_ready():
    Waits until a fixed amount of time has passed since this function was 
    last called.  Returns immediately if that much time has already passed.
    '''
-    
    global __next_query_time_ms, __QUERY_DELAY_MS 
    time_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds
    wait_ms = __next_query_time_ms - time_ms
    if ( wait_ms > 0 ):
-      log.debug("waiting for: ",wait_ms)
       t = Thread(ThreadStart(lambda x=0: Thread.CurrentThread.Sleep(wait_ms)))
       t.Start()
       t.Join()
