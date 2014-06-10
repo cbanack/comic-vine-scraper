@@ -8,11 +8,12 @@ import log
 from cvform import CVForm 
 from configuration import Configuration
 import i18n
+import System
 
 clr.AddReference('System.Windows.Forms') 
 from System.Windows.Forms import AutoScaleMode, Button, CheckBox, ContextMenu, \
     CheckedListBox, DialogResult, FlatStyle, Label, MenuItem, \
-    RichTextBox, SelectionMode, TabControl, TabPage
+    RichTextBox, SelectionMode, TabControl, TabPage, TextBox, LinkLabel
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Point, Size, ContentAlignment
@@ -58,6 +59,9 @@ class ConfigForm(CVForm):
       ConfigForm.__LOCATIONS_CB = i18n.get("ConfigFormLocationsCB")
       ConfigForm.__WEBPAGE_CB = i18n.get("ConfigFormWebCB")
       
+      # the TabControl that contains all our TabPages
+      self.__tabcontrol = None
+      
       # the ok button for this dialog
       self.__ok_button = None
       
@@ -80,6 +84,9 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb = None
       self.__rescrape_notes_cb = None
       
+      # "api key" textbox
+      self.__api_key_tbox = None
+      
       # "advanced settings" textbox
       self.__advanced_tbox = None
       
@@ -99,7 +106,7 @@ class ConfigForm(CVForm):
       self.__ok_button = self.__build_okbutton()
       self.__cancel_button = self.__build_cancel_button()
       self.__restore_button = self.__build_restore_button()
-      tabcontrol = self.__build_tabcontrol()
+      self.__tabcontrol = self.__build_tabcontrol()
          
       # 2. -- configure this form, and add all the gui components to it
       self.AutoScaleMode = AutoScaleMode.Font
@@ -109,13 +116,13 @@ class ConfigForm(CVForm):
       self.Controls.Add(self.__ok_button)                                     
       self.Controls.Add(self.__cancel_button)                                 
       self.Controls.Add(self.__restore_button)                                
-      self.Controls.Add(tabcontrol)                             
+      self.Controls.Add(self.__tabcontrol)                             
       
       # 3. -- define the keyboard focus tab traversal ordering
       self.__ok_button.TabIndex = 0                                        
       self.__cancel_button.TabIndex = 1                                    
       self.__restore_button.TabIndex = 2
-      tabcontrol.TabIndex = 3                                 
+      self.__tabcontrol.TabIndex = 3                                 
 
       self.__fired_update_gui()  
 
@@ -168,6 +175,7 @@ class ConfigForm(CVForm):
       tabcontrol.Location = Point(10, 15)
       tabcontrol.Size = Size(395, 302)
       
+      tabcontrol.Controls.Add( self.__build_comicvinetab() )
       tabcontrol.Controls.Add( self.__build_detailstab() )
       tabcontrol.Controls.Add( self.__build_behaviourtab() )
       tabcontrol.Controls.Add( self.__build_datatab() )
@@ -175,7 +183,49 @@ class ConfigForm(CVForm):
       
       return tabcontrol
 
- 
+   
+   # ==========================================================================
+   def __build_comicvinetab(self):
+      ''' builds and returns the "ComicVine" Tab for the TabControl '''
+      
+      tabpage = TabPage()
+      tabpage.Text = i18n.get("ConfigFormComicVineTab") # coryhigh: i18n
+      tabpage.Name = "comicvine"
+      
+      # 1. --- a description label for this tabpage
+      label = Label()
+      label.UseMnemonic = False
+      label.AutoSize = False
+      label.Location = Point(34, 80)
+      label.Size = Size(315, 54)
+      label.Text = i18n.get("ConfigFormComicVineText") # coryhigh: i18n
+      
+      # 2. --- the API key text box 
+      fired_update_gui = self.__fired_update_gui
+      class ApiKeyTextBox(TextBox):
+         def OnTextChanged(self, args):
+            fired_update_gui()
+            
+      self.__api_key_tbox = ApiKeyTextBox()
+      textbox = self.__api_key_tbox
+      textbox.Location = Point(34, 135)
+      textbox.Size = Size(315, 1)
+      
+      # 3. --- add a clickable link to send the user to ComicVine
+      linklabel = LinkLabel()
+      linklabel.UseMnemonic = False
+      linklabel.AutoSize = True
+      linklabel.Location = Point(34, 170) # coryhigh: i18n
+      linklabel.Text = i18n.get("ConfigFormComicVineClickHere")
+      linklabel.LinkClicked += self.__fired_linkclicked
+      
+      # 4. --- add 'em all to this tabpage
+      tabpage.Controls.Add(label)
+      tabpage.Controls.Add(textbox)
+      tabpage.Controls.Add(linklabel)
+      
+      return tabpage
+   
    
    # ==========================================================================
    def __build_detailstab(self):
@@ -183,6 +233,7 @@ class ConfigForm(CVForm):
       
       tabpage = TabPage()
       tabpage.Text = i18n.get("ConfigFormDetailsTab")
+      tabpage.Name = "details"
       
       # 1. --- a description label for this tabpage
       label = Label()
@@ -449,6 +500,7 @@ class ConfigForm(CVForm):
       defaults = Configuration()
       defaults.load_defaults()
       self.__set_configuration(defaults) 
+      self.__switch_to_best_tab()
       dialogAnswer = self.ShowDialog() # blocks
       if dialogAnswer == DialogResult.OK:
          config = self.__get_configuration()
@@ -460,6 +512,17 @@ class ConfigForm(CVForm):
       return config
 
   
+   # ==========================================================================
+   def __switch_to_best_tab(self):
+      ''' Chooses the best tab to be displayed, and switch to it. '''
+      have_api_key = self.__api_key_tbox.Text.strip()
+      if have_api_key:
+         for tab in self.__tabcontrol.Controls.Find("details", False):
+            self.__tabcontrol.SelectedTab = tab
+      else:
+         for tab in self.__tabcontrol.Controls.Find("comicvine", False):
+            self.__tabcontrol.SelectedTab = tab
+      
       
    # ==========================================================================
    def __get_configuration(self):
@@ -513,6 +576,7 @@ class ConfigForm(CVForm):
       
       # 3. --- then get the string out of the advanced settings textbox
       config.advanced_settings_s = self.__advanced_tbox.Text
+      config.api_key_s = self.__api_key_tbox.Text.strip()
       
       return config
  
@@ -565,8 +629,9 @@ class ConfigForm(CVForm):
       self.__rescrape_tags_cb.Checked = config.rescrape_tags_b
       self.__summary_dialog_cb.Checked = config.summary_dialog_b
       
-      # 3. --- finally, set the contents in the advanced settings textbox
+      # 3. --- finally, set the contents in the textboxes
       self.__advanced_tbox.Text = config.advanced_settings_s
+      self.__api_key_tbox.Text = config.api_key_s.strip()
       
       self.__fired_update_gui()
       
@@ -576,7 +641,9 @@ class ConfigForm(CVForm):
    def __fired_restore_defaults(self, sender, args):
       ''' called when the user clicks the "restore defaults"  button '''
       
+      api_key_s = self.__api_key_tbox.Text # preserve API key
       self.__set_configuration(Configuration())
+      self.__api_key_tbox.Text = api_key_s
       log.debug("all settings were restored to their default values")
       self.__fired_update_gui()
       
@@ -594,8 +661,15 @@ class ConfigForm(CVForm):
       self.__confirm_issue_cb.Enabled = not self.__autochoose_series_cb.Checked
       self.__autochoose_series_cb.Enabled = not self.__confirm_issue_cb.Checked
       
+      # ok button is disabled if we have no API key
+      self.__ok_button.Enabled = self.__api_key_tbox.Text.strip()      
        
               
+   # ==========================================================================
+   def __fired_linkclicked(self, sender, args):
+      ''' called when the user clicks the api key linklabel '''
+      System.Diagnostics.Process.Start("http://api.comicvine.com");
+   
    # ==========================================================================
    def __fired_checkall(self, sender, args):
       ''' called when the user clicks the "select all" button '''

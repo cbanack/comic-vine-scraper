@@ -155,13 +155,13 @@ def handle_error(error):
       if type(error) == DatabaseConnectionError:  
          # if this is a DatabaseConnectionError, then it is a semi-expected 
          # error that may get a special error message
-         if error.get_error_code_s() == "100-remove-": 
+         if error.get_error_code_s() == "100": # coryhigh: i18n
             MessageBox.Show(__app_window,  # invalid api key
-               "Your api key is invalid", 
-               "Invalid API Key", MessageBoxButtons.OK, 
+               i18n.get("LogDBErrorApiKeyText").format(error.get_db_name_s()), 
+               i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
                MessageBoxIcon.Warning)
             handled = True
-         elif error.get_error_code_s() == "107":
+         elif error.get_error_code_s() == "107":  # coryhigh: i18n
             MessageBox.Show(__app_window,  # rate limit reached
                i18n.get("LogDBErrorRateText").format(error.get_db_name_s()), 
                i18n.get("LogDBErrorTitle"), MessageBoxButtons.OK, 
