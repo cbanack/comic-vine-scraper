@@ -124,8 +124,7 @@ class ScrapeEngine(object):
          log.debug()
          log.debug("-"*80)
          log.debug("CV Scraper Version:  ", Resources.SCRIPT_VERSION)
-         log.debug("Running As:          ", "Standalone Application" if 
-            Resources.STANDALONE_MODE else "ComicRack Plugin (CR version " +
+         log.debug("Running As:          ", "ComicRack Plugin (CR version " +
             self.comicrack.App.ProductVersion + ")")
          log.debug("Cache Directory:     ", Resources.LOCAL_CACHE_DIRECTORY)
          log.debug("Settings File:       ", Resources.SETTINGS_FILE)

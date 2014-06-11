@@ -87,7 +87,7 @@ def __launch(delegate):
    ''' 
    try:
       # initialize the application resources (import directories, etc)
-      Resources.initialize("StandAloneFlag" in dir(ComicRack))
+      Resources.initialize()
       
       # fire up the debug logging system
       log.install(ComicRack.MainWindow)
