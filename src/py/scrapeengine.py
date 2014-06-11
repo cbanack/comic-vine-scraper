@@ -140,17 +140,16 @@ class ScrapeEngine(object):
             #books = books[0:1]
             
             # this populates the "status" variable, and the "config" variable
-            show_summary = self.__scrape(books) 
+            self.__scrape(books) 
             
          log.debug("Scraper terminated normally (scraped {0}, skipped {1})."\
             .format(self.__status[0], self.__status[1]))
             
       except Exception, ex:
-         show_summary = False;
          log.handle_error(ex)
          
       finally:
-         if self.config.summary_dialog_b and show_summary:
+         if self.config.summary_dialog_b:
             try:
                # show the user a dialog describing what was scraped
                with FinishForm(self, self.__status) as finish_form:
@@ -164,9 +163,6 @@ class ScrapeEngine(object):
    def __scrape(self, books):
       '''
       The private implementation of the 'scrape' method.
-      
-      This method returns a boolean indicating whether or not we should show 
-      a summary dialog (if preferences allow) about what was just scraped.
       '''
       
       # initialize the status member variable, and then keep it up-to-date 
@@ -185,7 +181,7 @@ class ScrapeEngine(object):
          self.config.load_defaults()
          if not self.config.api_key_s:
             log.debug("API key still not available.  Aborting.")
-            return False # user aborted the scrape
+            return
          
       
       # 2. show the welcome form. in addition to being a friendly summary of 
@@ -198,7 +194,7 @@ class ScrapeEngine(object):
          self.config.load_defaults()
          if self.__cancelled_b:
             log.debug("Cancelled!")
-            return False # user aborted the scrape
+            return
 
       # 3. print the entire configuration to the debug stream
       log.debug(self.config)
@@ -287,8 +283,6 @@ class ScrapeEngine(object):
          self.comicrack.MainWindow.Activate() # fixes issue 159
          if comic_form: comic_form.close_threadsafe()
          
-      return True # user did not cancel the scrape; show a summary dialog
-
 
 
    # ==========================================================================
