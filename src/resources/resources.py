@@ -16,10 +16,6 @@ class Resources(object):
     resources that this app uses.  (i.e. pathnames and locations, mostly.)
     ''' 
    
-   # a boolean indicating whether we are running in standalone mode (true), or 
-   # as a ComicRack plugin (False)
-   STANDALONE_MODE = False
-   
    # the location of our scraper 'cache' files. 
    LOCAL_CACHE_DIRECTORY = None
    
@@ -51,17 +47,15 @@ class Resources(object):
 
    #==============================================================================
    @classmethod 
-   def initialize(cls, standalone):
+   def initialize(cls):
       '''
       Initialize the Resources class.  This method MUST be called exactly once
-      before you try to make use of this class in any other way.  The 
-      'standalone' argument determines whether we should configure Resources
-      for running this app standalone (True) or as a ComicRack plugin (False). 
+      before you try to make use of this class in any other way. 
       '''
       # this code runs before we have our proper error handling installed, so 
       # wrap it in a try-except block so at least we have SOME error handling
       try:
-         cls.__initialize(standalone)
+         cls.__initialize()
       except:
          print sys.exc_info()[1]
          sys.exit();   
@@ -91,43 +85,56 @@ class Resources(object):
    
    #==============================================================================
    @classmethod
-   def __initialize(cls, standalone):
-      ''' Implements the publicly accessible method of the same name. '''
-      cls.STANDALONE_MODE = standalone
+   def __initialize(cls):
 
       # get the basic locations that the other locations build on      
       script_dir = Directory.GetParent(__file__).FullName
       profile_dir = Environment.GetFolderPath(
          Environment.SpecialFolder.ApplicationData) + \
          r"\Comic Vine Scraper"
+      
+      # set the standard locations for settings files 
+      cls.SETTINGS_FILE = profile_dir + r'\settings.dat'
+      cls.ADVANCED_FILE = profile_dir + r'\advanced.dat'
+      cls.GEOMETRY_FILE = profile_dir + r'\geometry.dat'
+      cls.SERIES_FILE = profile_dir + r'\series.dat'
+      cls.LOCAL_CACHE_DIRECTORY = profile_dir + r'\localCache'
+      cls.I18N_DEFAULTS_FILE = script_dir + r"\en.zip"
+      
+      # do a special trick to things run from within the IDE,
+      # where certain files like 'en.zip' are in different locations
+      ide_i18n_file = Directory.GetParent( 
+         Directory.GetParent( script_dir).FullName ).FullName + \
+         r'\src\resources\languages\en.zip'
+      if not File.Exists(cls.I18N_DEFAULTS_FILE) \
+            and File.Exists( ide_i18n_file ):
+         cls.I18N_DEFAULTS_FILE = ide_i18n_file
+
+      # import settings from legacy location, if needed.
+      # ensure profile directory exists.
+      cls.__import_legacy_settings(script_dir, profile_dir)         
       if not File.Exists(profile_dir):
          Directory.CreateDirectory(profile_dir)
-      
-      if standalone:
-         # set the standard locations for when we are running in standalone
-         # mode (including when running directly out of the IDE) 
-         cls.SETTINGS_FILE = profile_dir + r'\settings.dat'
-         cls.ADVANCED_FILE = profile_dir + r'\advanced.dat'
-         cls.GEOMETRY_FILE = profile_dir + r'\geometry.dat'
-         cls.SERIES_FILE = profile_dir + r'\series.dat'
-         cls.I18N_DEFAULTS_FILE = script_dir + r"\en.zip"
          
-         # do a special trick to make standalone mode run from within the IDE,
-         # where certain files like 'en.zip' are in different locations
-         ide_i18n_file = Directory.GetParent( 
-            Directory.GetParent( script_dir).FullName ).FullName + \
-            r'\src\resources\languages\en.zip'
-         if not File.Exists(cls.I18N_DEFAULTS_FILE) \
-               and File.Exists( ide_i18n_file ):
-            cls.I18N_DEFAULTS_FILE = ide_i18n_file
-             
-      elif not standalone:
-         # set the standard locations for when we are running in plugin mode
-         cls.SETTINGS_FILE = script_dir + r'\settings.dat'
-         cls.ADVANCED_FILE = script_dir + r'\advanced.dat'
-         cls.GEOMETRY_FILE = script_dir + r'\geometry.dat'
-         cls.SERIES_FILE = script_dir + r'\series.dat'
-         cls.I18N_DEFAULTS_FILE = script_dir + r'\en.zip'
-         
-      # the cache directory is the same regardless of which mode we're running
-      cls.LOCAL_CACHE_DIRECTORY = profile_dir + r'\localCache'
+
+   #==============================================================================
+   @classmethod
+   def __import_legacy_settings(cls, legacy_dir, profile_dir):
+      '''
+      See if there are any legacy settings at the given legacy location, and 
+      copy them to the given profile location, if that location doesn't exist.
+      '''
+      if not Directory.Exists( profile_dir ):
+         Directory.CreateDirectory(profile_dir)
+         settings_file = legacy_dir + r'\settings.dat'
+         advanced_file = legacy_dir + r'\advanced.dat'
+         geometry_file = legacy_dir + r'\geometry.dat'
+         series_file = legacy_dir + r'\series.dat'
+         if File.Exists(settings_file):
+            File.Copy(settings_file, cls.SETTINGS_FILE, False )
+         if File.Exists(advanced_file):
+            File.Copy(advanced_file, cls.ADVANCED_FILE, False )
+         if File.Exists(geometry_file):
+            File.Copy(geometry_file, cls.GEOMETRY_FILE, False )
+         if File.Exists(series_file):
+            File.Copy(series_file, cls.SERIES_FILE, False )
