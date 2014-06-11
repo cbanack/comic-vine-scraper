@@ -207,9 +207,16 @@ class ConfigForm(CVForm):
             fired_update_gui()
             
       self.__api_key_tbox = ApiKeyTextBox()
-      textbox = self.__api_key_tbox
-      textbox.Location = Point(34, 135)
-      textbox.Size = Size(315, 1)
+      tbox = self.__api_key_tbox
+      tbox.Location = Point(34, 135)
+      tbox.Size = Size(315, 1)
+      
+      menu = ContextMenu()
+      items = menu.MenuItems
+      items.Add( MenuItem(i18n.get("TextCut"), lambda s, ea : tbox.Cut() ) )
+      items.Add( MenuItem(i18n.get("TextCopy"), lambda s, ea : tbox.Copy() ) )
+      items.Add( MenuItem(i18n.get("TextPaste"), lambda s, ea : tbox.Paste() ) )
+      tbox.ContextMenu = menu
       
       # 3. --- add a clickable link to send the user to ComicVine
       linklabel = LinkLabel()
@@ -221,7 +228,7 @@ class ConfigForm(CVForm):
       
       # 4. --- add 'em all to this tabpage
       tabpage.Controls.Add(label)
-      tabpage.Controls.Add(textbox)
+      tabpage.Controls.Add(tbox)
       tabpage.Controls.Add(linklabel)
       
       return tabpage
@@ -472,9 +479,10 @@ class ConfigForm(CVForm):
       tbox.Size = Size(355, 200)
       
       menu = ContextMenu()
-      menu.MenuItems.Add( MenuItem("Cut", lambda s, ea : tbox.Cut() ) )
-      menu.MenuItems.Add( MenuItem("Copy", lambda s, ea : tbox.Copy() ) )
-      menu.MenuItems.Add( MenuItem("Paste", lambda s, ea : tbox.Paste() ) )
+      items = menu.MenuItems
+      items.Add( MenuItem(i18n.get("TextCut"), lambda s, ea : tbox.Cut() ) )
+      items.Add( MenuItem(i18n.get("TextCopy"), lambda s, ea : tbox.Copy() ) )
+      items.Add( MenuItem(i18n.get("TextPaste"), lambda s, ea : tbox.Paste() ) )
       tbox.ContextMenu = menu
       self.__advanced_tbox = tbox
       
