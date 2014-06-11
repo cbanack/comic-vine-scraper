@@ -11,7 +11,7 @@ import utils
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import AutoScaleMode, Button, \
-    DialogResult, Keys, Label, TextBox
+    DialogResult, Keys, Label, TextBox, ContextMenu, MenuItem
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Point, Size
@@ -197,13 +197,21 @@ class SearchForm(CVForm):
          def OnTextChanged(self, args):
             searchbutton.Enabled = bool(self.Text.strip())
             
-      textbox = SearchTextBox()
-      textbox.Location = Point(10, 135 if self.__fail_label_is_visible else 35)
-      textbox.Size = Size(415, 1)
+      tbox = SearchTextBox()
+      tbox.Location = Point(10, 135 if self.__fail_label_is_visible else 35)
+      tbox.Size = Size(415, 1)
       if initial_text_s:
-         textbox.Text = initial_text_s
-      textbox.SelectAll()
-      return textbox
+         tbox.Text = initial_text_s
+      tbox.SelectAll()
+      
+      menu = ContextMenu()
+      items = menu.MenuItems
+      # coryhigh: i18n x 3
+      items.Add( MenuItem(i18n.get("TextCut"), lambda s, ea : tbox.Cut() ) )
+      items.Add( MenuItem(i18n.get("TextCopy"), lambda s, ea : tbox.Copy() ) )
+      items.Add( MenuItem(i18n.get("TextPaste"), lambda s, ea : tbox.Paste() ) )
+      tbox.ContextMenu = menu
+      return tbox
 
 
 
