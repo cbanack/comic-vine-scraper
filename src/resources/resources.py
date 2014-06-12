@@ -124,7 +124,7 @@ class Resources(object):
       See if there are any legacy settings at the given legacy location, and 
       copy them to the given profile location, if that location doesn't exist.
       '''
-      if not Directory.Exists( profile_dir ):
+      if not File.Exists( cls.SETTINGS_FILE ):
          Directory.CreateDirectory(profile_dir)
          settings_file = legacy_dir + r'\settings.dat'
          advanced_file = legacy_dir + r'\advanced.dat'
