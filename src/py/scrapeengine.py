@@ -30,7 +30,8 @@ from System.Windows.Forms import Application, MessageBox, \
 
 clr.AddReference('System')
 from System.IO import Path
-from System import GC
+from System import GC, DateTime
+from System.Threading import Thread, ThreadStart
     
 # =============================================================================
 class ScrapeEngine(object):
@@ -95,17 +96,16 @@ class ScrapeEngine(object):
       This method cancels the ScrapeEngine's current scrape operation, 
       and causes the main processing loop to exit on the next iteration;
       all ComicBooks that haven't yet been scraped will be skipped.
-      
-      This method is thread safe.
       '''
       
       if not self.__cancelled_b:
+         # do this on calling thread, even if its not the mainwindow UI
+         # thread, cause that thread could be blocked by SCRAPE_DELAY
+         self.__cancelled_b = True; 
          def delegate(): 
-            if not self.__cancelled_b:
-               self.__cancelled_b = True;
-               for cancel_listener in self.cancel_listeners:
-                  cancel_listener()
-      utils.invoke(self.comicrack.MainWindow, delegate, False)
+            for cancel_listener in self.cancel_listeners:
+               cancel_listener()
+         utils.invoke(self.comicrack.MainWindow, delegate, False)
 
 
 
@@ -200,8 +200,7 @@ class ScrapeEngine(object):
       log.debug()
       
       # 4. fire up our database connection
-      db.initialize(**{'cv_apikey':self.config.api_key_s,
-                       'cv_delay':self.config.scrape_delay_n}) 
+      db.initialize(**{'cv_apikey':self.config.api_key_s}) 
       
       # 5. sort the ComicBooks in the order that we're gonna loop them in
       #    (sort AFTER config is loaded cause config affects the sort!)
@@ -224,8 +223,15 @@ class ScrapeEngine(object):
          while i < len(books):
             if self.__cancelled_b: break
             book = books[i]
+            
+            # 7a. except for the first book, wait for the scrape delay to pass
+            #     after scraping each book.  user might cancel while we wait.
+            if i != 0:
+               self.__wait_until_ready()
+               if self.__cancelled_b: break
+               
 
-            # 7a. notify 'start_scrape_listeners' that we're scraping a new book
+            # 7b. notify 'start_scrape_listeners' that we're scraping a new book
             
             log.debug("======> scraping next comic book: '",
                'FILELESS ("' + book.series_s +" #"+ book.issue_num_s+ ''")"
@@ -234,7 +240,7 @@ class ScrapeEngine(object):
             for start_scrape in self.start_scrape_listeners:
                start_scrape(book, num_remaining)
 
-            # 7b. ...keep trying to scrape that book until either it is scraped,
+            # 7c. ...keep trying to scrape that book until either it is scraped,
             #     the user chooses to skip it, or the user cancels altogether.
             delayed_b = i >= orig_length
             manual_search_b = False;
@@ -815,6 +821,22 @@ class ScrapeEngine(object):
          return issue_refs
 
 
+   # =============================================================================
+   def __wait_until_ready(self):
+      '''
+      Waits until a fixed amount of time has passed since this function was 
+      last called.  Returns immediately if that much time has already passed.
+      '''
+      done_time_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds \
+         + self.config.scrape_delay_n*1000
+      now_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds
+      
+      while now_ms < done_time_ms and not self.__cancelled_b: 
+         t = Thread(ThreadStart(lambda x=0: Thread.CurrentThread.Sleep(500)))
+         t.Start()
+         t.Join()         
+         now_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds         
+         
 
 # ==========================================================================
 class ScrapedSeries(object):

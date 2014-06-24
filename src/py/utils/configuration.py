@@ -66,7 +66,7 @@ class Configuration(object):
    __DEFAULT_IGNORE_FOLDERS = False
    __DEFAULT_FORCE_SERIES_ART = False
    __DEFAULT_NOTE_SCRAPE_DATE = False
-   __DEFAULT_SCRAPE_DELAY = 2
+   __DEFAULT_SCRAPE_DELAY = 1
 
   
    #=========================================================================== 
