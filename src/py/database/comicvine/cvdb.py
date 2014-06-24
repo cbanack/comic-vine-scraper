@@ -35,11 +35,9 @@ __series_details_cache = None
 # it must be set when calling initialize.
 __api_key = ""
 
-# this value is used to throttle our query speeds
+# these values are used to throttle our query speeds
 __next_query_time_ms = 0
-
-# the amount of time to wait between queries
-__QUERY_DELAY_MS = 2000 
+__query_delay_ms = 0 
 
 
 # =============================================================================
@@ -49,9 +47,10 @@ def _initialize(**kwargs):
    You must pass in a valid Comic Vine api key as a keyword argument to this
    method, like so:    _initialize(**{'cv_apikey','my-key-here'})
    '''
-   global __series_details_cache, __api_key
+   global __series_details_cache, __api_key, __query_delay_ms
    __series_details_cache = {}
    __api_key = kwargs["cv_apikey"] if "cv_apikey" in kwargs else ""
+   __query_delay_ms = kwargs["cv_delay"]*1000 if "cv_delay" in kwargs else 2000
    
    if not __api_key: raise Exception("You must set a ComicVine API key!") 
    
@@ -752,7 +751,7 @@ def __wait_until_ready():
    Waits until a fixed amount of time has passed since this function was 
    last called.  Returns immediately if that much time has already passed.
    '''
-   global __next_query_time_ms, __QUERY_DELAY_MS 
+   global __next_query_time_ms, __query_delay_ms 
    time_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds
    wait_ms = __next_query_time_ms - time_ms
    if ( wait_ms > 0 ):
@@ -760,7 +759,7 @@ def __wait_until_ready():
       t.Start()
       t.Join()
    time_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds
-   __next_query_time_ms = time_ms + __QUERY_DELAY_MS
+   __next_query_time_ms = time_ms + __query_delay_ms
    
                        
 

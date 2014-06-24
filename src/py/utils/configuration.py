@@ -66,6 +66,7 @@ class Configuration(object):
    __DEFAULT_IGNORE_FOLDERS = False
    __DEFAULT_FORCE_SERIES_ART = False
    __DEFAULT_NOTE_SCRAPE_DATE = False
+   __DEFAULT_SCRAPE_DELAY = 2
 
   
    #=========================================================================== 
@@ -131,6 +132,7 @@ class Configuration(object):
       self.__ignore_folders_b = None # use folders w/ grouping issue into series
       self.__force_series_art_b = None # series dialog always shows series art?
       self.__note_scrape_date_b = None # put date when scraping the Notes field?
+      self.__scrape_delay_n = None # num of seconds to wait between each scrape
       self.__set_advanced_settings_s("")
       
       return self
@@ -161,6 +163,7 @@ class Configuration(object):
       self.__ignore_folders_b = c.__DEFAULT_IGNORE_FOLDERS
       self.__force_series_art_b = c.__DEFAULT_FORCE_SERIES_ART
       self.__note_scrape_date_b = c.__DEFAULT_NOTE_SCRAPE_DATE
+      self.__scrape_delay_n = c.__DEFAULT_SCRAPE_DELAY
       
       # 2. scan through the string looking at each line for advanced settings
       lines_s = [ x.strip() for x in self.__advanced_settings_s.split("\n") \
@@ -247,6 +250,11 @@ class Configuration(object):
                      len(publisher_s) <= 50 and len(imprint_s) <= 50:  
                   self.__user_imprints_sm[imprint_s] = publisher_s
          
+         # 2n. parse the "SCRAPE_DELAY=XXXX" line
+         match = re.match(pattern_s.format("SCRAPE_DELAY"), line_s)
+         if match and utils.is_number(match.group(1)):
+            self.__scrape_delay_n = \
+               min(3600, max(2, int(float(match.group(1)))))
 
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
       __set_advanced_settings_s, __set_advanced_settings_s,
@@ -303,6 +311,10 @@ class Configuration(object):
    note_scrape_date_b = property( 
       lambda self : self.__note_scrape_date_b, None, None,
       "Whether or not to include the date when scraping Notes.  Not None.")
+   
+   scrape_delay_n = property( 
+      lambda self : self.__scrape_delay_n, None, None,
+      "How long to wait (in seconds) between each scrape.  Not None.")
    
    
    #===========================================================================
@@ -614,6 +626,10 @@ class Configuration(object):
          
       if self.note_scrape_date_b != c.__DEFAULT_NOTE_SCRAPE_DATE:
          lines_sl.append("Include scrape date when scraping to Notes.\n")
+         
+      if self.scrape_delay_n != c.__DEFAULT_SCRAPE_DELAY:
+         lines_sl.append("Using scrape delay of {0} seconds.\n"\
+            .format(self.scrape_delay_n))
        
       for publisher_s in self.ignored_publishers_sl:
          lines_sl.append("Ignore all series published by '{0}'\n"\
@@ -626,6 +642,7 @@ class Configuration(object):
       for publisher_s in self.publisher_aliases_sm.keys():
          lines_sl.append("Replace publisher '{0}' with '{1}'\n"\
             .format(publisher_s, self.publisher_aliases_sm[publisher_s])) 
+      
 
             
       advanced_lines_s = "".join(lines_sl) 
