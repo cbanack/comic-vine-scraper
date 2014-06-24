@@ -16,8 +16,6 @@ import utils
 from utils import is_string, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
 import cvimprints
-from System import DateTime
-from System.Threading import Thread, ThreadStart
 
 clr.AddReference('System')
 from System.Net import WebRequest
@@ -35,10 +33,6 @@ __series_details_cache = None
 # it must be set when calling initialize.
 __api_key = ""
 
-# these values are used to throttle our query speeds
-__next_query_time_ms = 0
-__query_delay_ms = 0 
-
 
 # =============================================================================
 def _initialize(**kwargs):
@@ -47,10 +41,9 @@ def _initialize(**kwargs):
    You must pass in a valid Comic Vine api key as a keyword argument to this
    method, like so:    _initialize(**{'cv_apikey','my-key-here'})
    '''
-   global __series_details_cache, __api_key, __query_delay_ms
+   global __series_details_cache, __api_key
    __series_details_cache = {}
    __api_key = kwargs["cv_apikey"] if "cv_apikey" in kwargs else ""
-   __query_delay_ms = kwargs["cv_delay"]*1000 if "cv_delay" in kwargs else 2000
    
    if not __api_key: raise Exception("You must set a ComicVine API key!") 
    
@@ -140,8 +133,6 @@ def _check_magic_file(path_s):
 def _query_series_refs(search_terms_s, callback_function):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
-   __wait_until_ready() # throttle to keep us from going too fast
-      
    series_refs = set()
    
    # 1. clean up the search terms (to make them more palatable to comicvine
@@ -306,8 +297,6 @@ def __cleanup_search_terms(search_terms_s, alt_b):
 def _query_issue_refs(series_ref, callback_function=lambda x : False):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
-   __wait_until_ready() # throttle to keep us from going too fast
-   
    # a comicvine series key can be interpreted as an integer
    series_id_n = int(series_ref.series_key)
    cancelled_b = [False]
@@ -456,8 +445,6 @@ def _query_image( ref, lasttry = False ):
 # =============================================================================
 def _query_issue(issue_ref, slow_data):
    ''' ComicVine implementation of the identically named method in the db.py '''
-   
-   __wait_until_ready() # throttle to keep us from going too fast
    
    # interesting: can we implement a cache here?  could speed things up...
    issue = Issue(issue_ref)
@@ -743,23 +730,5 @@ def __as_list(dom):
    only element in a list if it is not.  Return [] if dom is None.
    '''  
    return dom if isinstance(dom, list) else [] if dom is None else [dom]
-
-
-# =============================================================================
-def __wait_until_ready():
-   '''
-   Waits until a fixed amount of time has passed since this function was 
-   last called.  Returns immediately if that much time has already passed.
-   '''
-   global __next_query_time_ms, __query_delay_ms 
-   time_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds
-   wait_ms = __next_query_time_ms - time_ms
-   if ( wait_ms > 0 ):
-      t = Thread(ThreadStart(lambda x=0: Thread.CurrentThread.Sleep(wait_ms)))
-      t.Start()
-      t.Join()
-   time_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds
-   __next_query_time_ms = time_ms + __query_delay_ms
-   
                        
 
