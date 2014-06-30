@@ -221,8 +221,9 @@ class ConfigForm(CVForm):
       # 3. --- add a clickable link to send the user to ComicVine
       linklabel = LinkLabel()
       linklabel.UseMnemonic = False
-      linklabel.AutoSize = True
+      linklabel.AutoSize = False
       linklabel.Location = Point(34, 170) # coryhigh: i18n
+      linklabel.Size = Size(315, 34)
       linklabel.Text = i18n.get("ConfigFormComicVineClickHere")
       linklabel.LinkClicked += self.__fired_linkclicked
       
