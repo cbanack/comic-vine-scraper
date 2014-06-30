@@ -189,7 +189,7 @@ class ConfigForm(CVForm):
       ''' builds and returns the "ComicVine" Tab for the TabControl '''
       
       tabpage = TabPage()
-      tabpage.Text = i18n.get("ConfigFormComicVineTab") # coryhigh: i18n
+      tabpage.Text = i18n.get("ConfigFormComicVineTab")
       tabpage.Name = "comicvine"
       
       # 1. --- a description label for this tabpage
@@ -198,7 +198,7 @@ class ConfigForm(CVForm):
       label.AutoSize = False
       label.Location = Point(34, 80)
       label.Size = Size(315, 54)
-      label.Text = i18n.get("ConfigFormComicVineText") # coryhigh: i18n
+      label.Text = i18n.get("ConfigFormComicVineText")
       
       # 2. --- the API key text box 
       fired_update_gui = self.__fired_update_gui
@@ -222,7 +222,7 @@ class ConfigForm(CVForm):
       linklabel = LinkLabel()
       linklabel.UseMnemonic = False
       linklabel.AutoSize = False
-      linklabel.Location = Point(34, 170) # coryhigh: i18n
+      linklabel.Location = Point(34, 170) 
       linklabel.Size = Size(315, 34)
       linklabel.Text = i18n.get("ConfigFormComicVineClickHere")
       linklabel.LinkClicked += self.__fired_linkclicked
