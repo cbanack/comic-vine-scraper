@@ -206,7 +206,6 @@ class SearchForm(CVForm):
       
       menu = ContextMenu()
       items = menu.MenuItems
-      # coryhigh: i18n x 3
       items.Add( MenuItem(i18n.get("TextCut"), lambda s, ea : tbox.Cut() ) )
       items.Add( MenuItem(i18n.get("TextCopy"), lambda s, ea : tbox.Copy() ) )
       items.Add( MenuItem(i18n.get("TextPaste"), lambda s, ea : tbox.Paste() ) )
