@@ -216,6 +216,28 @@
 "DV8 28 V2007" "DV8" "28" "2007"
 "#2 - Dv8 (2005).cbz" "Dv8" "2" "2005"
 
+# don't get confused with "4 of 5" where 'of' is in other languages
+# -- portuguese/french
+"The Filth #05 de #13" "The Filth" "5"
+"The Filth Too 5 de 10" "The Filth Too" "5"
+"The Filth Too #3de5" "The Filth Too" "3"
+# -- italian
+"Italian Comic #0002 di #13" "Italian Comic" "2"
+"Italy Too! #12 di 10" "Italy Too!" "12"
+"Italy Too! 3de5" "Italy Too!" "3"
+# -- german
+"Max #00 von 13" "Max" "0"
+"Max Too 5 von 10 (2011)" "Max Too" "5" "2011"
+"Max Too #13 von 5" "Max Too" "13"
+# -- dutch
+"The Filth #1 van 3" "The Filth" "1"
+"The Filth Too, 5 van 5" "The Filth Too" "5"
+"The Filth Too (ignore) #3 van5 (2003)" "The Filth Too" "3" "2003"
+# -- polish
+"The Witcher #2 z 15" "The Witcher" "2"
+"The Witcher 2 (noads)(2009), 5z5" "The Witcher 2" "5" "2009"
+"The Witcher 3, #3 z 6  (2003)" "The Witcher 3" "3" "2003"
+
 # some very weird, pathological cases
 "" "" ""
 "(this is a weird name).cbz" "(this is a weird name)" ""
