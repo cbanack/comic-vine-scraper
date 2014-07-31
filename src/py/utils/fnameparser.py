@@ -113,8 +113,10 @@ def __extract(name_s):
    s = re.sub(r"(?i)\b[.,]?\s*\d+\s*(p|pg|pgs|pages)\b[.,]?", "", s)
    
    # 7. if the name has things like "4 of 5", remove the " of 5" part
-   #    also, if the name has 3-6, remove the -6 part.
-   s = re.sub(r"(?i)(?<=\d)(\s*of\s*\d+)", "", s)
+   #    also, if the name has 3-6, remove the -6 part.  note that we'll
+   #    try to handle the word "of" in a few common languages, like french/
+   #    spanish (de), italian (di), german (von), dutch (van) or polish (z)
+   s = re.sub(r"(?i)(?<=\d)(\s*(of|de|di|von|van|z)\s*#*\d+)", "", s)
    s = re.sub(r"(?<=\d)(-\d+)", "", s)
 
    # 8. get an ordered list of issue number-like strings in the filename
