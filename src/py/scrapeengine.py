@@ -23,6 +23,7 @@ from comicbook import ComicBook
 import automatcher
 import dbutils
 from configform import ConfigForm
+import re
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -771,6 +772,12 @@ class ScrapeEngine(object):
             Application.DoEvents()
             return self.__cancelled_b
          log.debug("searching for series that match '", search_terms_s, "'...")
+         
+         # remove any search terms that have been explicitly ignored by user
+         terms = self.config.ignored_searchterms_sl
+         terms = '|'.join([x.strip() for x in terms if x and x.isalnum()])
+         if terms: 
+            search_terms_s=re.sub(r'(?i)\b(' +terms+ r')\b', '', search_terms_s)
          series_refs = db.query_series_refs(search_terms_s, callback)
          
       # 2. filter out any series that the user has specified

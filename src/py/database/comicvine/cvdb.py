@@ -265,7 +265,7 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = search_terms_s.replace(r'_', ' ')
    search_terms_s = search_terms_s.replace(r'-', ' ')
    search_terms_s = re.sub(r":\s+", ' ', search_terms_s)
-   search_terms_s = re.sub(r'\b(c2c|noads+|presents)\b', '', search_terms_s)
+   search_terms_s = re.sub(r'\b(c2c|ctc|noads+|presents)\b', '', search_terms_s)
    search_terms_s = re.sub(r'\b(vs\.?|versus|and|or|tbp|the|an|of|a|is)\b',
       '', search_terms_s)
    search_terms_s = re.sub(r'giantsize', r'giant size', search_terms_s)

@@ -120,6 +120,7 @@ class Configuration(object):
       self.__advanced_settings_s = None
       
       self.__ignored_publishers_sl = None # ignore publishers out of searches
+      self.__ignored_searchterms_sl = None # ignore terms when searching
       self.__publisher_aliases_sm = None # map of publisher names to new names
       self.__user_imprints_sm = None # map of publisher names to imprints
       self.__ignored_before_year_n = None # filter series started before year
@@ -151,6 +152,7 @@ class Configuration(object):
       # 1. reset to defaults
       c = Configuration
       self.__ignored_publishers_sl = set()
+      self.__ignored_searchterms_sl = set()
       self.__publisher_aliases_sm = dict()
       self.__user_imprints_sm = dict()
       self.__ignored_before_year_n = c.__DEFAULT_IGNORED_BEFORE_YEAR
@@ -175,37 +177,44 @@ class Configuration(object):
          if match: 
             self.__ignored_publishers_sl.add(match.group(1).lower().strip())
             
-         # 2b. parse the "IGNORE_BEFORE_YEAR=XXXX" line
+         # 2b. parse the "IGNORE_SEARCHTERM=XXXX" line
+         match = re.match(pattern_s.format("IGNORE_SEARCHTERM"), line_s) 
+         if match:
+            term = match.group(1).lower().strip()
+            if term and term.isalnum(): # only alphanumeric terms allowed!
+               self.__ignored_searchterms_sl.add(term)
+            
+         # 2c. parse the "IGNORE_BEFORE_YEAR=XXXX" line
          match = re.match(pattern_s.format("IGNORE_BEFORE_YEAR"), line_s)
          if match and utils.is_number(match.group(1)):
             self.__ignored_before_year_n = int(float(match.group(1)))
             
-         # 2c. parse the "IGNORE_AFTER_YEAR=XXXX" line
+         # 2d. parse the "IGNORE_AFTER_YEAR=XXXX" line
          match = re.match(pattern_s.format("IGNORE_AFTER_YEAR"), line_s)
          if match and utils.is_number(match.group(1)):
             self.__ignored_after_year_n = int(float(match.group(1)))
             
-         # 2d. parse the "NEVER_IGNORE_THRESHOLD=XXXX" line
+         # 2e. parse the "NEVER_IGNORE_THRESHOLD=XXXX" line
          match = re.match(pattern_s.format("NEVER_IGNORE_THRESHOLD"), line_s)
          if match and utils.is_number(match.group(1)):
             self.__never_ignore_threshold_n = int(float(match.group(1)))
             
-         # 2e. parse the "SCRAPE_RATING=XXXX" line
+         # 2f. parse the "SCRAPE_RATING=XXXX" line
          match = re.match(pattern_s.format("SCRAPE_RATING"), line_s)
          if match:
             self.__update_rating_b = match.group(1).strip().lower()=="true"
             
-         # 2f. parse the "SHOW_COVERS=XXXX" line
+         # 2g. parse the "SHOW_COVERS=XXXX" line
          match = re.match(pattern_s.format("SHOW_COVERS"), line_s)
          if match:
             self.__show_covers_b = match.group(1).strip().lower()=="true"
             
-         # 2g. parse the "WELCOME_DIALOG=XXXX" line
+         # 2h. parse the "WELCOME_DIALOG=XXXX" line
          match = re.match(pattern_s.format("WELCOME_DIALOG"), line_s)
          if match:
             self.__welcome_dialog_b = match.group(1).strip().lower()=="true"
             
-         # 2h. parse the "ALT_SEARCH_REGEX=XXXX" line
+         # 2i. parse the "ALT_SEARCH_REGEX=XXXX" line
          match = re.match(pattern_s.format("ALT_SEARCH_REGEX"), line_s)
          if match:
             try:
@@ -214,22 +223,22 @@ class Configuration(object):
             except:
                pass # nope, looks like it's not a parsable regex
          
-         # 2i. parse the "IGNORE_FOLDERS=XXXX" line
+         # 2j. parse the "IGNORE_FOLDERS=XXXX" line
          match = re.match(pattern_s.format("IGNORE_FOLDERS"), line_s)
          if match:
             self.__ignore_folders_b = match.group(1).strip().lower()=="true"
             
-         # 2j. parse the "FORCE_SERIES_ART=XXXX" line
+         # 2k. parse the "FORCE_SERIES_ART=XXXX" line
          match = re.match(pattern_s.format("FORCE_SERIES_ART"), line_s)
          if match:
             self.__force_series_art_b = match.group(1).strip().lower()=="true"
             
-         # 2k. parse the "NOTE_SCRAPE_DATE=XXXX" line
+         # 2l. parse the "NOTE_SCRAPE_DATE=XXXX" line
          match = re.match(pattern_s.format("NOTE_SCRAPE_DATE"), line_s)
          if match:
             self.__note_scrape_date_b = match.group(1).strip().lower()=="true"
             
-         # 2l. parse the "PUBLISHER_ALIAS=XXXX-->YYYY" line
+         # 2m. parse the "PUBLISHER_ALIAS=XXXX-->YYYY" line
          match = re.match(pattern_s.format("PUBLISHER_ALIAS"), line_s)
          if match:
             match = re.match(r"^\s*(\S.*?)\s*[-=]+>\s*(\S.*?)$", match.group(1))
@@ -239,7 +248,7 @@ class Configuration(object):
                if pub and alias and len(alias) <= 50: 
                   self.__publisher_aliases_sm[pub] = alias
                   
-         # 2m. parse the "IMPRINT=IIII-->PPPP" line
+         # 2n. parse the "IMPRINT=IIII-->PPPP" line
          match = re.match(pattern_s.format("IMPRINT"), line_s)
          if match:
             match = re.match(r"^\s*(\S.*?)\s*[-=]+>\s*(\S.*?)$", match.group(1))
@@ -250,7 +259,7 @@ class Configuration(object):
                      len(publisher_s) <= 50 and len(imprint_s) <= 50:  
                   self.__user_imprints_sm[imprint_s] = publisher_s
          
-         # 2n. parse the "SCRAPE_DELAY=XXXX" line
+         # 2o. parse the "SCRAPE_DELAY=XXXX" line
          match = re.match(pattern_s.format("SCRAPE_DELAY"), line_s)
          if match and utils.is_number(match.group(1)):
             self.__scrape_delay_n = \
@@ -263,6 +272,10 @@ class Configuration(object):
    ignored_publishers_sl = property( 
       lambda self : list(self.__ignored_publishers_sl), None, None,
       "List of publisher names to filter out of series searches. Not None.")
+   
+   ignored_searchterms_sl = property( 
+      lambda self : list(self.__ignored_searchterms_sl), None, None,
+      "List of search terms to filter out of series searches. Not None.")
    
    publisher_aliases_sm = property( 
       lambda self : dict(self.__publisher_aliases_sm), None, None,
@@ -634,6 +647,9 @@ class Configuration(object):
       for publisher_s in self.ignored_publishers_sl:
          lines_sl.append("Ignore all series published by '{0}'\n"\
             .format(publisher_s))
+         
+      for searchterm_s in self.ignored_searchterms_sl:
+         lines_sl.append("Ignore search term '{0}'\n".format(searchterm_s))
          
       for imprint_s in self.user_imprints_sm.keys():
          lines_sl.append("Treat '{0}' as an imprint of '{1}'\n"\
