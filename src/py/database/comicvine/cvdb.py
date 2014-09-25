@@ -216,8 +216,10 @@ def __query_series_refs(search_terms_s, callback_function):
                cancelled_b[0] = callback_function(
                   iteration, num_remaining_pages)
 
-               if int(dom.number_of_page_results) < 1:
-                  log.debug("WARNING: got empty results page") # issue 33
+               if not "number_of_page_results" in dom.__dict__ or \
+                     int(dom.number_of_page_results) < 1 or \
+                        not "volume" in dom.results.__dict__:
+                  log.debug("WARNING: got empty results page") # issue 33, 396
                else:
                   # 5. convert the current batch of results into SeriesRefs,
                   #    and then add them to the returned list.  Again, the dom
