@@ -5,7 +5,7 @@ related queries can be found at:  http://comicvine.com/api/documentation/
 
 All public methods in this module require you to pass in a valid ComicVine
 API key as their first argument.  Please do not use my API key!
-You can easily obtain your own key for free at: http://api.comicvine.com/
+You can easily obtain your own key for free at: http://www.comicvine.com/api
 
 @author: Cory Banack
 '''

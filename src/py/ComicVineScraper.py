@@ -17,7 +17,7 @@ Credits:
    The add-on is written and maintained by Cory Banack.  It is based on the
    the ComicVineInfo script started by wadegiles and perezmu (from the 
    ComicRack forums).  It also makes use of the following:
-       - the ComicVine API - http://api.comicvine.com/
+       - the ComicVine API - http://www.comicvine.com/api
        - xml2py.py and ipypulldom.py - http://devhawk.net/
        - the DotNetZip library - http://dotnetzip.codeplex.com/
        - MessageBoxManager - http://www.codeproject.com/
