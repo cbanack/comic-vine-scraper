@@ -82,6 +82,15 @@
 "4.2 Scratch9 (2010).cbz" "Scratch9" "4.2" "2010"
 "    4.3 Scratch9 (2010).cbz" "Scratch9" "4.3" "2010"
 
+# some series have issue numbers that look like years, which can cause problems
+"The Beano 1960.cbz" "The Beano" "1960" "" # like 2000AD, beano is hardcoded to work...
+"The Beano 1960 V2010.cbz" "The Beano" "1960" "2010"
+"The Beano #1960.cbz" "The Beano" "1960" ""
+"The Beano #1960 V2010.cbz" "The Beano" "1960" "2010"
+"Cory Story 2010.cbz" "Cory Story 2010" "" "" # ...this comic, however, is not
+"Cory Story #2010.cbz" "Cory Story" "2010" ""
+"Heavy Metal Magazine 197801 (1979).cbr" "Heavy Metal Magazine" "197801" "1979"
+"Heavy Metal Magazine #197801 (1979).cbr" "Heavy Metal Magazine" "197801" "1979"
        
 # if the word "volume" or a variant thereof appears, it should be ignored
 "Executive Assistant Iris V2 04 (2011) (Tarutaru-DCP).cbr" "Executive Assistant Iris" "4" "2011"
