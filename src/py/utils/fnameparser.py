@@ -119,7 +119,6 @@ def __extract(name_s):
    s = re.sub(r"(?i)(?<=\d)(\s*(of|de|di|von|van|z)\s*#*\d+)", "", s)
    s = re.sub(r"(?<=\d)(-\d+)", "", s)
    
-   
    # 8. iff this is one of those comic books that replaces all spaces with
    #    dashes, then strip the dashes out.  otherwise leave them in (because
    #    they might be important, like minus signs or something.)
@@ -204,10 +203,13 @@ def __extract_numbers(s):
    matches substrings like:  3, #4, 5a, 6.00, 10.0b, .5, -1.0
    '''   
    matches = list(re.finditer(r"(?u)(^|[_\s#])(-?\d*\.?\d\w*)", s))
-   # remove matches that look like years, EXCEPT on the "2000AD" series
-   is2000AD = re.match(r"(?i)\s*2000[\s\.-_]*a[\s.-_]*d.*", s) 
-   if not is2000AD: 
-      matches = [x for x in matches if not __isYear(x.group(2))]
+   # remove matches that look like years, EXCEPT on the "2000AD" series,
+   # the  "The Beano" series, and any year that starts with '#' (i.e. #1950)
+   is2000AD = re.match(r"(?i)\s*2000[\s\.-_]*a[\s.-_]*d.*", s)
+   isBeano = re.match(r"(?i)\s*the[\s\.-_]+beano[\s.-_]+#?\d{4}", s)
+   if not is2000AD and not isBeano:  
+      matches = [x for x in matches if not __isYear(x.group(2)) or
+         (x.start(2) > 0 and s[x.start(2)-1] == '#') ]
    return matches
 
   
