@@ -238,6 +238,15 @@
 "The Witcher 2 (noads)(2009), 5z5" "The Witcher 2" "5" "2009"
 "The Witcher 3, #3 z 6  (2003)" "The Witcher 3" "3" "2003"
 
+# make sure we handle filenames with dashes in them 
+"4-Conan.cbz" "Conan" "4"
+"Conan-the-Man-32.cbr" "Conan the Man" "32"
+"--Conan-the-Man-32--.cbr" "Conan the Man" "32"
+"Conan-the-Man-#-32.cbr" "Conan the Man" "-32"
+"Conan-the-Man--32.cbr" "Conan the Man" "-32"
+"Conan_the_Man_-32.cbr" "Conan the Man" "-32"
+"Conan the Man -32.cbr" "Conan the Man" "-32"
+
 # some very weird, pathological cases
 "" "" ""
 "(this is a weird name).cbz" "(this is a weird name)" ""

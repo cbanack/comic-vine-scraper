@@ -118,13 +118,20 @@ def __extract(name_s):
    #    spanish (de), italian (di), german (von), dutch (van) or polish (z)
    s = re.sub(r"(?i)(?<=\d)(\s*(of|de|di|von|van|z)\s*#*\d+)", "", s)
    s = re.sub(r"(?<=\d)(-\d+)", "", s)
-
-   # 8. get an ordered list of issue number-like strings in the filename
+   
+   
+   # 8. iff this is one of those comic books that replaces all spaces with
+   #    dashes, then strip the dashes out.  otherwise leave them in (because
+   #    they might be important, like minus signs or something.)
+   if "-" in s and " " not in s:
+      s = re.sub(r"(?<![-_# ])-", " ", s)
+      
+   # 9. get an ordered list of issue number-like strings in the filename
    #    for example:  3, #4, 5a, 6.00, 10.0b, .5, -1.0   
    #    also, remove numbers that look like years, EXCEPT on the "2000AD" series
    matches = __extract_numbers(s)
       
-   # 9. if there's multiple numbers in the filename, and it starts with 
+   # 10. if there's multiple numbers in the filename, and it starts with 
    #    something like "05. " or "12 - " we assuming these files are part of 
    #    a reading list, and we strip out that first part.
    pattern = r"^\s*\d+(\.\s+|\s*-\s*(?=\D))"
@@ -132,7 +139,7 @@ def __extract(name_s):
       s = re.sub(pattern, "", s, 1)
       matches = __extract_numbers(s)
       
-   # 10. if we parsed out some potential issue numbers, designate the LAST 
+   # 11. if we parsed out some potential issue numbers, designate the LAST 
    #    (rightmost) one as the actual issue number, and remove it from the name
    if len(matches) > 0: 
       issue_num_s = matches[-1].group(2)
@@ -147,7 +154,7 @@ def __extract(name_s):
       issue_num_s = ""
       series_s = s
 
-   # 11. contract repeating whitespace, and strip bad chars off the ends      
+   # 12. contract repeating whitespace, and strip bad chars off the ends      
    series_s = re.sub(r"\s{2,}", " ", series_s).strip(" ,-_") 
       
    return [series_s, issue_num_s, volume_year_s]
@@ -196,7 +203,7 @@ def __extract_numbers(s):
    "issue number-like" re.match objects.  For example, this method finds 
    matches substrings like:  3, #4, 5a, 6.00, 10.0b, .5, -1.0
    '''   
-   matches = list(re.finditer(r"(?u)(^|[\s#])(-?\d*\.?\d\w*)", s))
+   matches = list(re.finditer(r"(?u)(^|[_\s#])(-?\d*\.?\d\w*)", s))
    # remove matches that look like years, EXCEPT on the "2000AD" series
    is2000AD = re.match(r"(?i)\s*2000[\s\.-_]*a[\s.-_]*d.*", s) 
    if not is2000AD: 
