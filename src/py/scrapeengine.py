@@ -225,11 +225,13 @@ class ScrapeEngine(object):
             if self.__cancelled_b: break
             book = books[i]
             
-            # 7a. except for the first book, wait for the scrape delay to pass
-            #     after scraping each book.  user might cancel while we wait.
-            if i != 0:
+            # 7a. wait for the scrape delay to pass after scraping each book.  
+            #     don't do this for books that have been delayed or for the 
+            #     first book that the user scrapes.
+            delayed_b = i >= orig_length # book was delayed until the end
+            if i != 0 and not delayed_b:
                self.__wait_until_ready()
-               if self.__cancelled_b: break
+               if self.__cancelled_b: break  # user cancelled while we waited
                
 
             # 7b. notify 'start_scrape_listeners' that we're scraping a new book
@@ -243,7 +245,6 @@ class ScrapeEngine(object):
 
             # 7c. ...keep trying to scrape that book until either it is scraped,
             #     the user chooses to skip it, or the user cancels altogether.
-            delayed_b = i >= orig_length
             manual_search_b = False;
             fast_rescrape_b = self.config.fast_rescrape_b and not delayed_b
             autoscrape_b = self.config.autochoose_series_b and \
