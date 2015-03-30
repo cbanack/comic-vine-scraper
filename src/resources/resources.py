@@ -72,14 +72,18 @@ class Resources(object):
    
    #===========================================================================         
    @classmethod
-   def createArrowIcon(cls, left=True):
+   def createArrowIcon(cls, left=True, full=True):
       '''
       Obtains a brand new Image object (don't forget to Dispose() it!) that 
       displays either a left or right pointing arrow.
       '''
       dir = __file__[:-(len(__name__) + len('.py'))]
-      return Image.FromFile( dir + 'leftarrow.png') if left \
-         else Image.FromFile( dir + 'rightarrow.png') 
+      if ( full ):
+         return Image.FromFile( dir + 'fullleftarrow.png') if left \
+            else Image.FromFile( dir + 'fullrightarrow.png')
+      else: 
+         return Image.FromFile( dir + 'leftarrow.png') if left \
+            else Image.FromFile( dir + 'rightarrow.png') 
    
   
    
