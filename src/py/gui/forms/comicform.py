@@ -15,12 +15,12 @@ from cvform import CVForm
 clr.AddReference('IronPython')
 
 clr.AddReference('System')
-from System import GC
+from System import GC, Array
 from System.IO import Path
 
 clr.AddReference('System.Drawing')
-from System.Drawing import GraphicsUnit, Point, Rectangle, Size
-from System.Drawing.Imaging import ColorMatrix, ImageAttributes
+from System.Drawing import Color, GraphicsUnit, Point, Rectangle, Size
+from System.Drawing.Imaging import ColorMap, ImageAttributes
 
 from System.Threading import Monitor, Thread, ThreadStart, \
    ThreadExceptionEventHandler
@@ -335,11 +335,20 @@ class ComicForm(CVForm):
       
       # this method causes the currently displayed page to change, either
       # forward or backward, as a result of the user left-clicking on the pbox
-      
-      if self.__current_book != None and args.Button == MouseButtons.Left:
+      mouse_hovered_state = self.__pbox_panel.get_mouse_hovered_state()
+      if self.__current_book and args.Button == MouseButtons.Left \
+            and mouse_hovered_state:
+         
          # 1. calculate a new current page index, based on where use clicked
-         leftside = args.X < self.__pbox_panel.Width/2
-         self.__current_page += (-1 if leftside else 1)
+         if mouse_hovered_state == 'FL':
+            self.__current_page = 0
+         elif mouse_hovered_state == 'L':
+            self.__current_page -= 1
+         elif mouse_hovered_state == 'R':
+            self.__current_page += 1
+         elif mouse_hovered_state == 'FR':
+            self.__current_page = self.__current_page_count-1
+            
          self.__current_page = \
             min( self.__current_page_count-1, max(0, self.__current_page) )
          
@@ -382,20 +391,26 @@ class _PictureBoxPanel(Panel):
       ''' Creates a _PictureBoxPanel.  Call set_image after initialization. '''
       
       # the left and right arrow Image objects
-      self.__left_arrow = Resources.createArrowIcon(True)
-      self.__right_arrow = Resources.createArrowIcon(False)
+      self.__left_arrow = Resources.createArrowIcon(True, False)
+      self.__full_left_arrow = Resources.createArrowIcon(True, True)
+      self.__right_arrow = Resources.createArrowIcon(False, False)
+      self.__full_right_arrow = Resources.createArrowIcon(False, True)
+      
+      # the vertical line boundary between the full_left and left arrow's
+      # 'clickable columns' and the full_right and right arrow's.
+      self.__left_bound = 0;
+      self.__right_bound = 0;
 
       # the image attributes to use for drawing non-alpha blended images      
-      self.__solid_image_atts = None
+      self.__hovered_image_atts = None
       
       # the image attributes to use for drawing alpha blended images      
-      self.__alpha_image_atts = None
+      self.__normal_image_atts = None
       
-      # whether the mouse is hovered over the left side of this panel
-      self.__mouse_hovered_left = False
-      
-      # whether the mouse is hovered over right left side of this panel
-      self.__mouse_hovered_right = False
+      # a string indicating whether the mouse is hovered over the full 
+      # left ('FL'), left ('L'), right ('R'), or full right ('FR') side of 
+      # this panel, or None if the mouse isn't over the panel at all.  
+      self.__mouse_hovered_state = None
       
       # our PictureBox object, which we center and stretch as needed 
       self._picbox = None
@@ -410,11 +425,12 @@ class _PictureBoxPanel(Panel):
       '''  Builds and initializes the gui for this panel '''      
 
       # configure our image attribute objects      
-      cm = ColorMatrix()
-      cm.Matrix33 = 0.55
-      self.__solid_image_atts = ImageAttributes()
-      self.__alpha_image_atts = ImageAttributes()
-      self.__alpha_image_atts.SetColorMatrix(cm)
+      cmap = ColorMap()
+      cmap.OldColor = Color.White
+      cmap.NewColor = Color.Gainsboro
+      self.__normal_image_atts = ImageAttributes()
+      self.__normal_image_atts.SetRemapTable( Array[ColorMap]([cmap]) )
+      self.__hovered_image_atts = ImageAttributes()
       
       # build our PictureBox
       self._picbox = PictureBox()
@@ -464,7 +480,19 @@ class _PictureBoxPanel(Panel):
          self.Cursor = Cursors.Hand if comicform._can_change_page(True) or \
            comicform._can_change_page(False) else None
 
-      
+   
+   
+   # ==========================================================================
+   def get_mouse_hovered_state(self):
+      ''' 
+      Returns where the mouse is currently hovered over on this panel.  Returns
+      'FL' if it's hovered over the full_left arrow, 'L' if hovered over the 
+      left arrow, 'R' if over the right arrow, 'FR' if over the full_right
+      arrow, and None if the mouse isn't hovered over this panel at all.
+      '''
+      return self.__mouse_hovered_state;
+   
+   
    # ==========================================================================      
    def __disposed_fired(self, sender, args):
       ''' This method is called when this panel is disposed '''
@@ -474,9 +502,13 @@ class _PictureBoxPanel(Panel):
          self._picbox.Image.Dispose()                                      
       self._picbox.Image = None              
       self.__left_arrow.Dispose()
+      self.__full_left_arrow.Dispose()
       self.__right_arrow.Dispose()
+      self.__full_right_arrow.Dispose()
       self.__left_arrow = None
+      self.__full_left_arrow = None
       self.__right_arrow = None
+      self.__full_right_arrow = None
       
       
    # ==========================================================================      
@@ -501,19 +533,29 @@ class _PictureBoxPanel(Panel):
    # ==========================================================================
    def __mouse_moved(self, picbox, args):
       ''' This method is called whenever the mouse enters this panel. '''
+      
+      # update 'mouse hovered state'
+      x = args.X - (self.Width - self._picbox.Width)/2
       mouse_hov_left = args.X < self.Width/2
-      if self.__mouse_hovered_left != mouse_hov_left or \
-            self.__mouse_hovered_right == mouse_hov_left:
-         self.__mouse_hovered_left = mouse_hov_left
-         self.__mouse_hovered_right = not mouse_hov_left
+      mouse_hov_full = x < self.__left_bound if mouse_hov_left \
+         else x > self.__right_bound
+         
+      if mouse_hov_left:
+         mouse_hovered_state = 'FL' if mouse_hov_full else 'L'
+      else:
+         mouse_hovered_state = 'FR' if mouse_hov_full else 'R'
+         
+      if self.__mouse_hovered_state != mouse_hovered_state:
+         self.__mouse_hovered_state = mouse_hovered_state
          self.Refresh() # force repaint
          
    # ==========================================================================
    def __mouse_exited(self, picbox, args):
       ''' This method is called whenever the mouse leaves this panel. '''
-      if self.__mouse_hovered_left or self.__mouse_hovered_right:
-         self.__mouse_hovered_left = False
-         self.__mouse_hovered_right = False
+      
+      # update 'mouse hovered state'
+      if self.__mouse_hovered_state:
+         self.__mouse_hovered_state = None
          self.Refresh() # force repaint
           
       
@@ -525,9 +567,16 @@ class _PictureBoxPanel(Panel):
       # painted on top of it's regular graphcis.
          
       left_arrow = self.__left_arrow
+      full_left_arrow = self.__full_left_arrow
       right_arrow = self.__right_arrow
-      if left_arrow.Width != right_arrow.Width and \
-            left_arrow.Height != right_arrow.Height:
+      full_right_arrow = self.__full_right_arrow
+      
+      if left_arrow.Width != right_arrow.Width or \
+            full_left_arrow.Width != right_arrow.Width or \
+            full_right_arrow.Width != right_arrow.Width or \
+            left_arrow.Height != right_arrow.Height or \
+            full_left_arrow.Height != right_arrow.Height or \
+            full_right_arrow.Height != right_arrow.Height:
          raise Exception("arrows must be identical dimensions")
       
       # 1. compute scaled widths and heights for the arrow images
@@ -536,30 +585,57 @@ class _PictureBoxPanel(Panel):
       old_height = float(right_arrow.Height)
       scaled_height = old_height * scaled_width / old_width
        
-      # 2. compute the right location for the arrow images
+      # 2. compute the proper location for the full arrow images
       y = picbox.Height/2-scaled_height/2
       xoffset = picbox.Width * 0.01
-      leftx = xoffset
-      rightx = picbox.Width-xoffset-scaled_width
+      f_leftx = xoffset
+      f_rightx = picbox.Width-xoffset-scaled_width
+      
+      # 3. compute the proper location for the arrow images
+      leftx = f_leftx + scaled_width
+      rightx = f_rightx - scaled_width
+      
+      # 4. keep track of the right edges of the left and right clickable 
+      #    column, so we'll be able to tell which icon the user clicks on. 
+      self.__left_bound = leftx
+      self.__right_bound = f_rightx
       
       if self.Parent != None:
          
-         # 3. paint each arrow if it is possible to "turn the page" in that
+         # 5. paint each arrow if it is possible to "turn the page" in that
          #    direction.   alpha-blend the inactive arrow (the one on the half
          #    of the pbox that the mouse ISN'T hovering over.)
          g = args.Graphics
-         mouse_hovered = self.__mouse_hovered_left or self.__mouse_hovered_right
-         if mouse_hovered and self.Parent._can_change_page(False):
+         mouse_hovered = self.__mouse_hovered_state
+         can_go_left = self.Parent._can_change_page(False)
+         can_go_right = self.Parent._can_change_page(True)
+         
+         # 5a. draw the full left and left arrows if they are active
+         if mouse_hovered and can_go_left:
+            image_atts = self.__hovered_image_atts if mouse_hovered == 'FL' \
+               else self.__normal_image_atts 
+            dest_rect = Rectangle(f_leftx, y, scaled_width, scaled_height)
+            g.DrawImage(full_left_arrow, dest_rect, 0, 0, old_width, 
+               old_height, GraphicsUnit.Pixel, image_atts);
+               
+            image_atts = self.__hovered_image_atts if mouse_hovered == 'L' \
+               else self.__normal_image_atts 
             dest_rect = Rectangle(leftx, y, scaled_width, scaled_height)
-            image_atts = self.__solid_image_atts if self.__mouse_hovered_left\
-               else self.__alpha_image_atts 
             g.DrawImage(left_arrow, dest_rect, 0, 0, old_width, old_height,
                 GraphicsUnit.Pixel, image_atts);
-         if mouse_hovered and self.Parent._can_change_page(True):
+               
+         # 5b. draw the right and full right arrows if they are active
+         if mouse_hovered and can_go_right:
+            image_atts = self.__hovered_image_atts if mouse_hovered == 'R' \
+               else self.__normal_image_atts 
             dest_rect = Rectangle(rightx, y, scaled_width, scaled_height)  
-            image_atts = self.__solid_image_atts if self.__mouse_hovered_right\
-               else self.__alpha_image_atts 
             g.DrawImage(right_arrow, dest_rect, 0, 0, old_width, old_height,
                 GraphicsUnit.Pixel, image_atts);
+                
+            image_atts = self.__hovered_image_atts if mouse_hovered == 'FR' \
+               else self.__normal_image_atts 
+            dest_rect = Rectangle(f_rightx, y, scaled_width, scaled_height)  
+            g.DrawImage(full_right_arrow, dest_rect, 0, 0, old_width, 
+               old_height, GraphicsUnit.Pixel, image_atts);
       
 
