@@ -1,7 +1,7 @@
 ### Docs and Binaries
 
 All documentation about this project, including the latest downloads and installation instructions
-can be found on the Comic Vine Scraper [Wiki page](https://github.com/cbanack/comic-vine-scraper/wiki/Introduction).
+can be found on the Comic Vine Scraper [Wiki page](https://github.com/cbanack/comic-vine-scraper/wiki/).
 
 ### Technical Details
 
