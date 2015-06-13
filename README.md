@@ -26,8 +26,8 @@ This is an open source license, so you are welcome to create, build, and maintai
 if you have a major enhancement that  you want to add, or a wild new direction that you'd like to take 
 the project.
 
-Unless required by applicable law or agreed to in writing, software 
-distributed under this License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+    Unless required by applicable law or agreed to in writing, software 
+    distributed under this License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
