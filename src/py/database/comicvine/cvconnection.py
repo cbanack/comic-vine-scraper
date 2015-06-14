@@ -111,6 +111,9 @@ def _query_issue_id_dom(API_KEY, seriesid_s, issue_num_s):
       __CLIENTID + '&format=xml&field_list=name,issue_number,id,image' + \
       '&filter=volume:{0},issue_number:{1}'
    
+   # cv does not play well with leading zeros in issue nums. see issue #403.
+   issue_num_s = sstr(issue_num_s).lstrip('0').strip()
+   
    if not seriesid_s or not issue_num_s:
       raise ValueError('bad parameters')
    return __get_dom( QUERY.format(sstr(seriesid_s), 
