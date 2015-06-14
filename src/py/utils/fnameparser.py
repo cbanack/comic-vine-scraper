@@ -60,8 +60,6 @@ def extract( filename_s ):
    ''' 
    # remove the file extension, unless it's the whole filename
    name_s = Path.GetFileName(filename_s.strip())
-   if "ero" in name_s:
-      log.debug(name_s);
    last_period = name_s.rfind(r".")
    name_s = name_s if last_period <= 0 else name_s[0:last_period]
 
