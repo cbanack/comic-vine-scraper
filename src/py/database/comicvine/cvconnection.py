@@ -112,7 +112,11 @@ def _query_issue_id_dom(API_KEY, seriesid_s, issue_num_s):
       '&filter=volume:{0},issue_number:{1}'
    
    # cv does not play well with leading zeros in issue nums. see issue #403.
-   issue_num_s = sstr(issue_num_s).lstrip('0').strip()
+   issue_num_s = sstr(issue_num_s).strip()
+   if len(issue_num_s) > 0:  # fix issue 411
+      issue_num_s = issue_num_s.lstrip('0').strip()
+      issue_num_s = issue_num_s if len(issue_num_s) > 0 else '0'
+   
    
    if not seriesid_s or not issue_num_s:
       raise ValueError('bad parameters')
