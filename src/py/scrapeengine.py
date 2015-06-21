@@ -774,12 +774,8 @@ class ScrapeEngine(object):
             return self.__cancelled_b
          log.debug("searching for series that match '", search_terms_s, "'...")
          
-         # remove any search terms that have been explicitly ignored by user
-         terms = self.config.ignored_searchterms_sl
-         terms = '|'.join([x.strip() for x in terms if x and x.isalnum()])
-         if terms: 
-            search_terms_s=re.sub(r'(?i)\b(' +terms+ r')\b', '', search_terms_s)
-         series_refs = db.query_series_refs(search_terms_s, callback)
+         series_refs = db.query_series_refs( search_terms_s,
+            self.config.ignored_searchterms_sl, callback )
          
       # 2. filter out any series that the user has specified
       filtered_refs = dbutils.filter_series_refs(series_refs,

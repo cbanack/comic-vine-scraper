@@ -71,16 +71,18 @@ def __find_best_series(book, config):
    Returns SeriesRef if a reasonable guess was found, or None if one wasn't.
    '''
    
-   # 1. obtain SeriesRefs for this book, remove some as dictated by prefs
-   series_refs = dbutils.filter_series_refs(
-         db.query_series_refs(book.series_s),
+   # 1. obtain SeriesRefs for this book, removing some as dictated by prefs
+   series_refs = db.query_series_refs( book.series_s, 
+      config.ignored_searchterms_sl )
+   series_refs = dbutils.filter_series_refs( 
+         series_refs,
          config.ignored_publishers_sl, 
          config.ignored_before_year_n,
          config.ignored_after_year_n,
          config.never_ignore_threshold_n)
 
    # 2. obtain the first, second, and third best matching SeriesRefs for the
-   #    give book, if there are any.
+   #    given book, if there are any.
    primary = None
    secondary = None 
    tertiary = None   

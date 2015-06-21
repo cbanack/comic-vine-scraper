@@ -16,6 +16,7 @@ source, and therefore may be quite slow and occassionally unreliable.
 
 import cvdb
 import utils
+import re
 
 
 # a limited-size cache for storing the results of SeriesRef searches
@@ -109,16 +110,21 @@ def check_magic_file(path_s):
    return cvdb._check_magic_file(path_s)
 
 # =============================================================================
-def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
+def query_series_refs( search_terms_s, ignored_search_terms_sl = list(), 
+                       callback_function=lambda x,y : False ):
    '''
-   This method takes a some search terms (space separated words) and uses them
-   to query the database for a comic book series objects that match those words.   
+   This method takes a some search terms (space separated words as a single
+   string) and uses them to query the database for comic book series objects 
+   that match those words.   
    
    Each matching series is encoded as a SeriesRef object; this method returns 
    a set of them.  The set may be empty if no series matches the search, or
    if the search is cancelled (see below).
    
-   You can pass in an optional callback function, which MAY be called 
+   You can pass in an optional list of 'ignored' search terms which will be
+   removed from the originally provided search terms if present. 
+   
+   You can also pass in an optional callback function, which MAY be called 
    periodically while the search is accumulating results.  This function takes 
    two arguments:
         an integer: how many matches have been found so far
@@ -128,6 +134,14 @@ def query_series_refs(search_terms_s, callback_function=lambda x,y : False):
    the search.   If this returned value is ever true, this query will
    stop immediately and return an empty set of results.
    '''
+   
+   # strip 'ignored' search terms (if any) out of the search terms string
+   ig_terms = ignored_search_terms_sl
+   if ig_terms: 
+      ig_terms = '|'.join([x.strip() for x in ig_terms if x and x.isalnum()])
+   if ig_terms: 
+      search_terms_s=re.sub(r'(?i)\b(' +ig_terms+ r')\b', '', search_terms_s)
+   
    
    # use caching here for when this method gets called repeatedly with the same
    # search term, which happens often if the user is jumping back and forth 
