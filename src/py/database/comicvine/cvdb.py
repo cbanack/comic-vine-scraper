@@ -459,11 +459,27 @@ def _query_issue(issue_ref, slow_data):
    __issue_parse_summary(issue, dom)
    __issue_parse_roles(issue, dom)
    
-   if slow_data:
+   
+   #    the commented code below once scraped additional cover images and 
+   #    the community rating from Comic Vine directly. it did this by reading 
+   #    in the contents of an html page on the Comic Vine website, rather
+   #    than using part of the Comic Vine API.   This is against Comic 
+   #    Vine's acceptable use policy (see issue 421, 
+   #        https://github.com/cbanack/comic-vine-scraper/issues/421 )
+   #
+   #    I have removed this code to address this issue, but if Comic Vine
+   #    ever gives us the option to access additional cover art or community
+   #    ratings directly, the code below could be rewritten to get those details
+   #    again, and then the features that rely on it will start using that data
+   #    and working as they used to (the features affected are:  scraping
+   #    community rating, auto-identification of comic series, and searching
+   #    for additional covers for a particular issue.) 
+   
+   #if slow_data:
       # grab extra cover images and a community rating score
-      page = cvconnection._query_issue_details_page(
-                __api_key, sstr(issue_ref.issue_key))
-      __issue_scrape_extra_details( issue, page )
+   #   page = cvconnection._query_issue_details_page(
+   #             __api_key, sstr(issue_ref.issue_key))
+   #   __issue_scrape_extra_details( issue, page )
    
    return issue
 

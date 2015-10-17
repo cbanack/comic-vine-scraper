@@ -144,31 +144,6 @@ def _query_issue_details_dom(API_KEY, issueid_s):
    return __get_dom(url)
 
 
-
-# =============================================================================
-def _query_issue_details_page(API_KEY, issueid_s):
-   '''
-   Performs a query that will obtain the the ComicVine website details for the
-   given issue.  The details are returned in the form of an html string (a 
-   page) that can be scraped for info.
-   
-   Never returns null, but may throw exceptions if there are problems.
-   '''
-   
-   # {0} is the issue ID 
-   QUERY = 'http://www.comicvine.com/issue/4000-{0}/' 
-      
-   if issueid_s is None or issueid_s == '':
-      return None
-   url = QUERY.format(sstr(issueid_s))
-   retval = __get_page(url)
-   if retval:
-      return retval
-   else:
-      raise DatabaseConnectionError('comicvine', url, 
-         Exception('comicvine website returned an empty document'))
-
-
 # =============================================================================
 def __get_dom(url, lasttry=False):
    ''' 
