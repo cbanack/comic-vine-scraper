@@ -6,7 +6,7 @@ The [latest release](https://github.com/cbanack/comic-vine-scraper/wiki/Download
 
 The code here provides a solid example of how to properly use the [Comic Vine API](http://api.comicvine.com/), should you happen to want to create your own project that does that.   Also, if you are a relatively experienced python developer and you're interested in taking over Comic Vine Scraper, please feel free create your own fork and keep this project alive.
 
-For those of you who've used and supported Comic Vine Scraper over the last 7 years, you have my sincere thanks for all your efforts and support.  It's been a blast!
+For those of you who've used and supported Comic Vine Scraper over the last 7 years, you have my sincere thanks for all your efforts and kind words.  It's been a blast!
 
 -Cory
 
