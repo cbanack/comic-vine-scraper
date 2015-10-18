@@ -1,6 +1,6 @@
 ## Current Status
 
-Unfortunately, due to some essentially unfixable issues related to using the Comic Vine API (see [here](http://www.comicvine.com/forums/api-developers-2334/am-i-blocked-1714639/?page=1#js-message-15563948) and [here](https://github.com/cbanack/comic-vine-scraper/issues/421)) **I am no longer actively developing the Comic Vine Scraper project.**
+Due to some essentially unfixable issues related to using the Comic Vine API (see [here](http://www.comicvine.com/forums/api-developers-2334/am-i-blocked-1714639/?page=1#js-message-15563948) and [here](https://github.com/cbanack/comic-vine-scraper/issues/421)) **I am no longer actively developing the Comic Vine Scraper project.**
 
 The [latest release](https://github.com/cbanack/comic-vine-scraper/wiki/Download-and-Installation) of this app is functional as of Oct 17, 2015, and may well remain usable for quite some time.
 
