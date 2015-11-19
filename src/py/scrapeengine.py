@@ -89,8 +89,8 @@ class ScrapeEngine(object):
       # help present better sorted choices to the user in the future.
       self.__matchscore = MatchScore()
 
-	  
-	  
+
+
    # ==========================================================================
    def cancel(self):
       '''
