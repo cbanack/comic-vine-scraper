@@ -60,7 +60,7 @@ def cvs_config():
 
 # ============================================================================      
 # The is a plugin hook to attach this method to ComicRack.  Don't change!
-#@Image        comicvinescraper.png
+#@Image        comicvinescraperx32.png
 #@Key          comic-vine-scraper
 #@Hook         Books, Editor
 # ============================================================================      

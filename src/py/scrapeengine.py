@@ -325,10 +325,10 @@ class ScrapeEngine(object):
        
        AUTOMATIC SCRAPING
        
-       Iff 'fast_rescrape_b' is set to true, this method will attempt to find 
+       If 'fast_rescrape_b' is set to true, this method will attempt to find 
        and use any database key that was written to the book during a previous
-       scrape.  Else iff 'autoscrape_b' is true, this method attempts a search
-       algorithm on the database, again to obtain the key.  Iff either attempt
+       scrape.  Else if 'autoscrape_b' is true, this method attempts a search
+       algorithm on the database, again to obtain the key.  If either attempt
        succeeds, the key allows us to instantly identify a comic, thus skipping
        everything after step 1.  If no key is available, just fall back to
        the user-interactive method of identifying the comic (step 2+).
@@ -890,7 +890,7 @@ class BookStatus(object):
    #===========================================================================         
    def equals(self, id):
       ''' 
-      Returns True iff this BookStatus has the given ID (i.e. one of "SCRAPED",
+      Returns True if this BookStatus has the given ID (i.e. one of "SCRAPED",
       "UNSCRAPED", "SKIPPED", or "DELAYED").
       '''
       return self.__id == id
