@@ -28,6 +28,12 @@ from System.Threading import Thread, ThreadStart
 
 __CLIENTID = '&client=cvscraper'
 
+# comicvine.com/forums/api-developers-2334/api-rate-limiting-1746419
+# If true the scraper will assume that there are no limits on the number
+# of times the API may be contacted, but that there must be a delay
+# of at least one second between attempts to contact the API.
+__UNLIMITED = True
+	  
 # =============================================================================
 def _query_series_ids_dom(API_KEY, searchterm_s, page_n=1):
    ''' 
@@ -217,6 +223,9 @@ def __get_page(url):
    represents an problem connecting to the Comic Vine database.
    '''
    
+   if __UNLIMITED == True:
+	  Thread.CurrentThread.Sleep(1500)
+
    try:
       return utils.get_html_string(url)
    except (WebException, IOException) as wex:
