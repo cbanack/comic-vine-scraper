@@ -1,5 +1,5 @@
 '''
-This module contain the gateway to whatever database(s) this script uses to 
+This module contains the gateway to whatever database(s) this script uses to 
 obtain information about comic books.   The exact nature of the database is 
 intentionally vague in order for the implementation of this module to stay
 modular and completely encapsulated, thus making it easy to interchange/add 
