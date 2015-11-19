@@ -17,6 +17,7 @@ from utils import sstr
 from dberrors import DatabaseConnectionError
 import utils
 import re
+import time
 
 clr.AddReference('System')
 from System.Net import WebException
@@ -27,6 +28,24 @@ clr.AddReference('IronPython')
 from System.Threading import Thread, ThreadStart
 
 __CLIENTID = '&client=cvscraper'
+
+'''
+Taken, with modifications, from https://stackoverflow.com/a/667706/645028
+'''
+def RateLimited(maxPerSecond):
+   minInterval = 1.0 / float(maxPerSecond)
+   def decorate(func):
+      lastTimeCalled = [0.0]
+      def rateLimitedFunction(*args,**kargs):
+         elapsed = time.time() - lastTimeCalled[0]
+         leftToWait = minInterval - elapsed
+         if leftToWait>0:
+            time.sleep(leftToWait)
+         ret = func(*args,**kargs)
+         lastTimeCalled[0] = time.time()
+         return ret
+      return rateLimitedFunction
+   return decorate
 
 # =============================================================================
 def _query_series_ids_dom(API_KEY, searchterm_s, page_n=1):
@@ -145,6 +164,7 @@ def _query_issue_details_dom(API_KEY, issueid_s):
 
 
 # =============================================================================
+@RateLimited(0.7)
 def __get_dom(url, lasttry=False):
    ''' 
    Obtains a parsed comicvine-formatted DOM tree from the XML at the given URL. 
