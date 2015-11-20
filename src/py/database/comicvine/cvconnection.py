@@ -33,7 +33,7 @@ __CLIENTID = '&client=cvscraper'
 __next_query_time_ms = 0
 
 # the amount of time to wait between queries
-__QUERY_DELAY_MS = 1500 
+__QUERY_DELAY_MS = 2000 
 
 # =============================================================================
 def _query_series_ids_dom(API_KEY, searchterm_s, page_n=1):
@@ -223,7 +223,7 @@ def __get_page(url):
    may be thrown.   If the exception is a DatabaseConnectionError, that 
    represents an problem connecting to the Comic Vine database.
    '''
-   __wait_until_ready() # throttle to keep use from going too fast
+   wait_until_ready() # throttle request speed to make ComicVine happy
 
    try:
       return utils.get_html_string(url)
@@ -255,7 +255,7 @@ def __strip_invalid_xml_chars(xml):
    return xml
 
 # =============================================================================
-def __wait_until_ready():
+def wait_until_ready():
    '''
    Waits until a fixed amount of time has passed since this function was 
    last called.  Returns immediately if that much time has already passed.

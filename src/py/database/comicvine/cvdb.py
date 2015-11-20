@@ -424,6 +424,7 @@ def _query_image( ref, lasttry = False ):
       response = None
       response_stream = None
       try:
+         cvconnection.wait_until_ready() # throttle our request speed 
          request = WebRequest.Create(image_url_s)
          response = request.GetResponse()
          response_stream = response.GetResponseStream()
