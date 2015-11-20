@@ -224,7 +224,7 @@ def __get_page(url):
    represents an problem connecting to the Comic Vine database.
    '''
    __wait_until_ready() # throttle to keep use from going too fast
-   log.debug('waited til: ', DateTime.Now)
+
    try:
       return utils.get_html_string(url)
    except (WebException, IOException) as wex:
