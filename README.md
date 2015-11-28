@@ -1,10 +1,10 @@
 ## Current Status
 
-Due to some essentially unfixable issues related to using the Comic Vine API (see [here](http://www.comicvine.com/forums/api-developers-2334/am-i-blocked-1714639/?page=1#js-message-15563948) and [here](https://github.com/cbanack/comic-vine-scraper/issues/421)), **I am no longer actively developing the Comic Vine Scraper project.**
+**I am no longer actively developing the Comic Vine Scraper project.**
 
-The [latest release](https://github.com/cbanack/comic-vine-scraper/wiki/Download-and-Installation) of this app is functional as of Oct 17, 2015, and may well remain usable for quite some time.
+The [latest release](https://github.com/cbanack/comic-vine-scraper/wiki/Download-and-Installation) of this app is functional as of November 2015, and may well remain usable for quite some time.  As my schedule permits, I may also continue to provide minor maintenance patches to keep things running smoothly.   I will not be adding new features, however, and I do not have time to review or maintain large pull requests.
 
-The code here provides a solid example of how to properly use the [Comic Vine API](http://api.comicvine.com/), should you happen to want to create your own project that does that.   Also, if you are a relatively experienced python developer and you're interested in taking over Comic Vine Scraper, please feel free create your own fork and keep this project alive.
+The code here provides a solid example of how to properly use the [Comic Vine API](http://api.comicvine.com/), should you happen to want to create your own project that does that.   Also, if you are a relatively experienced python developer and you're interested in taking over Comic Vine Scraper, please feel free create your own fork and run with it!
 
 For those of you who've used and supported Comic Vine Scraper over the last 7 years, you have my sincere thanks for all your efforts and kind words.  It's been a blast!
 
