@@ -33,7 +33,7 @@ __CLIENTID = '&client=cvscraper'
 __next_query_time_ms = 0
 
 # the amount of time to wait between queries
-__QUERY_DELAY_MS = 2000 
+__QUERY_DELAY_MS = 1250 
 
 # =============================================================================
 def _query_series_ids_dom(API_KEY, searchterm_s, page_n=1):
