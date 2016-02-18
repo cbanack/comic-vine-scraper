@@ -8,7 +8,7 @@ The code here provides a solid example of how to properly use the [Comic Vine AP
 
 For those of you who've used and supported Comic Vine Scraper over the last 7 years, you have my sincere thanks for all your efforts and kind words.  It's been a blast!
 
--Cory
+-Cory 
 
 ------------------------------------------------------------------------------------
 
