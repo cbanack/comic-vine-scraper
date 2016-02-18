@@ -1,11 +1,15 @@
 '''
 This module contains useful canned methods for accessing the Comic Vine
 database (API) over the Internet.  The documentation for this API and the 
-related queries can be found at:  http://comicvine.com/api/documentation/
+related queries can be found at: 
+  
+     http://comicvine.gamespot.com/api/documentation/
 
 All public methods in this module require you to pass in a valid ComicVine
 API key as their first argument.  Please do not use my API key!
-You can easily obtain your own key for free at: http://www.comicvine.com/api
+You can easily obtain your own key for free at: 
+
+     http://www.comicvine.gamespot.com/api
 
 @author: Cory Banack
 '''
@@ -48,7 +52,7 @@ def _query_series_ids_dom(API_KEY, searchterm_s, page_n=1):
    '''
    
    # {0} is the search string, {1} is the page number of the results we want
-   QUERY = 'http://comicvine.com/api/search/?api_key=' + API_KEY + \
+   QUERY = 'http://comicvine.gamespot.com/api/search/?api_key=' + API_KEY + \
       __CLIENTID + '&format=xml&limit=100&resources=volume' + \
       '&field_list=name,start_year,publisher,id,image,count_of_issues' + \
       '&query={0}'
@@ -71,7 +75,7 @@ def _query_series_details_dom(API_KEY, seriesid_s):
    This method doesn't return null, but it may throw Exceptions.
    '''
    # {0} is the series id, an integer.
-   QUERY = 'http://comicvine.com/api/volume/4050-{0}/?api_key=' \
+   QUERY = 'http://comicvine.gamespot.com/api/volume/4050-{0}/?api_key=' \
      + API_KEY + __CLIENTID + '&format=xml' \
      + '&field_list=name,start_year,publisher,image,count_of_issues,id'
       # parsing relies on 'field_list' specifying 2 or more elements!!
@@ -94,7 +98,7 @@ def _query_issue_ids_dom(API_KEY, seriesid_s, page_n=1):
    '''
    
    # {0} is the series ID, an integer     
-   QUERY = 'http://comicvine.com/api/issues/?api_key=' + API_KEY + __CLIENTID +\
+   QUERY = 'http://comicvine.gamespot.com/api/issues/?api_key=' + API_KEY + __CLIENTID +\
       '&format=xml&field_list=name,issue_number,id,image&filter=volume:{0}'
    PAGE = "" if page_n == 1 \
       else "&page={0}&offset={1}".format(page_n, (page_n-1)*100)
@@ -114,7 +118,7 @@ def _query_issue_id_dom(API_KEY, seriesid_s, issue_num_s):
    '''
    
    # {0} is the series ID, an integer, and {1} is issue number, a string     
-   QUERY = 'http://comicvine.com/api/issues/?api_key=' + API_KEY + \
+   QUERY = 'http://comicvine.gamespot.com/api/issues/?api_key=' + API_KEY + \
       __CLIENTID + '&format=xml&field_list=name,issue_number,id,image' + \
       '&filter=volume:{0},issue_number:{1}'
    
@@ -142,7 +146,7 @@ def _query_issue_details_dom(API_KEY, issueid_s):
    '''
    
    # {0} is the issue ID 
-   QUERY = 'http://comicvine.com/api/issue/4000-{0}/?api_key=' \
+   QUERY = 'http://comicvine.gamespot.com/api/issue/4000-{0}/?api_key=' \
       + API_KEY + __CLIENTID + '&format=xml'
       
    if issueid_s is None or issueid_s == '':

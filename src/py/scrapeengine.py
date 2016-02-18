@@ -821,7 +821,7 @@ class ScrapeEngine(object):
             Application.DoEvents()
             return self.__cancelled_b
          issue_refs = db.query_issue_refs(series_ref, callback)
-         log.debug("   ...found ", len(issue_refs), " issues at comicvine.com")
+         log.debug("   ...found ", len(issue_refs), " issues at comicvine.gamespot.com")
          return issue_refs
 
 
