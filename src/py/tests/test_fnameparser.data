@@ -264,6 +264,10 @@
 "Conan_the_Man_-32.cbr" "Conan the Man" "-32"
 "Conan the Man -32.cbr" "Conan the Man" "-32"
 
+# don't get confused with cover counts
+"Batman 11 (02 of 3 covers).cbr" "Batman" "11"
+"2000 AD 3003 (01 of 44 covers).cbz" "2000 AD" "3003"
+
 # some very weird, pathological cases
 "" "" ""
 "(this is a weird name).cbz" "(this is a weird name)" ""
