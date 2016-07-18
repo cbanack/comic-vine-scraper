@@ -15,6 +15,7 @@ import re
 import utils
 from utils import is_string, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
+from resources import Resources
 import cvimprints
 
 clr.AddReference('System')
@@ -426,6 +427,8 @@ def _query_image( ref, lasttry = False ):
       try:
          cvconnection.wait_until_ready() # throttle our request speed 
          request = WebRequest.Create(image_url_s)
+         request.UserAgent = "[ComicVineScraper, version " + \
+         Resources.SCRIPT_VERSION + "]"
          response = request.GetResponse()
          response_stream = response.GetResponseStream()
          retval = Image.FromStream(response_stream)
