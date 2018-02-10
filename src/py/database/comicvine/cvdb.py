@@ -632,6 +632,7 @@ def __issue_parse_summary(issue, dom):
    NBSP = re.compile('&nbsp;?')
    MULTISPACES = re.compile(' {2,}')
    STRIP_TAGS = re.compile('<.*?>')
+   LIST_OF_COVERS = re.compile('(?is)list of covers.*$')
    if is_string(dom.results.description):
       summary_s = OVERVIEW.sub('', dom.results.description)
       summary_s = PARAGRAPH.sub('\n', summary_s)
@@ -643,8 +644,8 @@ def __issue_parse_summary(issue, dom):
       summary_s = summary_s.replace(r'&quot;', '"')
       summary_s = summary_s.replace(r'&lt;', '<')
       summary_s = summary_s.replace(r'&gt;', '>')
+      summary_s = LIST_OF_COVERS.sub('', summary_s);
       issue.summary_s = summary_s.strip()
-      
       
 #===========================================================================         
 def __issue_parse_roles(issue, dom):
