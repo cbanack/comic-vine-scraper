@@ -37,7 +37,7 @@ __CLIENTID = '&client=cvscraper'
 __next_query_time_ms = 0
 
 # the amount of time to wait between queries
-__QUERY_DELAY_MS = 1250 
+__QUERY_DELAY_MS = 1100 
 
 # =============================================================================
 def _query_series_ids_dom(API_KEY, searchterm_s, page_n=1):
@@ -61,7 +61,7 @@ def _query_series_ids_dom(API_KEY, searchterm_s, page_n=1):
       
    if searchterm_s is None or searchterm_s == '' or page_n < 0:
       raise ValueError('bad parameters')
-   searchterm_s = " AND ".join( re.split(r'\s+', searchterm_s) ); # issue 349
+   searchterm_s = " ".join( re.split(r'\s+', searchterm_s) );
    return __get_dom(QUERY.format(HttpUtility.UrlPathEncode(searchterm_s))+PAGE)
 
 
