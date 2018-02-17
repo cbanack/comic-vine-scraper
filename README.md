@@ -1,6 +1,6 @@
 ## Current Status
 
-**I am maintaining the Comic Vine Scraper project, but I am no longer actively adding new features.**
+I am maintaining the Comic Vine Scraper project, but **I am no longer actively adding new features.**
 
 The [latest release](https://github.com/cbanack/comic-vine-scraper/wiki/Download-and-Installation) of this app is functional as of February 2018, and should remain usable for the foreseeable future.  As my schedule permits, I will continue to provide minor maintenance patches and bugfixes to keep things running smoothly.   I will not be adding new features, however, and I do not have time to review or maintain large pull requests.
 
