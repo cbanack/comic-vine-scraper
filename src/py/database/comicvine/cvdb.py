@@ -536,8 +536,7 @@ def __issue_parse_simple_stuff(issue, dom):
          parts = [int(x) for x in dom.results.cover_date.split('-')]
          issue.pub_year_n = parts[0] if len(parts) >= 1 else None
          issue.pub_month_n = parts[1] if len(parts) >=2 else None
-         # corylow: can we ever add this back in??
-         #issue.pub_day_n = parts[2] if len(parts) >= 3 else None
+         issue.pub_day_n = parts[2] if len(parts) >= 3 else None
       except:
          pass # got an unrecognized date format...? should be "YYYY-MM-DD"
       
