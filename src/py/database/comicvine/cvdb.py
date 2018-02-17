@@ -288,7 +288,6 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    search_terms_s = re.sub(r"'(?!s\b)", '', search_terms_s) \
       if not alt_b else re.sub(r"'", '', search_terms_s)  # see issue 327
    search_terms_s = search_terms_s.replace(r'_', ' ')
-   search_terms_s = search_terms_s.replace(r'-', ' ')
    search_terms_s = re.sub(r":\s+", ' ', search_terms_s)
    search_terms_s = re.sub(r'\b(c2c|ctc|noads+|presents)\b', '', search_terms_s)
    search_terms_s = re.sub(r'\b(versus|and|or|tbp|the|an|of|a|is)\b',
@@ -312,7 +311,7 @@ def __cleanup_search_terms(search_terms_s, alt_b):
       search_terms_s = utils.convert_number_words(search_terms_s, False)
       
    # strip out remaing punctuation except ' and ., which were handled above
-   word = re.compile(r"[\w'.]{1,}")
+   word = re.compile(r"[\w'.-]{1,}")
    search_terms_s = ' '.join(word.findall(search_terms_s))
    
    return search_terms_s
