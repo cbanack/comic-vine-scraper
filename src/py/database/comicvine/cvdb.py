@@ -84,7 +84,7 @@ def _parse_key_tag(text_s):
 # =============================================================================
 def _check_magic_file(path_s):
    ''' ComicVine implementation of the identically named method in the db.py '''
-   series_key_s = None
+   series_ref = None
    file_s = None
    try:
       # 1. get the directory to search for a cvinfo file in, or None
@@ -105,28 +105,13 @@ def _check_magic_file(path_s):
             with StreamReader(file_s, Encoding.UTF8, False) as sr:
                line = sr.ReadToEnd()
                line = line.strip() if line else line
-               match = re.match(r"^.*?\b(49|4050)-(\d{2,})\b.*$", line)
-               line = match.group(2) if match else line
-               if utils.is_number(line):
-                  series_key_s = utils.sstr(int(line))
+               series_ref = __url_to_seriesref(line)
    except:
       log.debug_exc("bad cvinfo file: " + sstr(file_s))
       
-   # 4. did we find a series key?  if so, query comicvine to build a proper
-   #    SeriesRef object for that series key.
-   series_ref = None
-   if series_key_s:
-      try:
-         dom = cvconnection._query_series_details_dom(
-            __api_key, utils.sstr(series_key_s))
-         num_results_n = int(dom.number_of_total_results)
-         series_ref =\
-            __volume_to_seriesref(dom.results) if num_results_n==1 else None
-      except:
-         log.debug_exc("error getting SeriesRef for: " + sstr(series_key_s))
-         
    if file_s and not series_ref:
       log.debug("ignoring bad cvinfo file: ", sstr(file_s))
+
    return series_ref # may be None!
 
 
@@ -140,34 +125,24 @@ def _query_series_refs(search_terms_s, callback_function):
    # databases) before our first attempt at searching with them
    search_s = __cleanup_search_terms(search_terms_s, False)
    if search_s:
-      series_refs = __query_series_refs(search_s, callback_function)
       
-      # 2. if first search failed, cleanup terms more aggressively, try again
+      # 2. first see if the search term is actually a comicvine url, from 
+      #    which we can decode the correct series that the user wants.
+      if not series_refs:
+         series_ref = __url_to_seriesref(search_terms_s)
+         if series_ref: series_refs.add(series_ref)
+      
+      # 3. if that didn't work, search comicvine directly
+      if not series_refs:
+         series_refs = __query_series_refs(search_s, callback_function)
+      
+      # 4. if that didn't work, cleanup terms more aggressively and try again
       if not series_refs:
          altsearch_s = __cleanup_search_terms(search_s, True);
          if search_terms_s and altsearch_s != search_s:
             series_refs = __query_series_refs(altsearch_s, callback_function)
             
-      # 3. if second search failed, try interpreting the search terms as 
-      #    a comicvine ID or the URL for a comicvine volume's webpage
-      if not series_refs:
-         search_terms_s = search_terms_s.strip()
-         pattern = r"(^(49-|4050-)?(?<num>\d+)$)|" + \
-            r"(^https?://.*comicvine\.com/.*/(49-|4050-)(?<num>\d+)(/.*)?$)"
-            
-         match = re.match(pattern, search_terms_s, re.I)
-         if match:
-            series_key_s = match.group("num")
-            try:
-               dom = cvconnection._query_series_details_dom(
-                  __api_key, series_key_s)
-               num_results_n = int(dom.number_of_total_results)
-               if num_results_n == 1:
-                  series_refs.add(__volume_to_seriesref(dom.results))
-            except:
-               pass # happens when the user enters an non-existent key
-      
-   return series_refs
+   return series_refs # may be empty if nothing worked
 
 
 # =============================================================================
@@ -243,6 +218,53 @@ def __volume_to_seriesref(volume):
    return SeriesRef( int(volume.id), sstr(volume.name), 
       sstr(volume.start_year).rstrip("- "), # see bug 334 
       sstr(publisher), sstr(volume.count_of_issues), __parse_image_url(volume))
+
+
+# ==========================================================================   
+def __url_to_seriesref(url_s):
+   ''' 
+   Converts a ComicVine URL into a SeriesRef.  The URL has to contain
+   a magic number of the form 4050-XXXXXXXX (a series) or 4000-XXXXXXXX
+   (an issue.)   If the given URL has a usable magic number, use it to query
+   the db and construct a SeriesRef for the series associated with that 
+   number.  Returns none if the url couldn't be converted, for any reason. 
+   '''
+   series_ref = None
+   
+   # 1. try interpreting the url as a comicvine issue (i.e. 4000-XXXXXXXX)
+   if not series_ref:
+      url_s = url_s.strip()
+      pattern=r"^.*?\b(4000)-(?<num>\d{2,})\b.*$"
+         
+      match = re.match(pattern, url_s, re.I)
+      if match:
+         issueid_s = match.group("num")
+         try:
+            dom = cvconnection._query_issue_details_dom( __api_key, issueid_s)
+            num_results_n = int(dom.number_of_total_results)
+            if num_results_n == 1:
+               # convert url into the series id for this issue
+               url_s = "4050-"+dom.results.volume.id
+         except:
+            pass # happens when the user enters an non-existent key
+
+   # 2. now try interpreting the url as a comicvine series (4050-XXXXXX) 
+   if not series_ref:
+      url_s = url_s.strip()
+      pattern=r"^.*?\b(49|4050)-(?<num>\d{2,})\b.*$"
+         
+      match = re.match(pattern, url_s, re.I)
+      if match:
+         seriesid_s = match.group("num")
+         try:
+            dom = cvconnection._query_series_details_dom(__api_key, seriesid_s)
+            num_results_n = int(dom.number_of_total_results)
+            if num_results_n == 1:
+               series_ref = __volume_to_seriesref(dom.results)
+         except:
+            pass # happens when the user enters an non-existent key
+
+   return series_ref
 
 
 # ==========================================================================   
