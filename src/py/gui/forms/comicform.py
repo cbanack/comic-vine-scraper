@@ -7,9 +7,9 @@ The module is the home of the ComicForm class.
 import clr
 import log
 import utils
+from utils import sstr
 import i18n
 from resources import Resources
-from utils import sstr
 from cvform import CVForm
 
 clr.AddReference('IronPython')

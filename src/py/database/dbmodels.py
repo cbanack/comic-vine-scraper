@@ -6,8 +6,8 @@ methods.
 @author: Cory Banack
 '''
 
-from utils import sstr
 import re
+from utils import sstr
 import utils
 
 #==============================================================================

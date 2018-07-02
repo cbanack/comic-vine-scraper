@@ -10,7 +10,7 @@ from unittest.loader import TestLoader
 from bookdata import BookData
 
 #==============================================================================
-def load_tests(loader, tests, pattern):
+def load_tests(loader, tests, pattern): #pylint: disable=W0613
    ''' Returns all of the testcases in this module as a testsuite '''
    return TestLoader().loadTestsFromTestCase(TestBookData)
 

@@ -176,3 +176,4 @@ class DBPictureBox(PictureBox):
                   
             utils.invoke(self, update_image, False) 
          self.__scheduler.submit(download_task)
+         

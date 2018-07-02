@@ -23,10 +23,10 @@ Credits:
        - MessageBoxManager - http://www.codeproject.com/
 
 =========================================================================== '''
+import re
 import clr
 import log
 import i18n
-import re
 from scrapeengine import ScrapeEngine
 from configform import ConfigForm
 from utils import sstr
@@ -40,7 +40,7 @@ clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
     MessageBoxButtons, MessageBoxIcon
 
-if False:
+if False and True:
    # this gets rid of a stubborn compiler warning
    ComicRack = None
 
@@ -94,6 +94,7 @@ def __launch(delegate):
       
       # install a handler to catch uncaught Winforms exceptions
       def exception_handler(sender, event):
+         del sender #unused
          log.handle_error(event.Exception)
       Application.ThreadException \
          += ThreadExceptionEventHandler(exception_handler)
@@ -104,7 +105,7 @@ def __launch(delegate):
       # see if we're in a valid environment
       if __validate_environment():
          delegate()
-         
+   
    except Exception, ex:
       log.handle_error(ex)
          
@@ -142,12 +143,12 @@ def __validate_environment():
    valid_environment = True
    try:
       version = re.split(r'\.', ComicRack.App.ProductVersion) 
-      def hash( major, minor, build ):
+      def vhash( major, minor, build ):
          return float(sstr(major * 5000 + minor) + "." + sstr(build)) 
       
       valid_environment = \
-         hash(int(version[0]),int(version[1]), int(version[2])) >= \
-            hash(REQUIRED_MAJOR, REQUIRED_MINOR, REQUIRED_BUILD)
+         vhash(int(version[0]), int(version[1]), int(version[2])) >= \
+            vhash(REQUIRED_MAJOR, REQUIRED_MINOR, REQUIRED_BUILD)
          
       if not valid_environment:
          log.debug("WARNING: script requires ComicRack ", REQUIRED_MAJOR, '.',
@@ -156,7 +157,7 @@ def __validate_environment():
             i18n.get("ComicRackOODTitle"), MessageBoxButtons.OK, 
             MessageBoxIcon.Warning)
          
-   except:
+   except Exception:
       log.debug_exc("WARNING: couldn't validate comicrack version")
       valid_environment = True
       

@@ -14,13 +14,13 @@ You can easily obtain your own key for free at:
 @author: Cory Banack
 '''
 
+import re
 import clr
 import log
 import xml2py
+import utils
 from utils import sstr
 from dberrors import DatabaseConnectionError
-import utils
-import re
 
 clr.AddReference('System')
 from System import DateTime
@@ -193,7 +193,7 @@ def __get_dom(url, lasttry=False):
    
    # 4. make sure the dom is valid (see bug 194)   
    if not error_occurred:
-      if not dom or not "status_code" in dom.__dict__:
+      if not dom or "status_code" not in dom.__dict__:
          if lasttry: raise DatabaseConnectionError(
             "Comic Vine", url, "empty comicvine dom: see bug 194")
          else: error_occurred = True
@@ -267,7 +267,7 @@ def wait_until_ready():
    global __next_query_time_ms, __QUERY_DELAY_MS 
    time_ms = (DateTime.Now-DateTime(1970,1,1)).TotalMilliseconds
    wait_ms = __next_query_time_ms - time_ms
-   if ( wait_ms > 0 ):
+   if wait_ms > 0:
       t = Thread(ThreadStart(lambda x=0: Thread.CurrentThread.Sleep(wait_ms)))
       t.Start()
       t.Join()

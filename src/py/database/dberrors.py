@@ -4,8 +4,8 @@ This module is home to the DatabaseConnectionError class.
 @author: Cory Banack
 '''
 
-from utils import sstr
 import re
+from utils import sstr
    
 # =============================================================================
 class DatabaseConnectionError(Exception):
@@ -25,7 +25,7 @@ class DatabaseConnectionError(Exception):
       error_code => the underlying database error code, or 0 if there isn't one
       '''
       
-      super(Exception,self).__init__(sstr(database_name_s) +
+      super(DatabaseConnectionError,self).__init__(sstr(database_name_s) +
          " database could not be reached\n"\
          "url: " + re.sub(r"api_key=[^&]*", r"api_key=...", url_s) + 
          "\nCAUSE: " + sstr(underlying).replace('\r','') ) # .NET exception
@@ -45,3 +45,4 @@ class DatabaseConnectionError(Exception):
       if there is one.  If there isn't, this value will be "0" 
       '''
       return self.__error_code_s
+      

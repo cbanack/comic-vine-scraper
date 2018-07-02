@@ -5,16 +5,16 @@ from ComicRack that we are scraping data into.
 @author: Cory Banack
 '''
 
+import re
+from time import strftime
 from dbmodels import IssueRef, SeriesRef
 from pluginbookdata import PluginBookData
-from time import strftime
+import utils
 from utils import sstr, is_number
 import clr
 import db
 import fnameparser 
 import log 
-import re
-import utils
 from bookdata import BookData
 
 clr.AddReference('System')

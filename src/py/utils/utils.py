@@ -5,11 +5,11 @@ This module contains a variety of generally useful utility methods.
 @author: Cory Banack
 '''
 
-import clr
-from time import strftime
-from resources import Resources
 import re
 import sys
+from time import strftime
+import clr
+from resources import Resources
 
 clr.AddReference('System')
 from System.IO import File, StreamReader, StreamWriter, StringWriter

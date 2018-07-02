@@ -4,9 +4,9 @@ This module contains all unittests for the fnameparser module.
 Created on Oct 26, 2011
 @author: cbanack
 '''
-import clr
 import re
 from unittest import TestCase, TestSuite
+import clr
 from fnameparser import extract
 import utils
 
@@ -15,7 +15,7 @@ from System.IO import File, StreamReader
 from System.Text import Encoding
 
 #==============================================================================
-def load_tests(loader, tests, pattern):
+def load_tests(loader, tests, pattern): #pylint: disable=W0613
    ''' Returns all of the testcases in this module as a testsuite '''
    file = __file__[:-(len(__name__) + len('.py'))] + r"\test_fnameparser.data"
    return TestSuite( [ TestFnameParser(x) for x in __load_testdata(file) ] )
@@ -74,6 +74,7 @@ class TestFnameParser(TestCase):
       try:
          actual_series, actual_issue_num, actual_year = extract(filename)
       except Exception as e:
+         # pylint: disable=W1503
          self.assertFalse(True, "Unexpected error parsing: "
              + filename + "\n" + utils.sstr(e) )
          

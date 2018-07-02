@@ -5,10 +5,10 @@ a given SeriesRef "matches" the a particular ComicBook.
 Created on Mar 3, 2012
 @author: cbanack
 '''
+import re
+import datetime
 from resources import Resources
 from utils import sstr
-import datetime
-import re
 import utils
 
 #==============================================================================
@@ -77,8 +77,8 @@ class MatchScore(object):
       #    penalized a bit, since we're rarely scraping comics from them          
       pub_s = series_ref.publisher_s.lower()
       publisherscore_n = -6 if "panini" in pub_s or "deagostina" in pub_s or \
-         "marvel italia" == pub_s or "marvel uk" == pub_s or \
-         "semic_as" == pub_s or "abril" == pub_s else 0
+         pub_s == "marvel italia" or pub_s == "marvel uk" or \
+         pub_s == "semic_as" or pub_s == "abril" else 0
          
       # 4. get the 'bookscore', which compares our book's issue number
       #    with the number of issues in the series.  a step function that 

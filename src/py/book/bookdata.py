@@ -53,7 +53,7 @@ class BookData(object):
       self.__issue_key_s = ""
       self.__series_key_s = ""
       
-      self.__updated_properties = BookData.all_properties();
+      self.__updated_properties = BookData.all_properties()
       self.dont_update("page_count_n")
       self.dont_update("path_s")
       
@@ -105,6 +105,7 @@ class BookData(object):
       page_index --> the index of the page to retrieve; a value on the range
                   [0, n-1], where n is self.page_count_n.
       '''
+      del page_index # unused
       return None
      
       
@@ -163,7 +164,7 @@ class BookData(object):
    #===========================================================================   
    def __set_title_s(self, title_s = None):
       self.__title_s = BookData.blank("title_s") \
-         if title_s is None else title_s.strip();
+         if title_s is None else title_s.strip()
       
    title_s = property( lambda self : self.__title_s, 
       __set_title_s, __set_title_s,
@@ -184,7 +185,7 @@ class BookData(object):
    #===========================================================================   
    def __set_summary_s(self, summary_s = None):
       self.__summary_s = BookData.blank("summary_s") \
-         if summary_s is None else summary_s.strip();
+         if summary_s is None else summary_s.strip()
       
    summary_s = property( lambda self : self.__summary_s,
       __set_summary_s, __set_summary_s,
@@ -270,7 +271,7 @@ class BookData(object):
    #===========================================================================   
    def __set_format_s(self, format_s = None):
       self.__format_s = BookData.blank("format_s") if format_s is None \
-         else format_s.strip();
+         else format_s.strip()
          
    format_s = property( lambda self : self.__format_s, 
       __set_format_s, __set_format_s, 
@@ -280,7 +281,7 @@ class BookData(object):
    #===========================================================================   
    def __set_imprint_s(self, imprint_s = None):
       self.__imprint_s = BookData.blank("imprint_s") \
-         if imprint_s is None else imprint_s.strip();
+         if imprint_s is None else imprint_s.strip()
       
    imprint_s = property( lambda self : self.__imprint_s, 
       __set_imprint_s, __set_imprint_s,
@@ -290,7 +291,7 @@ class BookData(object):
    #===========================================================================   
    def __set_publisher_s(self, publisher_s = None):
       self.__publisher_s = BookData.blank("publisher_s") \
-         if publisher_s is None else publisher_s.strip();
+         if publisher_s is None else publisher_s.strip()
       
    publisher_s = property( lambda self : self.__publisher_s, 
       __set_publisher_s, __set_publisher_s,
@@ -409,7 +410,7 @@ class BookData(object):
    #===========================================================================   
    def __set_webpage_s(self, webpage_s = None): 
       self.__webpage_s = BookData.blank("webpage_s") \
-         if webpage_s is None else webpage_s.strip();   
+         if webpage_s is None else webpage_s.strip()   
 
    webpage_s = property( lambda self : self.__webpage_s, 
       __set_webpage_s, __set_webpage_s, 
@@ -418,7 +419,7 @@ class BookData(object):
    #===========================================================================   
    def __set_cover_url_s(self, cover_url_s = None): 
       self.__cover_url_s = BookData.blank("cover_url_s") \
-         if cover_url_s is None else cover_url_s.strip();   
+         if cover_url_s is None else cover_url_s.strip()  
 
    cover_url_s = property( lambda self : self.__cover_url_s, 
       __set_cover_url_s, __set_cover_url_s, 
@@ -438,7 +439,7 @@ class BookData(object):
    #===========================================================================   
    def __set_notes_s(self, notes_s = None):
       self.__notes_s = BookData.blank("notes_s") \
-         if notes_s is None else notes_s.strip();
+         if notes_s is None else notes_s.strip()
       
    notes_s = property( lambda self : self.__notes_s, 
       __set_notes_s, __set_notes_s, 
@@ -449,7 +450,7 @@ class BookData(object):
    def __set_rating_n(self, rating_n = None):
       rating_n = -1 if rating_n is None else float(rating_n)
       self.__rating_n = rating_n \
-         if rating_n <= 5.0 and rating_n >= 0.0 else BookData.blank("rating_n");
+         if rating_n <= 5.0 and rating_n >= 0.0 else BookData.blank("rating_n")
 
    rating_n = property( lambda self : self.__rating_n, 
       __set_rating_n, __set_rating_n, 
@@ -459,7 +460,7 @@ class BookData(object):
    #===========================================================================   
    def __set_path_s(self, path_s = None ):
       self.__path_s = BookData.blank("path_s") \
-         if path_s is None else path_s.strip();
+         if path_s is None else path_s.strip()
 
    path_s = property( lambda self : self.__path_s, __set_path_s, 
       __set_path_s, 'The underlying path (incl. extension) for this book,' +

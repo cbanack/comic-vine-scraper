@@ -23,7 +23,8 @@ module while either of those two methods are running.
 @author: Cory Banack
 """
 
-import sys, clr
+import sys
+import clr
 import utils
 import i18n
 from dberrors import DatabaseConnectionError

@@ -14,9 +14,9 @@ source, and therefore may be quite slow and occassionally unreliable.
 @author: Cory Banack
 '''
 
+import re
 import cvdb
 import utils
-import re
 
 
 # a limited-size cache for storing the results of SeriesRef searches
@@ -49,7 +49,7 @@ def shutdown():
    this module might be holding onto.  Be sure to call this method before 
    shutting down the application, and don't use this module after shutting down!
    '''
-   global __series_ref_cache, issue_refs_cache
+   global __series_ref_cache, __issue_refs_cache
    __series_ref_cache = None
    __issue_refs_cache = None
    cvdb._shutdown()
@@ -235,3 +235,4 @@ def query_image(ref):
    to prevent memory leaks.
    '''
    return utils.strip_back_cover( cvdb._query_image(ref) )
+   

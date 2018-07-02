@@ -8,10 +8,10 @@ NOT call these functions directly.
 @author: Cory Banack
 '''
 
+import re
 import clr
 import cvconnection
 import log
-import re
 import utils
 from utils import is_string, sstr 
 from dbmodels import IssueRef, SeriesRef, Issue
@@ -192,7 +192,7 @@ def __query_series_refs(search_terms_s, callback_function):
                cancelled_b[0] = callback_function(
                   iteration, num_remaining_pages)
 
-               if not "number_of_page_results" in dom.__dict__ or \
+               if "number_of_page_results" not in dom.__dict__ or \
                      int(dom.number_of_page_results) < 1 or \
                         not "volume" in dom.results.__dict__:
                   log.debug("WARNING: got empty results page") # issue 33, 396
@@ -473,6 +473,8 @@ def _query_image( ref, lasttry = False ):
 def _query_issue(issue_ref, slow_data):
    ''' ComicVine implementation of the identically named method in the db.py '''
    
+   del slow_data; # unused 
+
    # interesting: can we implement a cache here?  could speed things up...
    issue = Issue(issue_ref)
    

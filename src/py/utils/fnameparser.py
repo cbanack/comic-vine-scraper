@@ -5,8 +5,8 @@ of comic book filenames.
 Created on Oct 23, 2011
 @author: cbanack
 '''
-import clr
 import re
+import clr
 import utils
 import log
 

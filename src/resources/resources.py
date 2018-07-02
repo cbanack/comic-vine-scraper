@@ -2,7 +2,8 @@
 This module contains the Resources class.
 '''
 
-import clr, sys;
+import sys
+import clr
 clr.AddReference('System.Drawing')
 from System.Drawing import Image
 clr.AddReference('System')
@@ -78,7 +79,7 @@ class Resources(object):
       displays either a left or right pointing arrow.
       '''
       dir = __file__[:-(len(__name__) + len('.py'))]
-      if ( full ):
+      if full:
          return Image.FromFile( dir + 'fullleftarrow.png') if left \
             else Image.FromFile( dir + 'fullrightarrow.png')
       else: 

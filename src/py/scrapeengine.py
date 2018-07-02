@@ -5,6 +5,7 @@ This module is home to the ScrapeEngine class.
 import clr
 
 import log
+import utils
 from utils import sstr, natural_key
 from resources import Resources 
 from configuration import Configuration
@@ -13,7 +14,6 @@ from seriesform import SeriesForm, SeriesFormResult
 from issueform import IssueForm, IssueFormResult
 from progressbarform import ProgressBarForm
 from searchform import SearchForm
-import utils
 import db
 from welcomeform import WelcomeForm
 from finishform import FinishForm
@@ -23,7 +23,6 @@ from comicbook import ComicBook
 import automatcher
 import dbutils
 from configform import ConfigForm
-import re
 
 clr.AddReference('System.Windows.Forms')
 from System.Windows.Forms import Application, MessageBox, \
@@ -102,7 +101,7 @@ class ScrapeEngine(object):
       if not self.__cancelled_b:
          # do this on calling thread, even if its not the mainwindow UI
          # thread, cause that thread could be blocked by SCRAPE_DELAY
-         self.__cancelled_b = True; 
+         self.__cancelled_b = True 
          def delegate(): 
             for cancel_listener in self.cancel_listeners:
                cancel_listener()
@@ -168,7 +167,7 @@ class ScrapeEngine(object):
       # initialize the status member variable, and then keep it up-to-date 
       # from now on (so that it can be used to report the status of this 
       # scrape, even if an error occurs.)
-      self.__status = [0, len(books)];
+      self.__status = [0, len(books)]
       
       # 1. load the currently saved configuration settings from disk
       self.config = Configuration()
@@ -219,7 +218,7 @@ class ScrapeEngine(object):
          # 7. start the "Main Processing Loop". 
          #    notice the list of books can get longer while we're looping,
          #    if we choose to delay processing a book until the end.
-         i = 0;
+         i = 0
          orig_length = len(books)
          while i < len(books):
             if self.__cancelled_b: break
@@ -245,7 +244,7 @@ class ScrapeEngine(object):
 
             # 7c. ...keep trying to scrape that book until either it is scraped,
             #     the user chooses to skip it, or the user cancels altogether.
-            manual_search_b = False;
+            manual_search_b = False
             fast_rescrape_b = self.config.fast_rescrape_b and not delayed_b
             autoscrape_b = self.config.autochoose_series_b and \
                 not self.config.confirm_issue_b and not delayed_b
@@ -262,22 +261,22 @@ class ScrapeEngine(object):
                   # the current (automatic or manual) search terms'.  when  
                   # that happens, force the user to choose the search terms.
                   manual_search_b = True
-                  continue;
+                  continue
                elif bookstatus.equals("SCRAPED"):
                   # book was scraped normally, all is good, update status
-                  self.__status[0] += 1;
-                  self.__status[1] -= 1;
-                  break;
+                  self.__status[0] += 1
+                  self.__status[1] -= 1
+                  break
                elif bookstatus.equals("SKIPPED"):
                   # book was skipped, status is already correct for that book
-                  break;
+                  break
                elif bookstatus.equals("DELAYED"):
                   # put this book into the end of the list, where we can try
                   # rescraping  after we've handled the ones that we can do
                   # automatically.  ignore it if it's already been delayed.
                   if not delayed_b: 
                      books.append(book)
-                  break;
+                  break
             
             # keep memory usage from getting out of control!
             GC.Collect()
@@ -377,7 +376,7 @@ class ScrapeEngine(object):
       issue_ref = book.issue_ref
       if issue_ref and fast_rescrape_b:
          log.debug("rescraping details in book identified its issue as: '",
-            sstr(issue_ref), "'");
+            sstr(issue_ref), "'")
          try:
             issue = db.query_issue(issue_ref, self.config.update_rating_b)
             book.update(issue)
@@ -444,7 +443,7 @@ class ScrapeEngine(object):
          search_terms_s = book.series_s
          if manual_search_b or not search_terms_s:
             # show dialog asking the user for the right search terms
-            log.debug('asking user for series search terms...');
+            log.debug('asking user for series search terms...')
             with SearchForm(self, search_terms_s, 
                   prev_status.get_failed_search_terms_s() ) as search_form:
                search_form_result = search_form.show_form() # blocks
@@ -675,7 +674,7 @@ class ScrapeEngine(object):
       This method returns a IssueFormResult object (from the IssueForm). 
       '''
 
-      result = None;  # the return value; must start out null
+      result = None  # the return value; must start out null
       
       series_name_s = series_ref.series_name_s
       issue_num_s = '' if not book.issue_num_s else book.issue_num_s
@@ -877,7 +876,7 @@ class BookStatus(object):
             
       if id != "SCRAPED" and id != "SKIPPED" and \
             id != "UNSCRAPED" and id != "DELAYED":
-         raise Exception();
+         raise Exception()
       
       self.__id = id
       self.__failed_search_terms_s = failed_search_terms_s \

@@ -83,6 +83,7 @@ def xml2py(nodelist):
       return node.value
     
    elif node.nodeType == XmlNodeType.Element:
+
       #create a new object type named for the element name
       cur = xtype(node)()
       cur._nodetype = XmlNodeType.Element

@@ -5,14 +5,14 @@ ComicRack's plugin api.
 
 @author: Cory Banack
 '''
+import re
 from System import DateTime
 from bookdata import BookData
+import utils
 from utils import sstr
 import clr
 import db
 import log
-import re
-import utils
 
 clr.AddReference('System')
 
@@ -32,7 +32,7 @@ class PluginBookData(BookData):
       'comicrack' is a reference to the ComicRack App object. 
       '''
       super(PluginBookData, self).__init__();
-      if not ("ComicBook" in utils.sstr(type(crbook))): 
+      if not "ComicBook" in utils.sstr(type(crbook)): 
          raise Exception("invalid backing ComicBook")
       
       # a quick function to make splitting ComicRack comicbook fields easier 

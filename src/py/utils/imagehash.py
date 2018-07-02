@@ -70,22 +70,22 @@ def __perceptual_hash(image):
       with Bitmap(SIZE,SIZE, PixelFormat.Format64bppArgb ) as small_image:
          with Graphics.FromImage(small_image) as g:
             
-               # draw image in greyscale in a tiny square
-               # see: https://www.memonic.com/user/aengus/folder/coding/id/1qVeq
-               g.CompositingQuality = CompositingQuality.HighQuality
-               g.SmoothingMode = SmoothingMode.HighQuality
-               g.InterpolationMode = InterpolationMode.HighQualityBicubic
-               g.DrawImage(image, Rectangle(0,0,SIZE,SIZE), 0, 0,
-                  image.Width, image.Height, GraphicsUnit.Pixel, attr)
+            # draw image in greyscale in a tiny square
+            # see: https://www.memonic.com/user/aengus/folder/coding/id/1qVeq
+            g.CompositingQuality = CompositingQuality.HighQuality
+            g.SmoothingMode = SmoothingMode.HighQuality
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic
+            g.DrawImage(image, Rectangle(0,0,SIZE,SIZE), 0, 0,
+               image.Width, image.Height, GraphicsUnit.Pixel, attr)
                
-               # convert image pixels into bits, where 1 means pixel is greater
-               # than image average, and 0 means pixel is less than average.
-               # return bits as a single long value
-               pixels = [small_image.GetPixel(x,y).R 
-                         for x in range(SIZE) for y in range(SIZE)];
-               average = reduce(lambda x,y: x+y, pixels) / float(len(pixels))
-               bits = map(lambda x: 1 if x > average else 0, pixels ) 
-               return reduce(lambda x, (i, val): x|(val<<i), enumerate(bits), 0)
+            # convert image pixels into bits, where 1 means pixel is greater
+            # than image average, and 0 means pixel is less than average.
+            # return bits as a single long value
+            pixels = [small_image.GetPixel(x,y).R 
+                      for x in range(SIZE) for y in range(SIZE)];
+            average = reduce(lambda x,y: x+y, pixels) / float(len(pixels))
+            bits = map(lambda x: 1 if x > average else 0, pixels ) 
+            return reduce(lambda x, (i, val): x|(val<<i), enumerate(bits), 0)
          
    else:
       return long(0);

@@ -53,7 +53,7 @@ def parse(xml):
          xr.MoveToContent()
          node = XmlNode(xr)
          yield node
-         if (xr.IsEmptyElement):
+         if xr.IsEmptyElement:
             node.nodeType = XmlNodeType.EndElement
             del node.attributes
             yield node
@@ -62,4 +62,5 @@ def parseString(xml):
    return parse(StringReader(xml))
 
 if __name__ == "__main__":
-   nodes = parse('http://feeds.feedburner.com/Devhawk')      
+   nodes = parse('http://feeds.feedburner.com/Devhawk')   
+   

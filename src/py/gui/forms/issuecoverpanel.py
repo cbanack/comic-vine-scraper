@@ -7,10 +7,10 @@ import clr
 from dbmodels import IssueRef, SeriesRef
 from dbpicturebox import DBPictureBox
 from scheduler import Scheduler
+import utils
 from utils import sstr
 import db
 import i18n
-import utils
 
 clr.AddReference('System.Drawing')
 from System.Drawing import ContentAlignment, Font, FontStyle, Point, Size

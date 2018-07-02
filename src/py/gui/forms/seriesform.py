@@ -151,7 +151,6 @@ class SeriesForm(CVForm):
       table.AllowUserToResizeRows = False
       table.AllowUserToResizeColumns = False
       table.DefaultCellStyle.NullValue = "--"
-      table.AutoResizeColumns
 
       table.Location = Point(10, 60)
       table.Size = Size(500, 290) \

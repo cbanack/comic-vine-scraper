@@ -4,10 +4,10 @@ This module contoins the Configuration object.
 @author: Cory Banack
 '''
 
+import re
 import clr
 from resources import Resources
 from utils import persist_map, load_map, persist_string, load_string
-import re
 import utils
 
 clr.AddReference('System')
@@ -666,4 +666,5 @@ class Configuration(object):
          retval += "\n" + advanced_lines_s + \
          "-------------------------------------------------------------------"
    
-      return retval   
+      return retval
+  

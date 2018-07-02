@@ -6,11 +6,11 @@ This module is home to the IssuesForm and IssuesFormResult classes.
 
 import clr
 import i18n
+import utils
 from utils import sstr
 from buttondgv import ButtonDataGridView
 from issuecoverpanel import IssueCoverPanel
 from cvform import CVForm
-import utils
 
 clr.AddReference('Microsoft.VisualBasic')
 from System.ComponentModel import ListSortDirection
@@ -149,7 +149,6 @@ class IssueForm(CVForm):
       table.AllowUserToResizeRows = False
       table.AllowUserToResizeColumns = False
       table.DefaultCellStyle.NullValue = "--"
-      table.AutoResizeColumns
       if self.__config.show_covers_b:
          table.Size = Size(500, 290)
          table.Location = Point(218, 60)

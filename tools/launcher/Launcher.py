@@ -18,13 +18,15 @@ from System.Windows.Forms import Form
 # add a reference to a directory containing mockups of key comic rack dlls 
 sys.path.append( os.path.dirname(os.path.dirname(__file__))+r"\comicrack")
 
+# pylint:disable=W0232,C1001
 #==============================================================================
-class ComicRack(object):
+class ComicRack(object):  
+
    ''' A static class that emulates the real ComicRack object. '''
    class AppImpl:
       ProductVersion = '999.999.99999'
       def GetComicPage(self, arg1, arg2):
-            return None
+         return None
       def SetCustomBookThumbnail(self, book, bitmap):
          return True
    
@@ -52,13 +54,13 @@ ComicVineScraper.ComicRack = ComicRack
 
 # 2. now go ahead and start the ComicVineScraper plugin.
 if len(sys.argv) == 2:
-      # note that this doesn't work (for highly mysterious reasons) if you
-      # change the project source character encoding to anything other 
-      # than US-ASCII 
-      f = open(sys.argv[1], "r")
-      books = cPickle.load(f)
-      ComicVineScraper.cvs_scrape(books)  
+   # note that this doesn't work (for highly mysterious reasons) if you
+   # change the project source character encoding to anything other 
+   # than US-ASCII 
+   f = open(sys.argv[1], "r")
+   books = cPickle.load(f)
+   ComicVineScraper.cvs_scrape(books)  
 else:
-      print "Usage: this script takes a single file as an argument."
+   print "Usage: this script takes a single file as an argument."
       
       
