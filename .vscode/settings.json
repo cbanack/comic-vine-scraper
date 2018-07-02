@@ -1,0 +1,24 @@
+{
+     
+   // these next two should be on the path already, so we
+   // shouldn't need to specify them explicitly.   Run:
+     
+   //"python.pythonPath": "K:/Paths/py2/python.exe",
+   //"python.linting.pylintPath": "K:/Paths/py2/Scripts/pylint.exe",
+     
+   // turn linting on and specify location of pylintrc file
+   "python.linting.enabled": true,
+   "python.linting.pylintArgs": ["--rcfile=${workspaceFolder}/tools/vscode/pylintrc"],
+ 
+   // Code Outline module:  which elements to show in outline
+   "symbolOutline.topLevel": [
+      "Class",
+      //"Module",
+      //"*",
+      "Constant",
+      "Interface",
+      "Constructor",
+      "Function",
+      "Method"
+  ]
+}

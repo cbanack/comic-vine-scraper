@@ -1,0 +1,41 @@
+[MASTER]
+
+# I used spacing in multiples of 3 for this project
+indent-string='   ' 
+
+# Disable the following pylint checks, mainly because
+# I didn't use pylint to write this project, and I don't
+# have time to clean up all the linting errors.
+disable=
+   import-error,  # otherwise IronPython assembly imports shows errors!
+
+   C0103, # constant name doesn't conform to UPPER_CASE
+   C0111, # missing function docstring
+   C0121, # comparision to None should use 'is'
+   C0123, # using type() instead of isinstance for a typecheck
+   C0200, # consider using enumerate instead of iterating range
+   C0303, # trailing whitespace not allowed
+   C0305, # trailing newline not allowed
+   C0321, # more than one statement on a single line
+   C0326, # spacing inside brackets, assignments, etc
+   C0330, # wrong continued indentation
+   C0412, # imports from a package are not grouped
+   C0413, # import should be placed at top of module
+   C1801, # don't use len(SEQUENCE)==0, just use 'SEQUENCE'
+   W0102, # dangerous default value
+   W0110, # map/filter on lambda could be replaced by comprehension
+   W0201, # attribute defined outside __init__
+   W0212, # access to protected member
+   W0221, # parameters different from overriden method
+   W0301, # unnecessary semi-colon
+   W0603, # using 'global' statement
+   W0613, # unused argument 
+   W0621, # redefining name from outer scope
+   W0622, # redefining built-in      
+   W0702, # catch where no exception type specified
+   W0703, # catching too general an exception
+   W1401, # anomalous backslash in (regex) string. 
+
+   E0101, # explicit return in __init__
+   E1101, # missing member in subclass?
+   E1120, # missing value in constructor call?
