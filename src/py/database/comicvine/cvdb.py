@@ -282,25 +282,8 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    '''
    # all of the symbols below cause inconsistency in title searches
    search_terms_s = search_terms_s.lower()
-   search_terms_s = search_terms_s.replace(r'`', '')
-   search_terms_s = search_terms_s = re.sub(r'(?<!\d)\.(?!\d)', 
-      '', search_terms_s) # delete . in "b.a.t", not in "2.0", see issue 337
-   search_terms_s = re.sub(r"'(?!s\b)", '', search_terms_s) \
-      if not alt_b else re.sub(r"'", '', search_terms_s)  # see issue 327
-   search_terms_s = search_terms_s.replace(r'_', ' ')
-   search_terms_s = re.sub(r":\s+", ' ', search_terms_s)
-   search_terms_s = re.sub(r'\b(c2c|ctc|noads+|presents)\b', '', search_terms_s)
-   search_terms_s = re.sub(r'\b(versus|and|or|tbp|the|an|of|a|is)\b',
-      '', search_terms_s)
-   search_terms_s = re.sub(r'giantsize', r'giant size', search_terms_s)
-   search_terms_s = re.sub(r'giant[- ]*sized', r'giant size', search_terms_s)
-   search_terms_s = re.sub(r'kingsize', r'king size', search_terms_s)
-   search_terms_s = re.sub(r'king[- ]*sized', r'king size', search_terms_s)
-   search_terms_s = re.sub(r"\bvolume\b", r"\bvol\b", search_terms_s)
-   search_terms_s = re.sub(r"\bvol\.\b", r"\bvol\b", search_terms_s)
-   
-   # here's a few comics that often get their names slightly wrong
-   search_terms_s = re.sub(r"cyberforce", r"\bcyber force\b", search_terms_s)
+   search_terms_s = re.sub(r" & ", ' and ', search_terms_s)
+   search_terms_s = re.sub(r'\b(c2c|ctc|noads+|tbp)\b', '', search_terms_s)
    
    # if the alternate search terms is requested, try to expand single number
    # words, and if that fails, try to contract them.
@@ -310,8 +293,8 @@ def __cleanup_search_terms(search_terms_s, alt_b):
    if alt_b and search_terms_s == orig_search_terms_s:
       search_terms_s = utils.convert_number_words(search_terms_s, False)
       
-   # strip out remaing punctuation except ' and ., which were handled above
-   word = re.compile(r"[\w'.-]{1,}")
+   # strip out most remaing punctuation
+   word = re.compile(r"[\w':.-]{1,}")
    search_terms_s = ' '.join(word.findall(search_terms_s))
    
    return search_terms_s
