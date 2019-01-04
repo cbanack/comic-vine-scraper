@@ -173,10 +173,12 @@ def __query_series_refs(search_terms_s, callback_function):
       #    them to the returned list. notice that the dom could contain single 
       #    volume OR a list of volumes in its 'volume' variable.  
       if not isinstance(dom.results.volume, list):
-         series_refs.add( __volume_to_seriesref(dom.results.volume) )
+         if len(series_refs) < __max_search_results:
+            series_refs.add( __volume_to_seriesref(dom.results.volume) )
       else:
          for volume in dom.results.volume:
-            series_refs.add( __volume_to_seriesref(volume) )
+            if len(series_refs) < __max_search_results:
+               series_refs.add( __volume_to_seriesref(volume) )
 
          # 3. if there were more than 100 results, we'll have to do some more 
          #    queries now to get the rest of them
@@ -189,19 +191,16 @@ def __query_series_refs(search_terms_s, callback_function):
             cancelled_b[0] = callback_function(
                iteration, num_remaining_pages)
 
-            while iteration < num_results_n and not cancelled_b[0]:
-               # 4. limit results count to user-specified maximum (issue 460)
-               if len(series_refs) >= __max_search_results:
-                  log.debug("...too many matches, only getting ",
-                            "the first ", __max_search_results )
-                  break
+            while iteration < num_results_n and \
+                  len(series_refs) < __max_search_results and \
+                  not cancelled_b[0]:
 
-               # 5. query for the next batch of results, in a new dom
+               # 4. query for the next batch of results, in a new dom
                dom = cvconnection._query_series_ids_dom(__api_key,
                   search_terms_s, iteration//RESULTS_PAGE_SIZE+1)
                iteration += RESULTS_PAGE_SIZE
                
-               # 5a. do a callback for the most recent batch of results
+               # 4a. do a callback for the most recent batch of results
                cancelled_b[0] = callback_function(
                   iteration, num_remaining_pages)
 
@@ -210,16 +209,22 @@ def __query_series_refs(search_terms_s, callback_function):
                         not "volume" in dom.results.__dict__:
                   log.debug("WARNING: got empty results page") # issue 33, 396
                else:
-                  # 6. convert the current batch of results into SeriesRefs,
+                  # 5. convert the current batch of results into SeriesRefs,
                   #    and then add them to the returned list.  Again, the dom
                   #    could contain a single volume, OR a list.
                   if not isinstance(dom.results.volume, list):
-                     series_refs.add(__volume_to_seriesref(dom.results.volume))
+                    if len(series_refs) < __max_search_results:
+                      series_refs.add(__volume_to_seriesref(dom.results.volume))
                   else:
-                     for volume in dom.results.volume:
+                    for volume in dom.results.volume:
+                      if len(series_refs) < __max_search_results:
                         series_refs.add( __volume_to_seriesref(volume) )
                         
-   # 7. Done.  series_refs now contained whatever SeriesRefs we could find
+   # 6. Done.  series_refs now contained whatever SeriesRefs we could find
+   if not cancelled_b[0] and len( series_refs ) < num_results_n:
+      log.debug("...too many matches, only getting ",
+                "the first ", __max_search_results )
+                
    return set() if cancelled_b[0] else series_refs   
 
    
