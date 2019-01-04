@@ -213,18 +213,19 @@ def __query_series_refs(search_terms_s, callback_function):
                   #    and then add them to the returned list.  Again, the dom
                   #    could contain a single volume, OR a list.
                   if not isinstance(dom.results.volume, list):
-                    if len(series_refs) < __max_search_results:
-                      series_refs.add(__volume_to_seriesref(dom.results.volume))
+                     if len(series_refs) < __max_search_results:
+                        series_refs.add(
+                           __volume_to_seriesref(dom.results.volume))
                   else:
-                    for volume in dom.results.volume:
-                      if len(series_refs) < __max_search_results:
-                        series_refs.add( __volume_to_seriesref(volume) )
+                     for volume in dom.results.volume:
+                        if len(series_refs) < __max_search_results:
+                           series_refs.add( __volume_to_seriesref(volume) )
                         
    # 6. Done.  series_refs now contained whatever SeriesRefs we could find
    if not cancelled_b[0] and len( series_refs ) < num_results_n:
       log.debug("...too many matches, only getting ",
                 "the first ", __max_search_results )
-                
+
    return set() if cancelled_b[0] else series_refs   
 
    
