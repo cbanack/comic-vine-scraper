@@ -200,7 +200,8 @@ class ScrapeEngine(object):
       log.debug()
       
       # 4. fire up our database connection
-      db.initialize(**{'cv_apikey':self.config.api_key_s}) 
+      db.initialize(**{'cv_apikey':self.config.api_key_s,
+                       'cv_maxresults':self.config.max_search_results_n}) 
       
       # 5. sort the ComicBooks in the order that we're gonna loop them in
       #    (sort AFTER config is loaded cause config affects the sort!)

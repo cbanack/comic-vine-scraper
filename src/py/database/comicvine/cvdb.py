@@ -30,8 +30,12 @@ from System.Drawing import Image
 # memory leak (until the main app shuts down), but it is small and worth it.
 __series_details_cache = None
 
-# this is the comicvine api key to use when accessing the comicvine api
-# it must be set when calling initialize.
+# comicvine has a tendency to return WAY too many search results, so we 
+# limit the number returned.  set in _initialize() if user has overridden. 
+__max_search_results = 100
+
+# this is the comicvine api key to use when accessing the comicvine api.
+# it is set when calling _initialize().
 __api_key = ""
 
 
@@ -42,9 +46,10 @@ def _initialize(**kwargs):
    You must pass in a valid Comic Vine api key as a keyword argument to this
    method, like so:    _initialize(**{'cv_apikey','my-key-here'})
    '''
-   global __series_details_cache, __api_key
+   global __series_details_cache, __api_key, __max_search_results
    __series_details_cache = {}
-   __api_key = kwargs["cv_apikey"] if "cv_apikey" in kwargs else ""
+   if "cv_apikey" in kwargs: __api_key = kwargs["cv_apikey"] 
+   if "cv_maxresults" in kwargs: __max_search_results = kwargs["cv_maxresults"] 
    
    if not __api_key: raise Exception("You must set a ComicVine API key!") 
    
@@ -148,7 +153,9 @@ def _query_series_refs(search_terms_s, callback_function):
 # =============================================================================
 def __query_series_refs(search_terms_s, callback_function):
    ''' A private implementation of the public method with the same name. '''
-   
+
+   global __max_search_results
+
    cancelled_b = [False]
    series_refs = set()
    
@@ -183,12 +190,18 @@ def __query_series_refs(search_terms_s, callback_function):
                iteration, num_remaining_pages)
 
             while iteration < num_results_n and not cancelled_b[0]:
-               # 4. query for the next batch of results, in a new dom
+               # 4. limit results count to user-specified maximum (issue 460)
+               if len(series_refs) >= __max_search_results:
+                  log.debug("...too many matches, only getting ",
+                            "the first ", __max_search_results )
+                  break
+
+               # 5. query for the next batch of results, in a new dom
                dom = cvconnection._query_series_ids_dom(__api_key,
                   search_terms_s, iteration//RESULTS_PAGE_SIZE+1)
                iteration += RESULTS_PAGE_SIZE
                
-               # 4a. do a callback for the most recent batch of results
+               # 5a. do a callback for the most recent batch of results
                cancelled_b[0] = callback_function(
                   iteration, num_remaining_pages)
 
@@ -197,7 +210,7 @@ def __query_series_refs(search_terms_s, callback_function):
                         not "volume" in dom.results.__dict__:
                   log.debug("WARNING: got empty results page") # issue 33, 396
                else:
-                  # 5. convert the current batch of results into SeriesRefs,
+                  # 6. convert the current batch of results into SeriesRefs,
                   #    and then add them to the returned list.  Again, the dom
                   #    could contain a single volume, OR a list.
                   if not isinstance(dom.results.volume, list):
@@ -206,7 +219,7 @@ def __query_series_refs(search_terms_s, callback_function):
                      for volume in dom.results.volume:
                         series_refs.add( __volume_to_seriesref(volume) )
                         
-   # 6. Done.  series_refs now contained whatever SeriesRefs we could find
+   # 7. Done.  series_refs now contained whatever SeriesRefs we could find
    return set() if cancelled_b[0] else series_refs   
 
    

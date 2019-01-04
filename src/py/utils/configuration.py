@@ -67,6 +67,7 @@ class Configuration(object):
    __DEFAULT_FORCE_SERIES_ART = False
    __DEFAULT_NOTE_SCRAPE_DATE = False
    __DEFAULT_SCRAPE_DELAY = 1
+   __DEFAULT_MAX_SEARCH_RESULTS = 100
 
   
    #=========================================================================== 
@@ -134,6 +135,7 @@ class Configuration(object):
       self.__force_series_art_b = None # series dialog always shows series art?
       self.__note_scrape_date_b = None # put date when scraping the Notes field?
       self.__scrape_delay_n = None # num of seconds to wait between each scrape
+      self.__max_search_results_n = None # max # of series to return on search
       self.__set_advanced_settings_s("")
       
       return self
@@ -166,6 +168,8 @@ class Configuration(object):
       self.__force_series_art_b = c.__DEFAULT_FORCE_SERIES_ART
       self.__note_scrape_date_b = c.__DEFAULT_NOTE_SCRAPE_DATE
       self.__scrape_delay_n = c.__DEFAULT_SCRAPE_DELAY
+      self.__max_search_results_n = c.__DEFAULT_MAX_SEARCH_RESULTS
+
       
       # 2. scan through the string looking at each line for advanced settings
       lines_s = [ x.strip() for x in self.__advanced_settings_s.split("\n") \
@@ -265,6 +269,12 @@ class Configuration(object):
             self.__scrape_delay_n = \
                min(3600, max(2, int(float(match.group(1)))))
 
+         # 2p. parse the "MAX_SEARCH_RESULTS=XXXX" line
+         match = re.match(pattern_s.format("MAX_SEARCH_RESULTS"), line_s)
+         if match and utils.is_number(match.group(1)):
+            self.__max_search_results_n = \
+               min(5000, max( 10, int(float(match.group(1))) ) )
+
    advanced_settings_s = property( lambda self : self.__advanced_settings_s, 
       __set_advanced_settings_s, __set_advanced_settings_s,
       "The advanced settings string for this Configuration. Not None." )
@@ -328,6 +338,10 @@ class Configuration(object):
    scrape_delay_n = property( 
       lambda self : self.__scrape_delay_n, None, None,
       "How long to wait (in seconds) between each scrape.  Not None.")
+
+   max_search_results_n = property( 
+      lambda self : self.__max_search_results_n, None, None,
+      "Maximum # of series search results to return for a query. Not None.")
    
    
    #===========================================================================
@@ -643,6 +657,10 @@ class Configuration(object):
       if self.scrape_delay_n != c.__DEFAULT_SCRAPE_DELAY:
          lines_sl.append("Using scrape delay of {0} seconds.\n"\
             .format(self.scrape_delay_n))
+
+      if self.max_search_results_n != c.__DEFAULT_MAX_SEARCH_RESULTS:
+         lines_sl.append("Series search will return first {0} results.\n"\
+            .format(self.max_search_results_n))
        
       for publisher_s in self.ignored_publishers_sl:
          lines_sl.append("Ignore all series published by '{0}'\n"\
