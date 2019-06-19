@@ -27,25 +27,29 @@ def find_parent_publisher(imprint_s):
 
 
 # the publishers that we know about that have at least one imprint
-__MARVEL = "Marvel"    # http://marvel.wikia.com/Imprints
-__DC = "DC Comics"
-__DARKHORSE = "Dark Horse Comics"
-__MALIBU = "Malibu"    # http://en.wikipedia.org/wiki/Malibu_Comics
+__ACTIONLAB = "Action Lab"
 __AMRYL =  "Amryl Entertainment"
-__AVATAR = "Avatar Press"
-__WIZARD = "Wizard"
-__TOKYOPOP = "Tokyopop"
-__DYNAMITE = "Dynamite Entertainment"
-__IMAGE = "Image"
-__HEROIC = "Heroic Publishing"
-__KODANSHA = "Kodansha"
-__PENGUIN = "Penguin Group"
-__HAKUSENSHA = "Hakusensha"
 __APE = "Ape Entertainment"
+__AVATAR = "Avatar Press"
+__BOOM = "Boom!"
+__DARKHORSE = "Dark Horse Comics"
+__DC = "DC Comics"
+__DYNAMITE = "Dynamite Entertainment"
+__HAKUSENSHA = "Hakusensha"
+__HEROIC = "Heroic Publishing"
+__IDW = "IDW Publishing"
+__IMAGE = "Image"
+__KODANSHA = "Kodansha"
+__MALIBU = "Malibu"    # http://en.wikipedia.org/wiki/Malibu_Comics
+__MARVEL = "Marvel"    # http://marvel.wikia.com/Imprints
 __NBM = "Nbm"
+__PENGUIN = "Penguin Group"
 __RADIO = "Radio Comix"
 __SLG = "Slg Publishing"
+__TITAN = "Titan Comics"
 __TOKUMA = "Tokuma Shoten"
+__TOKYOPOP = "Tokyopop"
+__WIZARD = "Wizard"
 
 
 # the mapping of imprint names to their parent publisher names
@@ -54,17 +58,20 @@ __imprint_map = {
    "Adventure": __MALIBU,
    "Aircel Publishing": __MALIBU,
    "America's Best Comics": __DC, # originally image
-   "Wildstorm": __DC,
    "Antimatter": __AMRYL,
    "Apparat": __AVATAR,
+   "Archaia": __BOOM,
+   "BOOM! Box": __BOOM,
    "Black Bull": __WIZARD,
+   "Black Crown": __IDW,
    "Blu Manga": __TOKYOPOP,
+   "CMX": __DC,
    "Chaos! Comics": __DYNAMITE,
    "Cliffhanger": __DC,
-   "CMX": __DC,
    "Comic Bom Bom": __KODANSHA,
    "ComicsLit": __NBM,
    "Curtis Magazines": __MARVEL,
+   "Danger Zone": __ACTIONLAB,
    "Dark Horse Books": __DARKHORSE,
    "Dark Horse Manga": __DARKHORSE,
    "Desperado Publishing": __IMAGE,
@@ -78,7 +85,11 @@ __imprint_map = {
    "Icon Comics": __MARVEL,
    "Impact": __DC,
    "Jets Comics": __HAKUSENSHA,
+   "KaBOOM!": __BOOM,
    "KiZoic": __APE,
+   "Kodansha Comics Digital-First!": __KODANSHA,
+   "Kodansha Comics USA": __KODANSHA,
+   "MAD": __DC,
    "Marvel Digital Comics Unlimited" : __MARVEL,
    "Marvel Knights": __MARVEL,
    "Marvel Music": __MARVEL,
@@ -93,13 +104,21 @@ __imprint_map = {
    "Piranha Press": __DC,
    "Razorline": __MARVEL,
    "ShadowLine": __IMAGE,
+   "Silverline": __IMAGE,
    "Sin Factory Comix" : __RADIO,
    "Skybound" : __IMAGE,
    "Slave Labor": __SLG,
    "Star Comics": __MARVEL,
    "Tangent Comics": __DC,
+   "Titan Books": __TITAN,
+   "Todd McFarlane Productions": __IMAGE,
    "Tokuma Comics": __TOKUMA,
+   "Top Cow": __IMAGE,
+   "Top Shelf": __IDW,
    "Ultraverse": __MALIBU,
+   "Vertical": __KODANSHA,
    "Vertigo": __DC,
+   "Wildstorm": __DC,
+   "Wildstorm": __DC,
    "Zuda Comics": __DC,
 }
