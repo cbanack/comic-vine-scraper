@@ -370,6 +370,8 @@ def get_html_string(url):
    '''
    
    try:
+      import System
+      System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12
       request = WebRequest.Create(url) 
       request.UserAgent = "[ComicVineScraper, version " + \
          Resources.SCRIPT_VERSION + "]" 
