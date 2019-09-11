@@ -15,6 +15,7 @@ clr.AddReference('System')
 from System.IO import File, StreamReader, StreamWriter, StringWriter
 from System.Text import Encoding
 from System.Net import HttpStatusCode, WebException, WebRequest
+from System.Net import ServicePointManager, SecurityProtocolType
 
 clr.AddReference('System.Drawing')
 from System.Drawing import Graphics, Bitmap
@@ -370,8 +371,7 @@ def get_html_string(url):
    '''
    
    try:
-      import System
-      System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12
+      ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
       request = WebRequest.Create(url) 
       request.UserAgent = "[ComicVineScraper, version " + \
          Resources.SCRIPT_VERSION + "]" 
