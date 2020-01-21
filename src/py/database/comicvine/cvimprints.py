@@ -40,6 +40,7 @@ __HEROIC = "Heroic Publishing"
 __IDW = "IDW Publishing"
 __IMAGE = "Image"
 __KODANSHA = "Kodansha"
+__LION = "Lion Forge Comics"
 __MALIBU = "Malibu"    # http://en.wikipedia.org/wiki/Malibu_Comics
 __MARVEL = "Marvel"    # http://marvel.wikia.com/Imprints
 __NBM = "Nbm"
@@ -58,10 +59,13 @@ __imprint_map = {
    "Adventure": __MALIBU,
    "Aircel Publishing": __MALIBU,
    "America's Best Comics": __DC, # originally image
+   "Amerotica ": __NBM,
    "Antimatter": __AMRYL,
    "Apparat": __AVATAR,
    "Archaia": __BOOM,
+   "Berger Books": __DARKHORSE,
    "BOOM! Box": __BOOM,
+   "Boundless Comics": __AVATAR,
    "Black Bull": __WIZARD,
    "Black Crown": __IDW,
    "Blu Manga": __TOKYOPOP,
@@ -77,6 +81,7 @@ __imprint_map = {
    "Desperado Publishing": __IMAGE,
    "Epic": __MARVEL, 
    "Eternity": __MALIBU,
+   "Eurotica ": __NBM,
    "Focus": __DC, 
    "Helix": __DC,
    "Hero Comics": __HEROIC,
@@ -102,7 +107,9 @@ __imprint_map = {
    "Papercutz": __NBM,
    "Paradox Press": __DC,
    "Piranha Press": __DC,
+   "Quillion": __LION,
    "Razorline": __MARVEL,
+   "Roar Comics": __LION,
    "ShadowLine": __IMAGE,
    "Silverline": __IMAGE,
    "Sin Factory Comix" : __RADIO,
