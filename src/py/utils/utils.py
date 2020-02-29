@@ -372,9 +372,11 @@ def get_html_string(url):
    
    try:
       ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
-      request = WebRequest.Create(url) 
-      request.UserAgent = "[ComicVineScraper, version " + \
-         Resources.SCRIPT_VERSION + "]" 
+      request = WebRequest.Create(url)
+      # latest version of comicvine api does NOT like my non-standard 
+      # user agent.  see bug #471...
+      # request.UserAgent = "[ComicVineScraper, version " + \
+      #   Resources.SCRIPT_VERSION + "]" 
       response = request.GetResponse()
       # if the response code is not "OK", throw a web exception immediately.
       # this stops red-herring errors later on as we try to parse bad results.
