@@ -373,9 +373,9 @@ def get_html_string(url):
    try:
       ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
       request = WebRequest.Create(url)
-      # latest version of comicvine api insists in a user agent (see bug #484).
+      # latest version of comicvine api insists on a user agent (see bug #484).
       # previously, it didn't like my non-standard user agent, I think (see bug #471).
-      # now, I have a standard user agent, and hopefully comicvine stays happen with this.
+      # now, I have a standard user agent, which comicvine api seems to like.
       request.UserAgent = "ComicVineScraper/" + \
          Resources.SCRIPT_VERSION + " (https://github.com/cbanack/comic-vine-scraper/)" 
       response = request.GetResponse()
