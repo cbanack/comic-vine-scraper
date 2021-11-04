@@ -1,4 +1,6 @@
-## Current Status
+Looking to download and install the Comic Vine Scraper plugin?  Click [HERE](https://github.com/cbanack/comic-vine-scraper/wiki/) to get started.
+
+## Project Status
 
 I am maintaining the Comic Vine Scraper project, but **I am no longer actively adding new features.**
 
