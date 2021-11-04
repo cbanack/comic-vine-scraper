@@ -1,4 +1,4 @@
-Looking to download and install the Comic Vine Scraper plugin?  Click [HERE](https://github.com/cbanack/comic-vine-scraper/wiki/) to get started.
+**Looking to download and install the Comic Vine Scraper plugin?  [Click here](https://github.com/cbanack/comic-vine-scraper/wiki/) to get started.**
 
 ## Project Status
 
