@@ -652,7 +652,8 @@ def __issue_parse_summary(issue, dom):
    # replaces to massage it into a nicer "summary" text
 #   PARAGRAPH = re.compile(r'<br />')
    OVERVIEW = re.compile('Overview')
-   PARAGRAPH = re.compile(r'<[bB][rR] ?/?>|<[Pp] ?>')
+   PARAGRAPH = re.compile(r'<[bB][rR] ?/?>|<[Pp] ?>|<[Hh]2 ?>')
+   LISTITEMS = re.compile(r'<li>')
    NBSP = re.compile('&nbsp;?')
    MULTISPACES = re.compile(' {2,}')
    STRIP_TAGS = re.compile('<.*?>')
@@ -660,6 +661,7 @@ def __issue_parse_summary(issue, dom):
    if is_string(dom.results.description):
       summary_s = OVERVIEW.sub('', dom.results.description)
       summary_s = PARAGRAPH.sub('\n', summary_s)
+      summary_s = LISTITEMS.sub('\n--', summary_s)
       summary_s = STRIP_TAGS.sub('', summary_s)
       summary_s = MULTISPACES.sub(' ', summary_s)
       summary_s = NBSP.sub(' ' , summary_s)
