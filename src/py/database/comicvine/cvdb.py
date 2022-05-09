@@ -652,7 +652,7 @@ def __issue_parse_summary(issue, dom):
    # replaces to massage it into a nicer "summary" text
 #   PARAGRAPH = re.compile(r'<br />')
    OVERVIEW = re.compile('Overview')
-   PARAGRAPH = re.compile(r'<[bB][rR] ?/?>|<[Pp] ?>|<[Hh]2 ?>')
+   PARAGRAPH = re.compile(r'<[bB][rR] ?/?>|<[Pp] ?>|<[Hh][1-5] ?>')
    LISTITEMS = re.compile(r'<li>')
    NBSP = re.compile('&nbsp;?')
    MULTISPACES = re.compile(' {2,}')
