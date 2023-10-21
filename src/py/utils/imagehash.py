@@ -54,7 +54,7 @@ def __perceptual_hash(image):
       SIZE = 8
       
       # create ImageAttributes for converting image to greyscale
-      # see: http://tech.pro/tutorial/660/
+      # see: https://tech.pro/tutorial/660/
       #              csharp-tutorial-convert-a-color-image-to-grayscale
       attr = ImageAttributes()
       attr.SetColorMatrix(

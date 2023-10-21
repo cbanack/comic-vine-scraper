@@ -32,7 +32,10 @@ clr.AddReference('System')
 from System.IO import Path
 from System import GC, DateTime
 from System.Threading import Thread, ThreadStart
-    
+
+clr.AddReference('System.Runtime')
+from System.Runtime.InteropServices import RuntimeInformation;
+
 # =============================================================================
 class ScrapeEngine(object):
    '''
@@ -123,7 +126,8 @@ class ScrapeEngine(object):
          # a litte bit of logging to help make our debug logs more useful
          log.debug()
          log.debug("-"*80)
-         log.debug("CV Scraper Version:  ", Resources.SCRIPT_VERSION)
+         log.debug("CV Scraper Version:  ", Resources.SCRIPT_VERSION,
+                   "  (using ", RuntimeInformation.FrameworkDescription, ")" )
          log.debug("Running As:          ", "ComicRack Plugin (CR version " +
             self.comicrack.App.ProductVersion + ")")
          log.debug("Cache Directory:     ", Resources.LOCAL_CACHE_DIRECTORY)

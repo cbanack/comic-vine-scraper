@@ -3,7 +3,7 @@
 #  Copyright (c) Harry Pierson. All rights reserved.
 #
 # This source code is subject to terms and conditions of the Microsoft Public License. 
-# A  copy of the license can be found at http://opensource.org/licenses/ms-pl.html
+# A  copy of the license can be found at https://opensource.org/licenses/ms-pl.html
 # By using this source code in any fashion, you are agreeing to be bound 
 # by the terms of the Microsoft Public License.
 #
@@ -29,7 +29,7 @@ class XmlNode(object):
       if xr.NodeType == XmlNodeType.Element:
          self.attributes = []
          while xr.MoveToNextAttribute():
-            if xr.NamespaceURI == 'http://www.w3.org/2000/xmlns/':
+            if xr.NamespaceURI == 'https://www.w3.org/2000/xmlns/':
                continue
             self.attributes.append(XmlNode(xr))
          xr.MoveToElement()
@@ -62,5 +62,5 @@ def parseString(xml):
    return parse(StringReader(xml))
 
 if __name__ == "__main__":
-   nodes = parse('http://feeds.feedburner.com/Devhawk')   
+   nodes = parse('https://feeds.feedburner.com/Devhawk')   
    

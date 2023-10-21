@@ -3,7 +3,7 @@
 #  Copyright (c) Harry Pierson. All rights reserved.
 #
 # This source code is subject to terms and conditions of the Microsoft Public License. 
-# A  copy of the license can be found at http://opensource.org/licenses/ms-pl.html
+# A  copy of the license can be found at https://opensource.org/licenses/ms-pl.html
 # By using this source code in any fashion, you are agreeing to be bound 
 # by the terms of the Microsoft Public License.
 #
@@ -116,6 +116,6 @@ def parseString(xml):
   
 
 if __name__ == '__main__':  
-   rss = parse('http://feeds.feedburner.com/Devhawk')
+   rss = parse('https://feeds.feedburner.com/Devhawk')
    for item in rss.channel.item:
       print item.title

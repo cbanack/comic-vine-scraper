@@ -3,13 +3,13 @@
 This module is the entry point into the 'Comic Vine Scraper' add-on for 
 ComicRack.  It conforms to ComicRack add-on specifications, outlined at:
 
-     http://comicrack.cyolito.com/faqs/28-comicrack-scripts
+     https://comicrack.cyolito.com/faqs/28-comicrack-scripts
 
 
 License: 
     
    The Comic Vine Scraper add-on is licensed under the Apache 2.0 software 
-   license, available at: http://www.apache.org/licenses/LICENSE-2.0.html
+   license, available at: https://www.apache.org/licenses/LICENSE-2.0.html
 
        
 Credits:
@@ -17,10 +17,10 @@ Credits:
    The add-on is written and maintained by Cory Banack.  It is based on the
    the ComicVineInfo script started by wadegiles and perezmu (from the 
    ComicRack forums).  It also makes use of the following:
-       - the ComicVine API - http://www.comicvine.gamespot.com/api
-       - xml2py.py and ipypulldom.py - http://devhawk.net/
-       - the DotNetZip library - http://dotnetzip.codeplex.com/
-       - MessageBoxManager - http://www.codeproject.com/
+       - the ComicVine API - https://www.comicvine.gamespot.com/api
+       - xml2py.py and ipypulldom.py - https://devhawk.net/
+       - the DotNetZip library - https://dotnetzip.codeplex.com/
+       - MessageBoxManager - https://www.codeproject.com/
 
 =========================================================================== '''
 import re

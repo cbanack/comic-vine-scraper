@@ -46,7 +46,7 @@ def install(comicrack):
       __i18n = __I18n(comicrack)
    
       # the MessageBoxManager is a helpful little DLL that I downloaded from here:
-      #    http://www.codeproject.com/KB/miscctrl/Localizing_MessageBox.aspx
+      #    https://www.codeproject.com/KB/miscctrl/Localizing_MessageBox.aspx
       #
       # it allows me to define localized strings for the different button types in
       # a MessageBox.  it MUST be uninstalled afterwards, to change things back!
@@ -131,8 +131,8 @@ class __I18n(object):
       # parses in a file that looks like this:
       #
       # <?xml version="1.0" encoding="UTF-8"?>
-      # <TR xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-      #        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+      # <TR xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" 
+      #        xmlns:xsd="https://www.w3.org/2001/XMLSchema" 
       #        Name="Script.ComicVineScraper" CultureName="en">
       #    <Texts>
       #       <Text Key="Button1" Text="Ok" Comment="Ok"/>

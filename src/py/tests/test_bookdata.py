@@ -332,8 +332,8 @@ class TestBookData(TestCase):
       ''' Checks to see if the BookData's webpage_s property works. '''
       book = BookData()
       self.assertEquals(book.webpage_s, BookData.blank("webpage_s"))
-      book.webpage_s = "http:\\batman.com"
-      self.assertEquals(book.webpage_s, "http:\\batman.com")
+      book.webpage_s = "https:\\batman.com"
+      self.assertEquals(book.webpage_s, "https:\\batman.com")
       del book.webpage_s
       self.assertEquals(book.webpage_s, BookData.blank("webpage_s"))
       
@@ -342,8 +342,8 @@ class TestBookData(TestCase):
       ''' Checks to see if the BookData's cover_url_s property works. '''
       book = BookData()
       self.assertEquals(book.cover_url_s, BookData.blank("cover_url_s"))
-      book.cover_url_s = "http:\\batman.com\pic.jpg"
-      self.assertEquals(book.cover_url_s, "http:\\batman.com\pic.jpg")
+      book.cover_url_s = "https:\\batman.com\pic.jpg"
+      self.assertEquals(book.cover_url_s, "https:\\batman.com\pic.jpg")
       del book.cover_url_s
       self.assertEquals(book.cover_url_s, BookData.blank("cover_url_s"))
       

@@ -677,7 +677,7 @@ class ConfigForm(CVForm):
    # ==========================================================================
    def __fired_linkclicked(self, sender, args):
       ''' called when the user clicks the api key linklabel '''
-      System.Diagnostics.Process.Start("http://www.comicvine.gamespot.com/api");
+      System.Diagnostics.Process.Start("https://www.comicvine.gamespot.com/api");
    
    # ==========================================================================
    def __fired_checkall(self, sender, args):
