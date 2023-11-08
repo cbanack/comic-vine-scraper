@@ -1,5 +1,5 @@
 '''
-This module contains a perceptual image has algorithm for comparing two images
+This module contains a perceptual image hash algorithm for comparing two images
 to see if they are identical or not. 
 
 @author: Cory Banack
