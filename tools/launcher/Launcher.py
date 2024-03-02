@@ -40,7 +40,7 @@ class ComicRack(object):
    App = AppImpl()
    MainWindow = MainForm()
    
-   # the existence of the attribute tells identifies this as our "fake" version
+   # the existence of the attribute identifies this as our "fake" version
    # of ComicRack, not the real application.  it's how we know we're standalone  
    StandAloneFlag = None 
 

@@ -3,7 +3,7 @@
 This module is the entry point into the 'Comic Vine Scraper' add-on for 
 ComicRack.  It conforms to ComicRack add-on specifications, outlined at:
 
-     https://comicrack.cyolito.com/faqs/28-comicrack-scripts
+     https://github.com/maforget/ComicRackCE
 
 
 License: 
@@ -68,9 +68,10 @@ def cvs_scrape(books):
    # create a launch a delegate that scrapes the given books
    def delegate():
       if books:
-      # uncomment this to create a pickled load file for my pydev launcher
-#         with open("k:/sample.pickled", "w") as f:
-#            cPickle.dump(books, f);
+         # # uncomment this to create a pickled load file for my pydev launcher
+         # import cPickle
+         # with open("k:/sample.pickled", "w") as f:
+         #   cPickle.dump(books, f)
          engine = ScrapeEngine(ComicRack)
          engine.scrape(books)
    __launch(delegate)
@@ -106,7 +107,7 @@ def __launch(delegate):
       if __validate_environment():
          delegate()
    
-   except Exception, ex:
+   except Exception as ex:
       log.handle_error(ex)
          
    finally:

@@ -27,7 +27,7 @@
       <pathelement location="${src.dir}/resources/"/>
   
       <pathelement location="${src.dir}/resources/languages"/>
-      <pathelement location="${basedir}/tools/comicrack"/>
+      <pathelement location="tools/comicrack"/>
    </path>
 
 	

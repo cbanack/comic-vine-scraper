@@ -21,13 +21,13 @@ can be found on the Comic Vine Scraper [Wiki page](https://github.com/cbanack/co
 
 ### Technical Details
  
-This project is written for Windows, using IronPython and the .NET library.  It displays WinForms graphics and makes heavy use of the [ComicVine RESTful API](https://www.comicvine.gamespot.com/api/).  It is a _plugin_ for the [ComicRack](https://comicrack.cyolito.com/) comic book reader, which is a standalone Windows desktop application.  Except during development (see below), Comic Vine Scraper does _not_ run outside of ComicRack's plugin environment.   
+This project is written for Windows, using IronPython and the .NET library.  It displays WinForms graphics and makes heavy use of the [ComicVine RESTful API](https://www.comicvine.gamespot.com/api/).  It is a _plugin_ for the [ComicRack](https://github.com/maforget/ComicRackCE) comic book reader, which is a standalone Windows desktop application.  Except during development (see below), Comic Vine Scraper does _not_ run outside of ComicRack's plugin environment.   
 
 This project is currently set up to compile and run in the [VS Code](https://code.visualstudio.com/) IDE using the [Microsoft Python Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) with properly installed versions of both Python (for parsing source code in the IDE) and IronPython (for running the code using .NET assemblies).  In other words, you should have _ipy.exe_, _python.exe_, and _pylint.exe_ working on your command-line before you get started.
 
 You should also get Java and Ant (i.e. _java.exe_ and _ant.exe_) installed and running, since this project uses Ant to build, test, and run the plugin during development.
 
-All code is written for Python version 2, not 3.
+All IronPython code is currently written for Python version 2, not 3.
 
 ### Pull Requests
 
